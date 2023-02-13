@@ -1,0 +1,41 @@
+[package]
+name = "learner_tracker_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "learner_tracker_server"
+test = false
+
+[dependencies]
+argon2 = "0.4.1"
+axum = { version = "0.6.4", features = ["macros", "headers"] }
+chrono = "0.4.23"
+dotenv = "0.15.0"
+entity = { version = "0.1.0", path = "../entity" }
+eyre = "0.6.8"
+http = "0.2.8"
+hyper = { version = "0.14.23", features = ["full"] }
+migration = { version = "0.1.0", path = "../migration" }
+password-hash = "0.4.2"
+rand = "0.8.5"
+redis = { version = "0.22.3", features = ["tokio", "serde", "serde_json", "rand", "json"] }
+reqwest = { version = "0.11.14", features = ["serde_json", "cookies", "json"] }
+sea-orm = { version = "0.11.0", features = ["sqlx-postgres", "runtime-tokio-rustls", "mock", "sqlx-sqlite"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.93"
+thiserror = "1.0.38"
+tokio = { version = "1.24.2", features = ["full", "tracing"] }
+tower-http = { version = "0.3.5", features = ["trace", "cors"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["serde", "serde_json", "json", "env-filter"] }
+uuid = { version = "1.2.2", features = ["v4", "serde"] }
+mockall = "0.11.3"
+jsonwebtoken = "8.2.0"
+
+[dev-dependencies]
+async-std = "1.12.0"
+axum-test-helper = "0.2.0"
+rstest = "0.16.0"
