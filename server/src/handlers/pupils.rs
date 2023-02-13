@@ -1,46 +1,54 @@
-use crate::{app_state::AppState};
+use crate::{app_state::AppState, models::Pupil};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
     response::IntoResponse,
 };
+use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use serde_json::json;
 use crate::models;
 
 pub async fn create_pupil(
     State(state): State<AppState>,
-    Json(pupil): Json<models::Pupil>,
-) -> impl IntoResponse {
-    match models::Pupil::from(pupil).save(state.database().as_ref()).await {
-        Ok(_) => (StatusCode::CREATED, Json(json!({"error": Option::<String>::None}))),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": Some(error.to_string())}))),
+    Json(pupil): Json<Pupil>,
+) -> (StatusCode, Json<PupilsResponse>) {
+    match pupil.save(state.database().as_ref()).await {
+        Ok(pupil) => (StatusCode::CREATED, Json(PupilsResponse { pupils: Some(vec![pupil]), error: None})),
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
     }
 }
 
-pub async fn get_pupils(State(state): State<AppState>) -> impl IntoResponse {
+pub async fn get_pupils(State(state): State<AppState>) -> (StatusCode, Json<PupilsResponse>) {
     tracing::info!("requested all pupils");
-    match models::Pupil::all_from_db(state.database().as_ref()).await {
-        Ok(pupils) => (StatusCode::OK, Json(json!({"pupils": Some(pupils), "error": Option::<String>::None}))),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"pupils": Option::<Vec<models::Pupil>>::None, "error": Some(error.to_string())}))),
+    match Pupil::all_from_db(state.database().as_ref()).await {
+        Ok(pupils) => (StatusCode::OK, Json(PupilsResponse { pupils: Some(pupils), error: None})),
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
     }
 }
 
 pub async fn get_pupil_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> impl IntoResponse {
-    match models::Pupil::one_from_db(id, state.database().as_ref()).await {
-        Ok(pupil) => (StatusCode::OK, Json(json!({"pupils": Some(pupil), "error": Option::<String>::None}))),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"pupil": Option::<Vec<models::Pupil>>::None, "error": Some(error.to_string())}))),
+) -> (StatusCode, Json<PupilsResponse>) {
+    match Pupil::one_from_db(id, state.database().as_ref()).await {
+        Ok(pupil) => (StatusCode::OK, Json(PupilsResponse { pupils: Some(vec![pupil]), error: None})),
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct PupilsResponse {
+    pupils: Option<Vec<Pupil>>,
+    error: Option<String>
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{utils::test_utils::*, constant};
+    use super::*;
+    use crate::{utils::test_utils::*, constant, models::Pupil};
     use crate::MockCtx;
-    use entity::pupil::Model as Pupil;
+    use entity::pupil::Model;
     use http::StatusCode;
     use rstest::*;
     use sea_orm::EntityTrait;
@@ -73,7 +81,7 @@ mod tests {
     async fn test_get_pupils(#[future] mock_ctx: MockCtx) {
         let ctx = mock_ctx.await;
         let pupils = vec![
-            Pupil {
+            Model {
                 id: Uuid::new_v4(),
                 first_names: "first".into(),
                 last_name: "student".into(),
@@ -83,7 +91,7 @@ mod tests {
                 year: 6,
                 ..Default::default()
             },
-            Pupil {
+            Model {
                 id: Uuid::new_v4(),
                 first_names: "second".into(),
                 last_name: "student".into(),
@@ -93,7 +101,7 @@ mod tests {
                 year: 6,
                 ..Default::default()
             },
-            Pupil {
+            Model {
                 id: Uuid::new_v4(),
                 first_names: "second".into(),
                 last_name: "student".into(),
@@ -115,16 +123,16 @@ mod tests {
             .expect("adding pupils");
         let res = ctx.client().get(constant::PUPILS_ENDPOINT).send().await;
         assert_eq!(res.status(), StatusCode::OK);
-        let response_pupils: Vec<Pupil> = res.json().await;
-        assert_eq!(pupils, response_pupils);
+        let res: PupilsResponse = res.json().await;
+        assert_eq!(res, PupilsResponse { pupils: Some(pupils.into_iter().map(Pupil::from).collect()), error: None})
     }
 
     #[rstest]
     async fn test_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
         let ctx = mock_ctx.await;
         let request_uuid = Uuid::new_v4();
-        let pupils = vec![
-            Pupil {
+        let mut pupils = vec![
+            Model {
                 id: request_uuid,
                 first_names: "first".into(),
                 last_name: "student".into(),
@@ -134,7 +142,7 @@ mod tests {
                 year: 6,
                 ..Default::default()
             },
-            Pupil {
+            Model {
                 id: Uuid::new_v4(),
                 first_names: "second".into(),
                 last_name: "student".into(),
@@ -160,7 +168,7 @@ mod tests {
             .send()
             .await;
         assert_eq!(res.status(), StatusCode::OK);
-        let response_pupil: Pupil = res.json().await;
-        assert_eq!(response_pupil, pupils[0]);
+        let res: PupilsResponse = res.json().await;
+        assert_eq!(res, PupilsResponse { pupils: Some(vec![Pupil::from(pupils.remove(0))]), error: None})
     }
 }

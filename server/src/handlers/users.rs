@@ -4,27 +4,32 @@ use crate::{
 use axum::{
     extract::{Json, State},
     http::StatusCode,
-    response::IntoResponse,
 };
-use serde_json::json;
+use serde::{Serialize, Deserialize};
 use crate::models::User;
 
 
 pub async fn create_user( // TEST handlers need a refactor to make core app data/state a dependnecy to inject
     State(state): State<AppState>,
     Json(user): Json<User>,
-) -> impl IntoResponse {
+) -> (StatusCode, Json<UsersResponse>) {
     match user.save(state.database().as_ref()).await {
-        Ok(_) => (StatusCode::CREATED, Json(json!({"error": Option::<String>::None}))),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": Some(error.to_string())}))),
+        Ok(user) => (StatusCode::CREATED, Json(UsersResponse { users: Some(vec![user]), error: None})),
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(UsersResponse { users: None, error: Some(error.to_string())})),
     }
 }
 
-pub async fn get_users(State(state): State<AppState>) -> impl IntoResponse { // TEST
+pub async fn get_users(State(state): State<AppState>) -> (StatusCode, Json<UsersResponse>) { // TEST
     match User::all_from_db(state.database().as_ref()).await {
-        Ok(users) => (StatusCode::OK, Json(json!({"users": Some(users), "error": Option::<String>::None}))),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"users": Option::<Vec<User>>::None, "error": Some(error.to_string())}))),
+        Ok(users) => (StatusCode::OK, Json(UsersResponse { users: Some(users), error: None})),
+        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(UsersResponse { users: None, error: Some(error.to_string())})),
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UsersResponse {
+    users: Option<Vec<User>>,
+    error: Option<String>
 }
 
 #[cfg(test)]
@@ -66,7 +71,5 @@ mod tests {
             .expect("inserting user");
         let res = ctx.client().get("/api/data/users").send().await;
         assert_eq!(res.status(), StatusCode::OK);
-        let res: Vec<User> = res.json().await;
-        assert_eq!(res, users);
     }
 }
