@@ -1,4 +1,4 @@
-pub static LOG_PREFIX: &str = "Pupil Tracker v0.1 | ";
+pub static LOG_PREFIX: &str = "LEARNER TRACKER v0.1 | ";
 
 // Cookie keys
 pub static SESSION_ID_COOKIE: &str = "PT-SessionId";

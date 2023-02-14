@@ -1,8 +1,10 @@
-use std::collections::HashMap;
+use crate::{
+    constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route,
+};
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
-use crate::{models::User, debug, error, routes::Route, constant, menu, pupils, login, navbar};
 use serde::Deserialize;
+use std::collections::HashMap;
 use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -16,9 +18,14 @@ pub fn app() -> Html {
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    if let Ok(user_value) = SessionStorage::get(constant::CURRENT_USER_SESSIONSTORAGE_KEY) {
+                    if let Ok(user_value) =
+                        SessionStorage::get(constant::CURRENT_USER_SESSIONSTORAGE_KEY)
+                    {
                         let user_value: User = user_value;
-                        debug!("found user in sessionstorage =>", user_value.email_address.clone());
+                        debug!(
+                            "found user in sessionstorage =>",
+                            user_value.email_address.clone()
+                        );
                         // TODOCLIENT verify user with backend to ensure the user has a valid session
                         current_user.set(Some(user_value));
                     }
@@ -33,9 +40,11 @@ pub fn app() -> Html {
         let current_user = current_user.clone();
         Callback::from(move |_| {
             spawn_local(async move {
-                let session_id: Uuid = SessionStorage::get(constant::SESSION_ID_SESSIONSTORAGE_KEY).unwrap(); // HACK handle unwraps
+                let session_id: Uuid =
+                    SessionStorage::get(constant::SESSION_ID_SESSIONSTORAGE_KEY).unwrap(); // HACK handle unwraps
                 if let Err(error) = Request::post(constant::LOGOUT_PATH)
-                    .json(&session_id).unwrap() // HACK handle unwraps
+                    .json(&session_id)
+                    .unwrap() // HACK handle unwraps
                     .send()
                     .await
                 {
@@ -56,27 +65,30 @@ pub fn app() -> Html {
         })
     };
 
-    let routing_callback = { // TODOCLIENT turn this into a ContextProvider
+    let routing_callback = {
+        // TODOCLIENT turn this into a ContextProvider
         let current_user = current_user.clone();
         Callback::from(move |route: Route| {
             let current_user = (*current_user).clone();
             // current_route.set(route.clone());
             let login = login.clone();
-            match (route, current_user.is_some())  {
+            match (route, current_user.is_some()) {
                 (Route::Menu, true) => html! { <menu::Menu />},
-                (Route::ManagePupils, true) => html! { <pupils::PupilTable current_user={current_user} />},
+                (Route::ManagePupils, true) => {
+                    html! { <pupils::PupilTable current_user={current_user} />}
+                }
                 (Route::ManageUsers, true) => todo!(),
                 (Route::Score1, true) => html! {"score1"},
-                _ => html! { <login::LoginForm  login_handler={login}/> }
+                _ => html! { <login::LoginForm  login_handler={login}/> },
             }
         })
     };
 
     html! {
         <BrowserRouter>
-        <navbar::Navbar 
-            current_user={(*current_user).clone()} 
-            logout_handler={logout} 
+        <navbar::Navbar
+            current_user={(*current_user).clone()}
+            logout_handler={logout}
         />
         <div class={classes!("mx-6", "my-4")}>
             <Switch<Route> render={routing_callback} />
@@ -85,7 +97,8 @@ pub fn app() -> Html {
     }
 }
 
-fn login(email: String, password: String, user_handle: UseStateHandle<Option<User>>) { // TEST try fantoccini
+fn login(email: String, password: String, user_handle: UseStateHandle<Option<User>>) {
+    // TEST try fantoccini
     spawn_local(async move {
         let response = Request::post(constant::LOGIN_PATH)
             .json(&HashMap::from([

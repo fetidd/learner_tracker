@@ -1,6 +1,7 @@
 use crate::{
     app_state::AppState,
     error::{Error, PTResult},
+    models::User,
 };
 use axum::{extract::State, response::IntoResponse, Json};
 use entity::user::Model;
@@ -27,7 +28,7 @@ pub async fn login_handler(
             }),
         ),
         Err(err) => (
-            StatusCode::NOT_FOUND,
+            StatusCode::BAD_REQUEST,
             Json(LoginResponse {
                 user: None,
                 error: Some(err.to_string()),
@@ -45,7 +46,7 @@ pub struct LoginRequest {
 #[derive(Serialize)]
 pub struct LoginResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
-    user: Option<Model>,
+    user: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
     error: Option<String>,
 }
@@ -54,14 +55,14 @@ async fn get_and_validate_user(
     email: String,
     pass: String,
     db: &DatabaseConnection,
-) -> PTResult<Model> {
+) -> PTResult<User> {
     let user = entity::user::Entity::find_by_id(email.clone())
         .one(db)
         .await?;
     if let Some(user) = user {
         let user: Model = user.into();
         if pass == user.hashed_password {
-            Ok(user)
+            Ok(user.into())
         } else {
             tracing::error!("passwords did not match");
             Err(Error::InvalidPassword)
@@ -75,4 +76,3 @@ async fn get_and_validate_user(
 pub async fn logout_handler() {
     // auth.logout().await;
 }
-

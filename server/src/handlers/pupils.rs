@@ -1,29 +1,53 @@
+use crate::models;
 use crate::{app_state::AppState, models::Pupil};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
     response::IntoResponse,
 };
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crate::models;
+use uuid::Uuid;
 
 pub async fn create_pupil(
     State(state): State<AppState>,
     Json(pupil): Json<Pupil>,
 ) -> (StatusCode, Json<PupilsResponse>) {
     match pupil.save(state.database().as_ref()).await {
-        Ok(pupil) => (StatusCode::CREATED, Json(PupilsResponse { pupils: Some(vec![pupil]), error: None})),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
+        Ok(pupil) => (
+            StatusCode::CREATED,
+            Json(PupilsResponse {
+                pupils: Some(vec![pupil]),
+                error: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(PupilsResponse {
+                pupils: None,
+                error: Some(error.to_string()),
+            }),
+        ),
     }
 }
 
 pub async fn get_pupils(State(state): State<AppState>) -> (StatusCode, Json<PupilsResponse>) {
     tracing::info!("requested all pupils");
     match Pupil::all_from_db(state.database().as_ref()).await {
-        Ok(pupils) => (StatusCode::OK, Json(PupilsResponse { pupils: Some(pupils), error: None})),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
+        Ok(pupils) => (
+            StatusCode::OK,
+            Json(PupilsResponse {
+                pupils: Some(pupils),
+                error: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(PupilsResponse {
+                pupils: None,
+                error: Some(error.to_string()),
+            }),
+        ),
     }
 }
 
@@ -32,22 +56,34 @@ pub async fn get_pupil_by_id(
     Path(id): Path<Uuid>,
 ) -> (StatusCode, Json<PupilsResponse>) {
     match Pupil::one_from_db(id, state.database().as_ref()).await {
-        Ok(pupil) => (StatusCode::OK, Json(PupilsResponse { pupils: Some(vec![pupil]), error: None})),
-        Err(error) => (StatusCode::INTERNAL_SERVER_ERROR, Json(PupilsResponse { pupils: None, error: Some(error.to_string())})),
+        Ok(pupil) => (
+            StatusCode::OK,
+            Json(PupilsResponse {
+                pupils: Some(vec![pupil]),
+                error: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(PupilsResponse {
+                pupils: None,
+                error: Some(error.to_string()),
+            }),
+        ),
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PupilsResponse {
     pupils: Option<Vec<Pupil>>,
-    error: Option<String>
+    error: Option<String>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{utils::test_utils::*, constant, models::Pupil};
     use crate::MockCtx;
+    use crate::{constant, models::Pupil, utils::test_utils::*};
     use entity::pupil::Model;
     use http::StatusCode;
     use rstest::*;
@@ -124,7 +160,13 @@ mod tests {
         let res = ctx.client().get(constant::PUPILS_ENDPOINT).send().await;
         assert_eq!(res.status(), StatusCode::OK);
         let res: PupilsResponse = res.json().await;
-        assert_eq!(res, PupilsResponse { pupils: Some(pupils.into_iter().map(Pupil::from).collect()), error: None})
+        assert_eq!(
+            res,
+            PupilsResponse {
+                pupils: Some(pupils.into_iter().map(Pupil::from).collect()),
+                error: None
+            }
+        )
     }
 
     #[rstest]
@@ -169,6 +211,12 @@ mod tests {
             .await;
         assert_eq!(res.status(), StatusCode::OK);
         let res: PupilsResponse = res.json().await;
-        assert_eq!(res, PupilsResponse { pupils: Some(vec![Pupil::from(pupils.remove(0))]), error: None})
+        assert_eq!(
+            res,
+            PupilsResponse {
+                pupils: Some(vec![Pupil::from(pupils.remove(0))]),
+                error: None
+            }
+        )
     }
 }

@@ -15,8 +15,8 @@ impl MigrationTrait for Migration {
         build_user_table(manager).await?;
 
         // seed data
-        // seed_pupils(manager).await?;
-        // seed_users(manager).await?;
+        seed_pupils(manager).await?;
+        seed_users(manager).await?;
         Ok(())
     }
 
