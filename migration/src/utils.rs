@@ -1,8 +1,16 @@
 use entity::pupil::ActiveModel as Pupil;
 use chrono::{NaiveDate, Datelike};
+use crate::sea_orm::DatabaseConnection;
 use sea_orm_migration::sea_orm::Set;
 use uuid::Uuid;
 use rand::prelude::*;
+
+use crate::{pupil::seed_pupils, user::seed_users};
+
+pub async fn seed_database(db: &DatabaseConnection) {
+    seed_pupils(db).await.expect("seeding pupils");
+    seed_users(db).await.expect("seeding users");
+}
 
 pub fn generate_pupils(n: i32) -> Vec<Pupil> {
     let mut rng = thread_rng();

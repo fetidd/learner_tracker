@@ -56,13 +56,11 @@ async fn get_and_validate_user(
     pass: String,
     db: &DatabaseConnection,
 ) -> PTResult<User> {
-    let user = entity::user::Entity::find_by_id(email.clone())
-        .one(db)
-        .await?;
-    if let Some(user) = user {
-        let user: Model = user.into();
-        if pass == user.hashed_password {
-            Ok(user.into())
+    let user = User::one_from_db(&email, db)
+        .await;
+    if let Ok(user) = user {
+        if pass == user.hashed_password() {
+            Ok(user)
         } else {
             tracing::error!("passwords did not match");
             Err(Error::InvalidPassword)

@@ -1,6 +1,7 @@
 [serve]
 port = 3001
 open = true
+address = "192.168.1.133"
 
 [[proxy]]
 backend = "http://192.168.1.133:3000/api"

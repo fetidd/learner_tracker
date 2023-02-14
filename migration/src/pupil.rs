@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use sea_orm::DatabaseConnection;
 use sea_orm_migration::{prelude::*, sea_orm::{ActiveModelTrait, TransactionTrait}};
 
 use crate::utils::generate_pupils;
@@ -64,8 +65,7 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     Ok(())
 }
 
-pub async fn seed_pupils(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    let db = manager.get_connection();
+pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
     for pupil in generate_pupils(300) {
         pupil.insert(&trx).await?;

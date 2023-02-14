@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use entity::user::ActiveModel;
+use sea_orm::DatabaseConnection;
 use sea_orm_migration::{prelude::*, sea_orm::{Set, ActiveModelTrait}};
 
 pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
@@ -28,8 +29,7 @@ pub async fn drop_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     Ok(())
 }
 
-pub async fn seed_users(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    let db = manager.get_connection();
+pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
     ActiveModel {
         first_names: Set("Ben".into()),
         last_name: Set("Jones".into()),

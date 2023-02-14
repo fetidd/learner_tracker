@@ -3,7 +3,7 @@ mod user;
 mod utils;
 
 pub use sea_orm_migration::prelude::*;
-pub use crate::{user::*, pupil::*};
+pub use crate::{user::*, pupil::*, utils::seed_database};
 
 mod m20220101_000001_create_table;
 
