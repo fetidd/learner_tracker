@@ -30,8 +30,4 @@ pub enum Error {
     DbErr(#[from] sea_orm::DbErr),
     #[error("hyper error: {0}")]
     HyperError(#[from] hyper::Error),
-    #[error("authorisation error: {0}")] // FIXME is this still needed?
-    AuthError(#[from] eyre::ErrReport),
-    #[error("session database error: {0}")]  // FIXME is this still needed?
-    SessionDatabaseError(#[from] redis::RedisError),
 }
