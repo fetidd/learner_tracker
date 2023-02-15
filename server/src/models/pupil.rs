@@ -66,51 +66,11 @@ impl Pupil {
     }
 }
 
-impl From<Model> for Pupil {
-    fn from(value: Model) -> Self {
-        Self {
-            id: value.id,
-            first_names: value.first_names,
-            last_name: value.last_name,
-            year: value.year,
-            start_date: value.start_date,
-            end_date: value.end_date,
-            active: value.active,
-            more_able_and_talented: value.more_able_and_talented,
-            english_as_additional_language: value.english_as_additional_language,
-            free_school_meals: value.free_school_meals,
-            additional_learning_needs: value.additional_learning_needs,
-            looked_after_child: value.looked_after_child,
-            gender: value.gender,
-        }
-    }
-}
-
-impl Into<Model> for Pupil {
-    fn into(self) -> Model {
-        Model {
-            id: self.id,
-            first_names: self.first_names,
-            last_name: self.last_name,
-            year: self.year,
-            start_date: self.start_date,
-            end_date: self.end_date,
-            active: self.active,
-            more_able_and_talented: self.more_able_and_talented,
-            english_as_additional_language: self.english_as_additional_language,
-            free_school_meals: self.free_school_meals,
-            additional_learning_needs: self.additional_learning_needs,
-            looked_after_child: self.looked_after_child,
-            gender: self.gender,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, Transaction, MockExecResult};
+    use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
 
     #[rstest]
     async fn test_one_from_db() {
@@ -212,5 +172,45 @@ mod tests {
             [pupil.id.into(), "test".into(), "student".into(), 2.into(), pupil.start_date.into(), pupil.end_date.into(), true.into(), false.into(), false.into(), false.into(), false.into(), false.into(), "male".into()],
         );
         assert_eq!(t_log[0], exp_query);
+    }
+}
+
+impl From<Model> for Pupil {
+    fn from(value: Model) -> Self {
+        Self {
+            id: value.id,
+            first_names: value.first_names,
+            last_name: value.last_name,
+            year: value.year,
+            start_date: value.start_date,
+            end_date: value.end_date,
+            active: value.active,
+            more_able_and_talented: value.more_able_and_talented,
+            english_as_additional_language: value.english_as_additional_language,
+            free_school_meals: value.free_school_meals,
+            additional_learning_needs: value.additional_learning_needs,
+            looked_after_child: value.looked_after_child,
+            gender: value.gender,
+        }
+    }
+}
+
+impl Into<Model> for Pupil {
+    fn into(self) -> Model {
+        Model {
+            id: self.id,
+            first_names: self.first_names,
+            last_name: self.last_name,
+            year: self.year,
+            start_date: self.start_date,
+            end_date: self.end_date,
+            active: self.active,
+            more_able_and_talented: self.more_able_and_talented,
+            english_as_additional_language: self.english_as_additional_language,
+            free_school_meals: self.free_school_meals,
+            additional_learning_needs: self.additional_learning_needs,
+            looked_after_child: self.looked_after_child,
+            gender: self.gender,
+        }
     }
 }
