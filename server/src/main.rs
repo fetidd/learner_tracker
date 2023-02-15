@@ -4,7 +4,7 @@ use std::sync::Arc;
 use tower_http::trace::TraceLayer;
 
 #[tokio::main]
-async fn main() -> learner_tracker_server::error::PTResult<()> {
+async fn main() -> learner_tracker_server::error::LTResult<()> {
     dotenv::dotenv().ok();
     tracing_subscriber::fmt::init();
     let db = Arc::new(sea_orm::Database::connect(std::env::var("DATABASE_URL")?).await?);

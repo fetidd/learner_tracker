@@ -1,9 +1,18 @@
 use rand::RngCore;
+use regex::Regex;
+use lazy_static::lazy_static;
 
 pub fn generate_secret() -> [u8; 64] {
     let mut secret: [u8; 64] = [0u8; 64];
     rand::thread_rng().fill_bytes(&mut secret);
     secret
+}
+
+pub fn is_valid_email(email: &str) -> bool {
+    lazy_static! {
+        static ref EMAIL_REGEX: Regex = Regex::new(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}").unwrap();
+    }
+    EMAIL_REGEX.is_match(email)
 }
 
 #[cfg(test)]

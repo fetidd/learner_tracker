@@ -1,4 +1,4 @@
-use crate::error::{Error, PTResult};
+use crate::error::{Error, LTResult};
 use entity::user::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use sea_orm::{DatabaseConnection, Set};
@@ -6,12 +6,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, PartialOrd)]
 pub struct User {
-    first_names: String,
-    last_name: String,
-    email_address: String,
+    pub(crate) first_names: String,
+    pub(crate) last_name: String,
+    pub(crate) email_address: String,
     #[serde(skip_serializing)]
-    hashed_password: String,
-    years: Vec<u32>,
+    pub(crate) hashed_password: String,
+    pub(crate) years: Vec<u32>,
 }
 
 impl User {
@@ -21,21 +21,17 @@ impl User {
         email_address: &str,
         hashed_password: &str,
         years: Vec<u32>,
-    ) -> PTResult<Self> {
-        if years.is_empty() {
-            Err(Error::NoYearsForUser)
-        } else {
-            Ok(Self {
-                first_names: first_names.to_owned(),
-                last_name: last_name.to_owned(),
-                email_address: email_address.to_owned(),
-                hashed_password: hashed_password.to_owned(),
-                years
-            })
+    ) -> Self {
+        Self {
+            first_names: first_names.to_owned(),
+            last_name: last_name.to_owned(),
+            email_address: email_address.to_owned(),
+            hashed_password: hashed_password.to_owned(),
+            years
         }
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> PTResult<Self> { // TEST
+    pub async fn save(&self, db: &DatabaseConnection) -> LTResult<Self> { // TEST
         Ok(ActiveModel {
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
@@ -53,14 +49,14 @@ impl User {
         .into())
     }
 
-    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> PTResult<Self> { // TEST
+    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> LTResult<Self> { // TEST
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
             None => Err(Error::UserDoesNotExist),
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> PTResult<Vec<Self>> { // TEST
+    pub async fn all_from_db(db: &DatabaseConnection) -> LTResult<Vec<Self>> { // TEST
         Ok(Entity::find()
             .all(db)
             .await?
@@ -68,21 +64,13 @@ impl User {
             .map(Into::into)
             .collect())
     }
-
-    pub fn hashed_password(&self) -> String {
-        self.hashed_password.clone()
-    }
-
-    pub fn email_address(&self) -> String {
-        self.email_address.clone()
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, Transaction, MockExecResult};
+    use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
 
     #[rstest]
     async fn test_one_from_db() {
@@ -145,7 +133,7 @@ mod tests {
 
     #[rstest]
     async fn test_save() {
-        let user = User::new("test", "user", "test@test.com", "hashedpass", vec![1,2,3]).unwrap();
+        let user = User::new("test", "user", "test@test.com", "hashedpass", vec![1,2,3]);
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![vec![<User as Into<Model>>::into(user.clone())]])
             .into_connection();
@@ -159,7 +147,6 @@ mod tests {
         );
         assert_eq!(t_log[0], exp_query);
     }
-
 }
 
 impl From<Model> for User {
@@ -203,7 +190,7 @@ mod trait_tests {
     use super::*;
     use rstest::*;
     use sea_orm::{DatabaseBackend, MockDatabase, Transaction, MockExecResult};
-    use crate::error::{PTResult, Error};
+    use crate::error::{LTResult, Error};
 
     #[rstest]
     #[case("1")]

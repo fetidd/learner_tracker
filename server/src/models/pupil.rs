@@ -1,4 +1,4 @@
-use crate::error::{Error, PTResult};
+use crate::error::{Error, };
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
@@ -24,7 +24,7 @@ pub struct Pupil {
 }
 
 impl Pupil {
-    pub async fn one_from_db<Id>(id: Id, db: &DatabaseConnection) -> PTResult<Self>
+    pub async fn one_from_db<Id>(id: Id, db: &DatabaseConnection) -> Result<Self, Error>
     where
         Id: Into<Uuid>,
     {
@@ -35,7 +35,7 @@ impl Pupil {
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> PTResult<Vec<Self>> {
+    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>, Error> {
         Ok(Entity::find()
             .all(db)
             .await?
@@ -44,7 +44,7 @@ impl Pupil {
             .collect())
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> PTResult<Self> {
+    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self, Error> {
         Ok(ActiveModel {
             id: Set(self.id.clone()),
             first_names: Set(self.first_names.clone()),

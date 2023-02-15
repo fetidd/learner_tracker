@@ -1,9 +1,11 @@
 use thiserror::Error;
 
-pub type PTResult<T> = Result<T, Error>;
+pub type LTResult<T> = Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("invalid request: {0}")]
+    InvalidRequest(String),
     #[error("invalid password")]
     InvalidPassword,
     #[error("user does not exist")]

@@ -1,6 +1,6 @@
 use crate::{
     app_state::AppState,
-    error::{Error, PTResult},
+    error::{Error, LTResult},
     models::User,
 };
 use axum::{extract::State, response::IntoResponse, Json};
@@ -55,11 +55,11 @@ async fn get_and_validate_user(
     email: String,
     pass: String,
     db: &DatabaseConnection,
-) -> PTResult<User> {
+) -> LTResult<User> {
     let user = User::one_from_db(&email, db)
         .await;
     if let Ok(user) = user {
-        if pass == user.hashed_password() {
+        if pass == user.hashed_password {
             Ok(user)
         } else {
             tracing::error!("passwords did not match");
