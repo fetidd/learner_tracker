@@ -24,16 +24,16 @@ impl Display for Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let code = match self.kind {
-            ErrorKind::InvalidApiRequest =>     StatusCode::BAD_REQUEST,
-            ErrorKind::InvalidUserPassword =>   StatusCode::BAD_REQUEST,
-            ErrorKind::UserDoesNotExist =>      StatusCode::BAD_REQUEST,
-            ErrorKind::PupilDoesNotExist =>     StatusCode::BAD_REQUEST,
-            ErrorKind::MissingEnvVariable =>    StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::AddrParseError =>        StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::IoError =>               StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::ParseIntError =>         StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::DatabaseError =>         StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::ServerError =>           StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::InvalidApiRequest
+            | ErrorKind::InvalidUserPassword
+            | ErrorKind::UserDoesNotExist
+            | ErrorKind::PupilDoesNotExist => StatusCode::BAD_REQUEST,
+            ErrorKind::MissingEnvVariable
+            | ErrorKind::AddrParseError
+            | ErrorKind::IoError
+            | ErrorKind::ParseIntError
+            | ErrorKind::DatabaseError
+            | ErrorKind::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
         };
         tracing::error!("{}", self.to_string()); // ??? is logging the error here correct?
         (
@@ -55,13 +55,13 @@ macro_rules! impl_from_error {
                 }
             }
         }
-    }
+    };
 }
 
-impl_from_error!{sea_orm::DbErr,           DatabaseError}
-impl_from_error!{std::env::VarError,       MissingEnvVariable}
-impl_from_error!{std::net::AddrParseError, AddrParseError}
-impl_from_error!{hyper::Error,             ServerError}
+impl_from_error! {sea_orm::DbErr,           DatabaseError}
+impl_from_error! {std::env::VarError,       MissingEnvVariable}
+impl_from_error! {std::net::AddrParseError, AddrParseError}
+impl_from_error! {hyper::Error,             ServerError}
 
 //=====================================================================================================
 /// Different kinds of error that can be thrown in the system.
