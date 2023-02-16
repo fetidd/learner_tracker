@@ -1,4 +1,4 @@
-use crate::error::{Error, Result, ErrorKind};
+use crate::error::{Error, ErrorKind, Result};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
@@ -31,7 +31,10 @@ impl Pupil {
         let id: Uuid = id.into();
         match Entity::find_by_id(id).one(db).await? {
             Some(pupil) => Ok(pupil.into()),
-            None => Err(Error { kind: ErrorKind::PupilDoesNotExist, message: "".into() }),
+            None => Err(Error {
+                kind: ErrorKind::PupilDoesNotExist,
+                message: "".into(),
+            }),
         }
     }
 
@@ -133,7 +136,14 @@ mod tests {
         let query_res = Pupil::all_from_db(&db).await;
         assert!(query_res.is_ok());
         let pupils = query_res.unwrap();
-        assert_eq!(pupils, results.clone().into_iter().map(Pupil::from).collect::<Vec<Pupil>>());
+        assert_eq!(
+            pupils,
+            results
+                .clone()
+                .into_iter()
+                .map(Pupil::from)
+                .collect::<Vec<Pupil>>()
+        );
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
@@ -169,7 +179,21 @@ mod tests {
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
             r#"INSERT INTO "pupil" ("id", "first_names", "last_name", "year", "start_date", "end_date", "active", "more_able_and_talented", "english_as_additional_language", "free_school_meals", "additional_learning_needs", "looked_after_child", "gender") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING "id", "first_names", "last_name", "year", "start_date", "end_date", "active", "more_able_and_talented", "english_as_additional_language", "free_school_meals", "additional_learning_needs", "looked_after_child", "gender""#,
-            [pupil.id.into(), "test".into(), "student".into(), 2.into(), pupil.start_date.into(), pupil.end_date.into(), true.into(), false.into(), false.into(), false.into(), false.into(), false.into(), "male".into()],
+            [
+                pupil.id.into(),
+                "test".into(),
+                "student".into(),
+                2.into(),
+                pupil.start_date.into(),
+                pupil.end_date.into(),
+                true.into(),
+                false.into(),
+                false.into(),
+                false.into(),
+                false.into(),
+                false.into(),
+                "male".into(),
+            ],
         );
         assert_eq!(t_log[0], exp_query);
     }

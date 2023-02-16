@@ -1,4 +1,7 @@
-use crate::{app_state::AppState, handlers::{pupils::*, users::*, login::*}};
+use crate::{
+    app_state::AppState,
+    handlers::{login::*, pupils::*, users::*},
+};
 use axum::{
     routing::{get, post},
     Router,

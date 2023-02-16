@@ -1,82 +1,40 @@
-use crate::models;
-use crate::{app_state::AppState, models::Pupil};
+use crate::{app_state::AppState, error::*, models::Pupil};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
-    response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use uuid::Uuid;
 
 pub async fn create_pupil(
     State(state): State<AppState>,
     Json(pupil): Json<Pupil>,
-) -> (StatusCode, Json<PupilsResponse>) {
-    match pupil.save(state.database().as_ref()).await {
-        Ok(pupil) => (
-            StatusCode::CREATED,
-            Json(PupilsResponse {
-                pupils: Some(vec![pupil]),
-                error: None,
-            }),
-        ),
-        Err(error) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(PupilsResponse {
-                pupils: None,
-                error: Some(error.to_string()),
-            }),
-        ),
-    }
+) -> Result<StatusCode> {
+    pupil.save(state.database().as_ref()).await?;
+    Ok(StatusCode::CREATED)
 }
 
-pub async fn get_pupils(State(state): State<AppState>) -> (StatusCode, Json<PupilsResponse>) {
+pub async fn get_pupils(State(state): State<AppState>) -> Result<Json<PupilsResponse>> {
     tracing::info!("requested all pupils");
-    match Pupil::all_from_db(state.database().as_ref()).await {
-        Ok(pupils) => (
-            StatusCode::OK,
-            Json(PupilsResponse {
-                pupils: Some(pupils),
-                error: None,
-            }),
-        ),
-        Err(error) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(PupilsResponse {
-                pupils: None,
-                error: Some(error.to_string()),
-            }),
-        ),
-    }
+    let pupils = Pupil::all_from_db(state.database().as_ref()).await?;
+    Ok(Json(PupilsResponse {
+        pupils: Some(pupils),
+    }))
 }
 
 pub async fn get_pupil_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> (StatusCode, Json<PupilsResponse>) {
-    match Pupil::one_from_db(id, state.database().as_ref()).await {
-        Ok(pupil) => (
-            StatusCode::OK,
-            Json(PupilsResponse {
-                pupils: Some(vec![pupil]),
-                error: None,
-            }),
-        ),
-        Err(error) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(PupilsResponse {
-                pupils: None,
-                error: Some(error.to_string()),
-            }),
-        ),
-    }
+) -> Result<Json<PupilsResponse>> {
+    let pupil = Pupil::one_from_db(id, state.database().as_ref()).await?;
+    Ok(Json(PupilsResponse {
+        pupils: Some(vec![pupil]),
+    }))
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PupilsResponse {
     pupils: Option<Vec<Pupil>>,
-    error: Option<String>,
 }
 
 #[cfg(test)]
@@ -164,7 +122,6 @@ mod tests {
             res,
             PupilsResponse {
                 pupils: Some(pupils.into_iter().map(Pupil::from).collect()),
-                error: None
             }
         )
     }
@@ -215,7 +172,6 @@ mod tests {
             res,
             PupilsResponse {
                 pupils: Some(vec![Pupil::from(pupils.remove(0))]),
-                error: None
             }
         )
     }

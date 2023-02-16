@@ -1,15 +1,12 @@
-use migration::{MigratorTrait, Migrator, seed_database};
-use std::{
-    net::SocketAddr,
-    sync::Arc,
-};
-use tower_http::trace::TraceLayer;
+use axum::Server;
 use learner_tracker_server::{
+    app_state::{AppState, AppStateObj},
     error::Result,
-    app_state::{AppStateObj, AppState},
     router::router,
 };
-use axum::Server;
+use migration::{seed_database, Migrator, MigratorTrait};
+use std::{net::SocketAddr, sync::Arc};
+use tower_http::trace::TraceLayer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -30,5 +27,3 @@ async fn main() -> Result<()> {
         .await?;
     Ok(())
 }
-
-

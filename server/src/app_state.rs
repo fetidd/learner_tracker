@@ -24,4 +24,3 @@ impl AppStateTrait for AppStateObj {
 pub trait AppStateTrait {
     fn database(&self) -> Arc<DatabaseConnection>;
 }
-

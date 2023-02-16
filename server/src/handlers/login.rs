@@ -1,10 +1,10 @@
 use crate::{
     app_state::AppState,
-    error::{Error, Result, ErrorKind},
+    error::{Error, ErrorKind, Result},
     models::User,
 };
 use axum::{extract::State, Json};
-use sea_orm::{DatabaseConnection};
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
 pub async fn login_handler(
@@ -17,7 +17,7 @@ pub async fn login_handler(
         state.database().as_ref(),
     )
     .await?;
-    Ok(Json(LoginResponse {user: Some(user)}))
+    Ok(Json(LoginResponse { user: Some(user) }))
 }
 
 #[derive(Deserialize)]
@@ -36,18 +36,23 @@ async fn get_and_validate_user(
     pass: String,
     db: &DatabaseConnection,
 ) -> Result<User> {
-    let user = User::one_from_db(&email, db)
-        .await;
+    let user = User::one_from_db(&email, db).await;
     if let Ok(user) = user {
         if pass == user.hashed_password {
             Ok(user)
         } else {
             tracing::error!("passwords did not match");
-            Err(Error { kind: ErrorKind::InvalidUserPassword, message: "passwords did not match".into()})
+            Err(Error {
+                kind: ErrorKind::InvalidUserPassword,
+                message: "passwords did not match".into(),
+            })
         }
     } else {
         tracing::error!("user with email {} does not exist", &email);
-        Err(Error { kind: ErrorKind::UserDoesNotExist, message: format!("user with email {} does not exist", &email)})
+        Err(Error {
+            kind: ErrorKind::UserDoesNotExist,
+            message: format!("user with email {} does not exist", &email),
+        })
     }
 }
 

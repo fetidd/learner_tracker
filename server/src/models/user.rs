@@ -1,4 +1,4 @@
-use crate::error::{Error, Result, ErrorKind};
+use crate::error::{Error, ErrorKind, Result};
 use entity::user::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use sea_orm::{DatabaseConnection, Set};
@@ -15,7 +15,8 @@ pub struct User {
 }
 
 impl User {
-    pub fn new( // TEST
+    pub fn new(
+        // TEST
         first_names: &str,
         last_name: &str,
         email_address: &str,
@@ -27,11 +28,12 @@ impl User {
             last_name: last_name.to_owned(),
             email_address: email_address.to_owned(),
             hashed_password: hashed_password.to_owned(),
-            years
+            years,
         }
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> { // TEST
+    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
+        // TEST
         Ok(ActiveModel {
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
@@ -49,14 +51,19 @@ impl User {
         .into())
     }
 
-    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> { // TEST
+    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> {
+        // TEST
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
-            None => Err(Error { kind: ErrorKind::UserDoesNotExist, message: "user with email {email} does not exist".into()}),
+            None => Err(Error {
+                kind: ErrorKind::UserDoesNotExist,
+                message: "user with email {email} does not exist".into(),
+            }),
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> { // TEST
+    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> {
+        // TEST
         Ok(Entity::find()
             .all(db)
             .await?
@@ -79,7 +86,7 @@ mod tests {
             last_name: "user".into(),
             email_address: "test@test.com".into(),
             hashed_password: "hashedpassword".into(),
-            years: "2,3".into()
+            years: "2,3".into(),
         }];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
@@ -105,14 +112,14 @@ mod tests {
                 last_name: "user".into(),
                 email_address: "test@test.com".into(),
                 hashed_password: "hashedpassword".into(),
-                years: "2,3".into()
+                years: "2,3".into(),
             },
             Model {
                 first_names: "test2".into(),
                 last_name: "user".into(),
                 email_address: "test2@test.com".into(),
                 hashed_password: "hashedpassword".into(),
-                years: "1,2,3,4,5,6".into()
+                years: "1,2,3,4,5,6".into(),
             },
         ];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
@@ -121,7 +128,10 @@ mod tests {
         let query_res = User::all_from_db(&db).await;
         assert!(query_res.is_ok());
         let user = query_res.unwrap();
-        assert_eq!(user, results.into_iter().map(User::from).collect::<Vec<User>>());
+        assert_eq!(
+            user,
+            results.into_iter().map(User::from).collect::<Vec<User>>()
+        );
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
@@ -133,7 +143,7 @@ mod tests {
 
     #[rstest]
     async fn test_save() {
-        let user = User::new("test", "user", "test@test.com", "hashedpass", vec![1,2,3]);
+        let user = User::new("test", "user", "test@test.com", "hashedpass", vec![1, 2, 3]);
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![vec![<User as Into<Model>>::into(user.clone())]])
             .into_connection();
@@ -143,7 +153,13 @@ mod tests {
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
             r#"INSERT INTO "user" ("first_names", "last_name", "email_address", "hashed_password", "years") VALUES ($1, $2, $3, $4, $5) RETURNING "first_names", "last_name", "email_address", "hashed_password", "years""#,
-            ["test".into(), "user".into(), "test@test.com".into(), "hashedpass".into(), "1,2,3".into()]
+            [
+                "test".into(),
+                "user".into(),
+                "test@test.com".into(),
+                "hashedpass".into(),
+                "1,2,3".into(),
+            ],
         );
         assert_eq!(t_log[0], exp_query);
     }
@@ -188,9 +204,9 @@ impl From<User> for Model {
 #[cfg(test)]
 mod trait_tests {
     use super::*;
+    use crate::error::{Error, Result};
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, Transaction, MockExecResult};
-    use crate::error::{Result, Error};
+    use sea_orm::{DatabaseBackend, MockDatabase, MockExecResult, Transaction};
 
     #[rstest]
     #[case("1")]
@@ -226,7 +242,5 @@ mod trait_tests {
     }
 
     #[rstest]
-    fn test_model_from_user() {
-        
-    }
+    fn test_model_from_user() {}
 }
