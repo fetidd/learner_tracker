@@ -1,11 +1,9 @@
 use entity::pupil::ActiveModel as Pupil;
 use chrono::{NaiveDate, Datelike};
-use crate::sea_orm::DatabaseConnection;
 use sea_orm_migration::sea_orm::Set;
 use uuid::Uuid;
 use rand::prelude::*;
-
-use crate::{pupil::seed_pupils, user::seed_users};
+use crate::{pupil::seed_pupils, pupil::seed_pupils_many, user::seed_users, sea_orm::DatabaseConnection};
 
 pub async fn seed_database(db: &DatabaseConnection) {
     seed_pupils(db).await.expect("seeding pupils");

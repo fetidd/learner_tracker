@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use sea_orm::EntityTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm_migration::{prelude::*, sea_orm::{ActiveModelTrait, TransactionTrait}};
 
@@ -68,9 +69,15 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
 pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
     for pupil in generate_pupils(300) {
-        pupil.insert(&trx).await?; // TODO speed this up by making one insert rather than 1 trxn?
+        pupil.insert(&trx).await?;
     }
     trx.commit().await?;
+    Ok(())
+}
+
+pub async fn seed_pupils_many(db: &DatabaseConnection) -> Result<(), DbErr> {
+    let pupils = generate_pupils(300);
+    entity::pupil::Entity::insert_many(pupils).exec(db).await?;
     Ok(())
 }
 

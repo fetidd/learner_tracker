@@ -40,15 +40,22 @@ pub fn app() -> Html {
         let current_user = current_user.clone();
         Callback::from(move |_| {
             spawn_local(async move {
-                let session_id: Uuid =
-                    SessionStorage::get(constant::SESSION_ID_SESSIONSTORAGE_KEY).unwrap(); // HACK handle unwraps
-                if let Err(error) = Request::post(constant::LOGOUT_PATH)
-                    .json(&session_id)
-                    .unwrap() // HACK handle unwraps
-                    .send()
-                    .await
-                {
-                    error!(error.to_string())
+                match SessionStorage::get::<Uuid>(constant::SESSION_ID_SESSIONSTORAGE_KEY) {
+                    Ok(session_id) => {
+                        match Request::post(constant::LOGOUT_PATH).json(&session_id) {
+                            Ok(logout_response) => {
+                                if let Err(error) = logout_response.send().await {
+                                    error!(error.to_string())
+                                }
+                            },
+                            Err(error) => {
+                                error!(error.to_string());
+                            }
+                        }
+                    },
+                    Err(error) => {
+                        error!(error.to_string());
+                    }
                 }
                 SessionStorage::delete(constant::CURRENT_USER_SESSIONSTORAGE_KEY);
                 SessionStorage::delete(constant::SESSION_ID_SESSIONSTORAGE_KEY);
