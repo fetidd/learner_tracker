@@ -33,9 +33,10 @@ tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["serde", "serde_json", "json", "env-filter"] }
 uuid = { version = "1.2.2", features = ["v4", "serde"] }
 mockall = "0.11.3"
-jsonwebtoken = "8.2.0"
 regex = "1.7.1"
 lazy_static = "1.4.0"
+jsonwebtoken = "8.2.0"
+base64 = "0.21.0"
 
 [dev-dependencies]
 async-std = "1.12.0"

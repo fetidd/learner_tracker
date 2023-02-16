@@ -1,6 +1,3 @@
-use argon2::Argon2;
-use password_hash::SaltString;
-use rand::thread_rng;
 use web_sys::HtmlInputElement;
 use yew::function_component;
 
@@ -19,8 +16,6 @@ pub fn login_form(p: &LoginFormProps) -> Html {
         let entered_password = entered_password.clone();
         Callback::from(move |_| {
             let password = entered_password.cast::<HtmlInputElement>().unwrap().value();
-            let _salt = SaltString::generate(thread_rng()); // TODOSERVER implement password hashing!!!
-            let _argon2 = Argon2::default();
             let hashed_password = password;
             login_callback.emit((
                 entered_email.cast::<HtmlInputElement>().unwrap().value(), 

@@ -1805,13 +1805,11 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 name = "learner_tracker_client"
 version = "0.1.0"
 dependencies = [
- "argon2",
  "chrono",
  "gloo-console",
  "gloo-net",
  "gloo-storage",
  "lazy_static",
- "password-hash",
  "rand",
  "regex",
  "serde",
@@ -1831,6 +1829,7 @@ dependencies = [
  "async-std",
  "axum",
  "axum-test-helper",
+ "base64 0.21.0",
  "chrono",
  "dotenv",
  "entity",

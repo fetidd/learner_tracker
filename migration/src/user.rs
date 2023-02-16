@@ -31,10 +31,10 @@ pub async fn drop_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
 
 pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
     ActiveModel {
-        first_names: Set("Ben".into()),
-        last_name: Set("Jones".into()),
-        email_address: Set("fetiddius@gmail.com".into()),
-        hashed_password: Set("hashedpassword".into()),
+        first_names: Set("test".into()),
+        last_name: Set("user".into()),
+        email_address: Set("test@test.com".into()),
+        hashed_password: Set("password".into()),
         years: Set("5,6".into()),
     }.insert(db).await?;
     Ok(())

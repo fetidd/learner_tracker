@@ -17,9 +17,7 @@ pub async fn create_pupil(
 pub async fn get_pupils(State(state): State<AppState>) -> Result<Json<PupilsResponse>> {
     tracing::info!("requested all pupils");
     let pupils = Pupil::all_from_db(state.database().as_ref()).await?;
-    Ok(Json(PupilsResponse {
-        pupils: pupils,
-    }))
+    Ok(Json(PupilsResponse { pupils: pupils }))
 }
 
 pub async fn get_pupil_by_id(

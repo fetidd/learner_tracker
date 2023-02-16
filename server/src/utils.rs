@@ -38,7 +38,7 @@ pub mod test_utils {
         let check_db = Arc::clone(&mock_db);
         mock_state
             .expect_database()
-            .returning(move || Arc::clone(&mock_db));
+            .return_const(Arc::clone(&mock_db));
         let app = router().with_state(Arc::new(mock_state));
         let client = TestClient::new(app);
         MockCtx { check_db, client }

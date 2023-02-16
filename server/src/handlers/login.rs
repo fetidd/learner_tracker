@@ -1,5 +1,6 @@
 use crate::{
     app_state::AppState,
+    auth::generate_auth_token,
     error::{Error, ErrorKind, Result},
     models::User,
 };
@@ -17,7 +18,8 @@ pub async fn login_handler(
         state.database().as_ref(),
     )
     .await?;
-    Ok(Json(LoginResponse { user: Some(user) }))
+    let auth_token = generate_auth_token(&user, &state.secret())?;
+    Ok(Json(LoginResponse { token: auth_token }))
 }
 
 #[derive(Deserialize)]
@@ -28,7 +30,7 @@ pub struct LoginRequest {
 
 #[derive(Serialize)]
 pub struct LoginResponse {
-    user: Option<User>,
+    token: String,
 }
 
 async fn get_and_validate_user(
