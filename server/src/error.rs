@@ -17,24 +17,25 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}| {}", self.kind.as_string(), self.message)
+        write!(f, "{} | {}", self.kind.as_string(), self.message)
     }
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let code = match self.kind {
-            ErrorKind::InvalidApiRequest => StatusCode::BAD_REQUEST,
-            ErrorKind::InvalidUserPassword => StatusCode::BAD_REQUEST,
-            ErrorKind::UserDoesNotExist => StatusCode::BAD_REQUEST,
-            ErrorKind::PupilDoesNotExist => StatusCode::BAD_REQUEST,
-            ErrorKind::MissingEnvVariable => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::AddrParseError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::IoError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::ParseIntError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::DatabaseError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::InvalidApiRequest =>     StatusCode::BAD_REQUEST,
+            ErrorKind::InvalidUserPassword =>   StatusCode::BAD_REQUEST,
+            ErrorKind::UserDoesNotExist =>      StatusCode::BAD_REQUEST,
+            ErrorKind::PupilDoesNotExist =>     StatusCode::BAD_REQUEST,
+            ErrorKind::MissingEnvVariable =>    StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::AddrParseError =>        StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::IoError =>               StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::ParseIntError =>         StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::DatabaseError =>         StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorKind::ServerError =>           StatusCode::INTERNAL_SERVER_ERROR,
         };
+        tracing::error!("{}", self.to_string()); // ??? is logging the error here correct?
         (
             code,
             Json(json!({"error": self.kind.as_string(), "details": self.message})),
@@ -44,41 +45,23 @@ impl IntoResponse for Error {
 }
 
 //=====================================================================================================
-impl From<sea_orm::DbErr> for Error {
-    fn from(value: sea_orm::DbErr) -> Self {
-        Error {
-            kind: ErrorKind::DatabaseError,
-            message: value.to_string(),
+macro_rules! impl_from_error {
+    ($error:ty, $kind:ident) => {
+        impl From<$error> for Error {
+            fn from(value: $error) -> Self {
+                Error {
+                    kind: ErrorKind::$kind,
+                    message: value.to_string(),
+                }
+            }
         }
     }
 }
 
-impl From<std::env::VarError> for Error {
-    fn from(value: std::env::VarError) -> Self {
-        Error {
-            kind: ErrorKind::MissingEnvVariable,
-            message: value.to_string(),
-        }
-    }
-}
-
-impl From<std::net::AddrParseError> for Error {
-    fn from(value: std::net::AddrParseError) -> Self {
-        Error {
-            kind: ErrorKind::AddrParseError,
-            message: value.to_string(),
-        }
-    }
-}
-
-impl From<hyper::Error> for Error {
-    fn from(value: hyper::Error) -> Self {
-        Error {
-            kind: ErrorKind::ServerError,
-            message: value.to_string(),
-        }
-    }
-}
+impl_from_error!{sea_orm::DbErr,           DatabaseError}
+impl_from_error!{std::env::VarError,       MissingEnvVariable}
+impl_from_error!{std::net::AddrParseError, AddrParseError}
+impl_from_error!{hyper::Error,             ServerError}
 
 //=====================================================================================================
 /// Different kinds of error that can be thrown in the system.

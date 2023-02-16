@@ -18,7 +18,7 @@ pub async fn get_pupils(State(state): State<AppState>) -> Result<Json<PupilsResp
     tracing::info!("requested all pupils");
     let pupils = Pupil::all_from_db(state.database().as_ref()).await?;
     Ok(Json(PupilsResponse {
-        pupils: Some(pupils),
+        pupils: pupils,
     }))
 }
 
@@ -28,13 +28,13 @@ pub async fn get_pupil_by_id(
 ) -> Result<Json<PupilsResponse>> {
     let pupil = Pupil::one_from_db(id, state.database().as_ref()).await?;
     Ok(Json(PupilsResponse {
-        pupils: Some(vec![pupil]),
+        pupils: vec![pupil],
     }))
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PupilsResponse {
-    pupils: Option<Vec<Pupil>>,
+    pupils: Vec<Pupil>,
 }
 
 #[cfg(test)]
@@ -121,7 +121,7 @@ mod tests {
         assert_eq!(
             res,
             PupilsResponse {
-                pupils: Some(pupils.into_iter().map(Pupil::from).collect()),
+                pupils: pupils.into_iter().map(Pupil::from).collect(),
             }
         )
     }
@@ -171,7 +171,7 @@ mod tests {
         assert_eq!(
             res,
             PupilsResponse {
-                pupils: Some(vec![Pupil::from(pupils.remove(0))]),
+                pupils: vec![Pupil::from(pupils.remove(0))],
             }
         )
     }

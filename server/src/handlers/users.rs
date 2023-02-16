@@ -29,7 +29,7 @@ pub async fn create_user(
 pub async fn get_users(State(state): State<AppState>) -> Result<Json<UsersResponse>> {
     let users = User::all_from_db(state.database().as_ref()).await?;
     Ok(Json(UsersResponse {
-        users: Some(users.into_iter().map(ResponseUser::from).collect()),
+        users: users.into_iter().map(ResponseUser::from).collect(),
     }))
 }
 
@@ -94,7 +94,7 @@ impl From<User> for ResponseUser {
 #[derive(Serialize)]
 #[cfg_attr(test, derive(Deserialize))]
 pub struct UsersResponse {
-    users: Option<Vec<ResponseUser>>,
+    users: Vec<ResponseUser>,
 }
 
 #[cfg(test)]
@@ -139,7 +139,7 @@ mod tests {
         let res = ctx.client().get("/api/data/users").send().await;
         assert_eq!(res.status(), StatusCode::OK);
         let res_body: UsersResponse = res.json().await;
-        let res_users = res_body.users.expect("list of users");
+        let res_users = res_body.users;
         assert_eq!(
             res_users,
             users
@@ -196,8 +196,10 @@ mod tests {
         };
         match exp {
             Ok(_) => assert!(req.validate().is_ok()),
-            // Err(error) => assert_eq!(error, req.validate()) // TODO this needs to check error kind (new branch)
-            Err(_) => assert!(req.validate().is_err()),
+            Err(error) => {
+                assert_eq!(error.kind, req.validate().unwrap_err().kind);
+                assert_eq!(error.message, req.validate().unwrap_err().message);
+            }
         }
     }
 }

@@ -16,7 +16,6 @@ pub struct User {
 
 impl User {
     pub fn new(
-        // TEST
         first_names: &str,
         last_name: &str,
         email_address: &str,
@@ -33,7 +32,6 @@ impl User {
     }
 
     pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
-        // TEST
         Ok(ActiveModel {
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
@@ -52,7 +50,6 @@ impl User {
     }
 
     pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> {
-        // TEST
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
             None => Err(Error {
@@ -63,7 +60,6 @@ impl User {
     }
 
     pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> {
-        // TEST
         Ok(Entity::find()
             .all(db)
             .await?
