@@ -1,6 +1,6 @@
-use crate::error::{Error, ErrorKind, Result};
+use crate::{error::{Error, ErrorKind, Result}, utils::generate_secret};
 use entity::user::{ActiveModel, Entity, Model};
-use sea_orm::{ActiveModelTrait, EntityTrait};
+use sea_orm::{ActiveModelTrait, EntityTrait, ActiveValue::NotSet};
 use sea_orm::{DatabaseConnection, Set};
 use serde::{Deserialize, Serialize};
 
@@ -43,6 +43,7 @@ impl User {
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(",")),
+            secret: Set(generate_secret().into())
         }
         .insert(db)
         .await?
@@ -66,6 +67,10 @@ impl User {
             .into_iter()
             .map(Into::into)
             .collect())
+    }
+
+    pub async fn get_secret(&self) -> [u8; 64] {
+
     }
 }
 

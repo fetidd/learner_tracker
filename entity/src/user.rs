@@ -10,6 +10,7 @@ pub struct Model {
     pub email_address: String,
     pub hashed_password: String,
     pub years: String,
+    pub secret: Vec<u8>
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

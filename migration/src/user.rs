@@ -18,6 +18,7 @@ pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
             )
             .col(ColumnDef::new(User::HashedPassword).string().not_null())
             .col(ColumnDef::new(User::Years).string().not_null().default(""))
+            .col(ColumnDef::new(User::Secret).string_len(64).not_null())
             .to_owned(),
         ).await
 }
@@ -36,6 +37,7 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
         email_address: Set("test@test.com".into()),
         hashed_password: Set("password".into()),
         years: Set("5,6".into()),
+        secret: Set(vec![127; 64])
     }.insert(db).await?;
     Ok(())
 }
@@ -48,4 +50,5 @@ enum User {
     EmailAddress,
     HashedPassword,
     Years,
+    Secret,
 }

@@ -1,10 +1,11 @@
 use crate::{
     app_state::AppState,
-    auth::generate_auth_token,
+    auth::{generate_auth_token, authorize_token, decode_token},
     error::{Error, ErrorKind, Result},
     models::User,
 };
-use axum::{extract::State, Json};
+use axum::{extract::State, Json, TypedHeader, headers::{Authorization, authorization::Bearer}};
+use http::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +21,22 @@ pub async fn login_handler(
     .await?;
     let auth_token = generate_auth_token(&user, &state.secret())?;
     Ok(Json(LoginResponse { token: auth_token }))
+}
+
+pub async fn logout_handler(
+    State(state): State<AppState>,
+    TypedHeader(auth_token): TypedHeader<Authorization<Bearer>>
+) -> Result<StatusCode> {
+    let decoded = decode_token(auth_token.token())?;
+    // get user
+    let user = User::one_from_db(&decoded.email_address, state.database()).await?;
+    // authorize token
+    if let Ok(valid_token) = authorize_token(auth_token.token(), user.get_secret()) {
+        user.refresh_secret();
+        Ok(StatusCode::OK)
+    } else {
+        Err(Error { kind: ErrorKind::InvalidJwt, message: "token is invalid".into()})
+    }
 }
 
 #[derive(Deserialize)]
@@ -58,6 +75,3 @@ async fn get_and_validate_user(
     }
 }
 
-pub async fn logout_handler() {
-    // auth.logout().await;
-}
