@@ -1,4 +1,4 @@
-use crate::error::{Error, };
+use crate::error::{Error, Result, ErrorKind};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
@@ -24,18 +24,18 @@ pub struct Pupil {
 }
 
 impl Pupil {
-    pub async fn one_from_db<Id>(id: Id, db: &DatabaseConnection) -> Result<Self, Error>
+    pub async fn one_from_db<Id>(id: Id, db: &DatabaseConnection) -> Result<Self>
     where
         Id: Into<Uuid>,
     {
         let id: Uuid = id.into();
         match Entity::find_by_id(id).one(db).await? {
             Some(pupil) => Ok(pupil.into()),
-            None => Err(Error::PupilDoesNotExist),
+            None => Err(Error { kind: ErrorKind::PupilDoesNotExist, message: "".into() }),
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>, Error> {
+    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> {
         Ok(Entity::find()
             .all(db)
             .await?
@@ -44,7 +44,7 @@ impl Pupil {
             .collect())
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self, Error> {
+    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
         Ok(ActiveModel {
             id: Set(self.id.clone()),
             first_names: Set(self.first_names.clone()),

@@ -1,40 +1,23 @@
 use crate::{
     app_state::AppState,
-    error::{Error, LTResult},
+    error::{Error, Result, ErrorKind},
     models::User,
 };
-use axum::{extract::State, response::IntoResponse, Json};
-use entity::user::Model;
-use hyper::StatusCode;
-use sea_orm::{DatabaseConnection, EntityTrait};
+use axum::{extract::State, Json};
+use sea_orm::{DatabaseConnection};
 use serde::{Deserialize, Serialize};
 
 pub async fn login_handler(
     State(state): State<AppState>,
     Json(login_req): Json<LoginRequest>,
-) -> impl IntoResponse {
-    match get_and_validate_user(
+) -> Result<Json<LoginResponse>> {
+    let user = get_and_validate_user(
         login_req.email_address,
         login_req.hashed_password,
         state.database().as_ref(),
     )
-    .await
-    {
-        Ok(user) => (
-            StatusCode::OK,
-            Json(LoginResponse {
-                user: Some(user),
-                error: None,
-            }),
-        ),
-        Err(err) => (
-            StatusCode::BAD_REQUEST,
-            Json(LoginResponse {
-                user: None,
-                error: Some(err.to_string()),
-            }),
-        ),
-    }
+    .await?;
+    Ok(Json(LoginResponse {user: Some(user)}))
 }
 
 #[derive(Deserialize)]
@@ -45,17 +28,14 @@ pub struct LoginRequest {
 
 #[derive(Serialize)]
 pub struct LoginResponse {
-    #[serde(skip_serializing_if = "Option::is_none")]
     user: Option<User>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
 }
 
 async fn get_and_validate_user(
     email: String,
     pass: String,
     db: &DatabaseConnection,
-) -> LTResult<User> {
+) -> Result<User> {
     let user = User::one_from_db(&email, db)
         .await;
     if let Ok(user) = user {
@@ -63,11 +43,11 @@ async fn get_and_validate_user(
             Ok(user)
         } else {
             tracing::error!("passwords did not match");
-            Err(Error::InvalidPassword)
+            Err(Error { kind: ErrorKind::InvalidUserPassword, message: "passwords did not match".into()})
         }
     } else {
         tracing::error!("user with email {} does not exist", &email);
-        Err(Error::UserDoesNotExist)
+        Err(Error { kind: ErrorKind::UserDoesNotExist, message: format!("user with email {} does not exist", &email)})
     }
 }
 

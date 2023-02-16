@@ -1,4 +1,4 @@
-use crate::error::{Error, LTResult};
+use crate::error::{Error, Result, ErrorKind};
 use entity::user::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, EntityTrait};
 use sea_orm::{DatabaseConnection, Set};
@@ -31,7 +31,7 @@ impl User {
         }
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> LTResult<Self> { // TEST
+    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> { // TEST
         Ok(ActiveModel {
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
@@ -49,14 +49,14 @@ impl User {
         .into())
     }
 
-    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> LTResult<Self> { // TEST
+    pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> { // TEST
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
-            None => Err(Error::UserDoesNotExist),
+            None => Err(Error { kind: ErrorKind::UserDoesNotExist, message: "user with email {email} does not exist".into()}),
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> LTResult<Vec<Self>> { // TEST
+    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> { // TEST
         Ok(Entity::find()
             .all(db)
             .await?
@@ -190,7 +190,7 @@ mod trait_tests {
     use super::*;
     use rstest::*;
     use sea_orm::{DatabaseBackend, MockDatabase, Transaction, MockExecResult};
-    use crate::error::{LTResult, Error};
+    use crate::error::{Result, Error};
 
     #[rstest]
     #[case("1")]

@@ -68,7 +68,7 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
 pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
     for pupil in generate_pupils(300) {
-        pupil.insert(&trx).await?;
+        pupil.insert(&trx).await?; // TODO speed this up by making one insert rather than 1 trxn?
     }
     trx.commit().await?;
     Ok(())

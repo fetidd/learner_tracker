@@ -1,4 +1,4 @@
-use crate::{app_state::AppState, error::{LTResult, Error}};
+use crate::{app_state::AppState, error::{Result, Error, ErrorKind}};
 use crate::models::User;
 use axum::{
     extract::{Json, State},
@@ -10,53 +10,17 @@ use crate::utils;
 pub async fn create_user(
     State(state): State<AppState>,
     Json(req): Json<RequestUser>,
-) -> (StatusCode, Json<UsersResponse>) {
-    if let Err(error) = req.validate() {
-        (
-            StatusCode::BAD_REQUEST,
-            Json(UsersResponse {
-                users: None,
-                error: Some(error.to_string()),
-            }),
-        )
-    } else {
-        let user = User::new(&req.first_names, &req.last_name, &req.email_address, &req.hashed_password, req.years);
-        match user.save(state.database().as_ref()).await {
-            Ok(user) => (
-                StatusCode::CREATED,
-                Json(UsersResponse {
-                    users: Some(vec![user.into()]),
-                    error: None,
-                }),
-            ),
-            Err(error) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(UsersResponse {
-                    users: None,
-                    error: Some(error.to_string()),
-                }),
-            ),
-        }
-    }
+) -> Result<StatusCode> {
+    req.validate()?;
+    let user = User::new(&req.first_names, &req.last_name, &req.email_address, &req.hashed_password, req.years);
+    user.save(state.database().as_ref()).await?;
+    Ok(StatusCode::CREATED)
 }
 
-pub async fn get_users(State(state): State<AppState>) -> (StatusCode, Json<UsersResponse>) {
-    match User::all_from_db(state.database().as_ref()).await {
-        Ok(users) => (
-            StatusCode::OK,
-            Json(UsersResponse {
-                users: Some(users.into_iter().map(ResponseUser::from).collect()),
-                error: None,
-            }),
-        ),
-        Err(error) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(UsersResponse {
-                users: None,
-                error: Some(error.to_string()),
-            }),
-        ),
-    }
+pub async fn get_users(State(state): State<AppState>) -> Result<Json<UsersResponse>> {
+    let users = User::all_from_db(state.database().as_ref()).await?;
+    Ok(Json(UsersResponse {users: Some(users.into_iter().map(ResponseUser::from).collect())}))
+        
 }
 
 #[derive(Deserialize)]
@@ -70,15 +34,15 @@ pub struct RequestUser {
 }
 
 impl RequestUser {
-    fn validate(&self) -> LTResult<()> {
+    fn validate(&self) -> Result<()> {
         if self.first_names.is_empty() || self.last_name.is_empty() {
-            Err(Error::InvalidRequest("names cannot be empty".into()))
+            Err(Error { kind: ErrorKind::InvalidApiRequest, message: "names cannot be empty".into()})
         } else if self.hashed_password.is_empty() {
-            Err(Error::InvalidRequest("password cannot be empty".into()))
+            Err(Error { kind: ErrorKind::InvalidApiRequest, message: "password cannot be empty".into()})
         } else if self.years.is_empty() {
-            Err(Error::InvalidRequest("must specify at least one year group".into()))
+            Err(Error { kind: ErrorKind::InvalidApiRequest, message: "must specify at least one year group".into()})
         } else if !utils::is_valid_email(&self.email_address) {
-            Err(Error::InvalidRequest("email address is invalid".into()))
+            Err(Error { kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()})
         } else {
             Ok(())
         }
@@ -108,10 +72,7 @@ impl From<User> for ResponseUser {
 #[derive(Serialize)]
 #[cfg_attr(test, derive(Deserialize))]
 pub struct UsersResponse {
-    #[serde(skip_serializing_if="Option::is_none")]
     users: Option<Vec<ResponseUser>>,
-    #[serde(skip_serializing_if="Option::is_none")]
-    error: Option<String>,
 }
 
 #[cfg(test)]
@@ -173,14 +134,14 @@ mod tests {
 
     #[rstest]
     #[case("test", "user", "test@test.com", "password", vec![2,3],  Ok(()))]
-    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(Error::InvalidRequest("names cannot be empty".into())))]
-    #[case("test", "", "test@test.com", "password", vec![2,3],      Err(Error::InvalidRequest("names cannot be empty".into())))]
-    #[case("test", "user", "test@test.", "password", vec![2,3],     Err(Error::InvalidRequest("email address is invalid".into())))]
-    #[case("test", "user", "testattest.com", "password", vec![2,3], Err(Error::InvalidRequest("email address is invalid".into())))]
-    #[case("test", "user", "", "password", vec![2,3],               Err(Error::InvalidRequest("email address is invalid".into())))]
-    #[case("test", "user", "test@test.com", "", vec![2,3],          Err(Error::InvalidRequest("password cannot be empty".into())))]
-    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error::InvalidRequest("must specify at least one year group".into())))]
-    fn test_validate_request_user(#[case] first_names: String, #[case] last_name: String, #[case] email_address: String, #[case] hashed_password: String, #[case] years: Vec<u32>, #[case] exp: LTResult<()>) {
+    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: "names cannot be empty".into()}))]
+    #[case("test", "", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: "names cannot be empty".into()}))]
+    #[case("test", "user", "test@test.", "password", vec![2,3],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
+    #[case("test", "user", "testattest.com", "password", vec![2,3], Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
+    #[case("test", "user", "", "password", vec![2,3],               Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
+    #[case("test", "user", "test@test.com", "", vec![2,3],          Err(Error {kind: ErrorKind::InvalidApiRequest, message: "password cannot be empty".into()}))]
+    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: "must specify at least one year group".into()}))]
+    fn test_validate_request_user(#[case] first_names: String, #[case] last_name: String, #[case] email_address: String, #[case] hashed_password: String, #[case] years: Vec<u32>, #[case] exp: Result<()>) {
         let req = RequestUser {first_names, last_name, email_address, hashed_password, years};
         match exp {
             Ok(_) => assert!(req.validate().is_ok()),
