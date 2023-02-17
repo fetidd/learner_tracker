@@ -90,8 +90,6 @@ impl User {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::generate_secret;
-
     use super::*;
     use rstest::*;
     use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
@@ -246,9 +244,7 @@ impl From<User> for Model {
 #[cfg(test)]
 mod trait_tests {
     use super::*;
-    use crate::error::{Error, Result};
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, MockExecResult, Transaction};
 
     #[rstest]
     #[case("1")]

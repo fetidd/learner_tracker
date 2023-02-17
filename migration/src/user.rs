@@ -19,7 +19,7 @@ pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
             )
             .col(ColumnDef::new(User::HashedPassword).string().not_null())
             .col(ColumnDef::new(User::Years).string().not_null().default(""))
-            .col(ColumnDef::new(User::Secret).blob(BlobSize::Long).not_null())
+            .col(ColumnDef::new(User::Secret).blob(BlobSize::Tiny).not_null())
             .col(ColumnDef::new(User::LastRefresh).date_time().not_null())
             .to_owned(),
         ).await
