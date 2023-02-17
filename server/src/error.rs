@@ -52,7 +52,8 @@ impl IntoResponse for Error {
             | ErrorKind::DecodeError
             | ErrorKind::ParseError
             | ErrorKind::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::InvalidJwt => StatusCode::UNAUTHORIZED,
+            ErrorKind::Unauthorised
+            | ErrorKind::InvalidJwt => StatusCode::UNAUTHORIZED,
         };
         tracing::error!("{}", self.to_string()); // ??? is logging the error here correct?
         (
@@ -117,6 +118,7 @@ pub enum ErrorKind {
     DecodeError,
     EncodeError,
     ParseError,
+    Unauthorised,
 }
 
 impl ErrorKind {
@@ -136,10 +138,11 @@ impl ErrorKind {
             ErrorKind::JWTTokenCreationError => String::from("JWTTokenCreationError"),
             ErrorKind::InvalidJwt => String::from("InvalidJwt"),
             ErrorKind::SerializeError => String::from("SerializeError"),
-            ErrorKind::DeserializeError => todo!(),
-            ErrorKind::DecodeError => todo!(),
-            ErrorKind::EncodeError => todo!(),
-            ErrorKind::ParseError => todo!(),
+            ErrorKind::DeserializeError => String::from("DeserializeError"),
+            ErrorKind::DecodeError => String::from("DecodeError"),
+            ErrorKind::EncodeError => String::from("EncodeError"),
+            ErrorKind::ParseError => String::from("ParseError"),
+            ErrorKind::Unauthorised => String::from("Unauthorised"),
         }
     }
 }

@@ -1,9 +1,12 @@
 use crate::error::{Error, ErrorKind, Result};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Entity, Model};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set};
+use migration::Condition;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, QueryFilter, ColumnTrait};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use super::User;
 
 #[derive(Clone, Debug, Serialize, PartialEq, Deserialize)]
 pub struct Pupil {
@@ -24,13 +27,22 @@ pub struct Pupil {
 }
 
 impl Pupil {
-    pub async fn one_from_db<Id>(id: Id, db: &DatabaseConnection) -> Result<Self>
+    pub async fn one_from_db<Id>(user: &User, id: Id, db: &DatabaseConnection) -> Result<Self>
     where
         Id: Into<Uuid>,
     {
         let id: Uuid = id.into();
         match Entity::find_by_id(id).one(db).await? {
-            Some(pupil) => Ok(pupil.into()),
+            Some(pupil) => {
+                if user.years.contains(&(pupil.year as u32)) {
+                    Ok(pupil.into())
+                } else {
+                    Err(Error {
+                        kind: ErrorKind::Unauthorised,
+                        message: Some(format!("you don't have permission to view year {}", pupil.year))
+                    })
+                }
+            },
             None => Err(Error {
                 kind: ErrorKind::PupilDoesNotExist,
                 message: Some("".into()),
@@ -38,13 +50,12 @@ impl Pupil {
         }
     }
 
-    pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> {
-        Ok(Entity::find()
-            .all(db)
-            .await?
-            .into_iter()
-            .map(Into::into)
-            .collect())
+    pub async fn all_from_db(user: &User, db: &DatabaseConnection) -> Result<Vec<Self>> {
+        let mut cond = Condition::any();
+        for year in &user.years {
+            cond = cond.add(entity::pupil::Column::Year.eq(*year));
+        }
+        Ok(Entity::find().filter(cond).all(db).await?.into_iter().map(Into::into).collect())
     }
 
     pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
@@ -88,10 +99,11 @@ mod tests {
             gender: "female".into(),
             ..Default::default()
         }];
+        let user = User::new("test", "user", "test@test.com", "pass", vec![1]);
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
-        let query_res = Pupil::one_from_db(results[0].id, &db).await;
+        let query_res = Pupil::one_from_db(&user, results[0].id, &db).await;
         assert!(query_res.is_ok());
         let pupil = query_res.unwrap();
         assert_eq!(pupil, results[0].clone().into());
@@ -130,10 +142,11 @@ mod tests {
                 ..Default::default()
             },
         ];
+        let user = User::new("test", "user", "test@test.com", "pass", vec![1]);
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
-        let query_res = Pupil::all_from_db(&db).await;
+        let query_res = Pupil::all_from_db(&user, &db).await;
         assert!(query_res.is_ok());
         let pupils = query_res.unwrap();
         assert_eq!(

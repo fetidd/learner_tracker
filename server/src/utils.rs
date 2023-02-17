@@ -18,7 +18,7 @@ pub fn is_valid_email(email: &str) -> bool {
 
 #[cfg(test)]
 pub mod test_utils {
-    use crate::{app_state::MockAppStateTrait, router::router};
+    use crate::{app_state::{MockAppStateTrait, AppStateTrait}, router::router};
     use axum_test_helper::TestClient;
     use migration::{Migrator, MigratorTrait};
     use rstest::*;
@@ -39,7 +39,8 @@ pub mod test_utils {
         mock_state
             .expect_database()
             .return_const(Arc::clone(&mock_db));
-        let app = router().with_state(Arc::new(mock_state));
+        let state: Arc<dyn AppStateTrait + Send + Sync> = Arc::new(mock_state);
+        let app = router(Arc::clone(&state)).with_state(Arc::clone(&state));
         let client = TestClient::new(app);
         MockCtx { check_db, client }
     }

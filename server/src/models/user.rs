@@ -1,4 +1,7 @@
-use crate::{error::{Error, ErrorKind, Result}, utils::generate_secret};
+use crate::{
+    error::{Error, ErrorKind, Result},
+    utils::generate_secret,
+};
 use chrono::{NaiveDateTime, Utc};
 use entity::user::{ActiveModel, Entity, Model};
 use sea_orm::{ActiveModelTrait, EntityTrait, QuerySelect};
@@ -14,7 +17,7 @@ pub struct User {
     pub(crate) hashed_password: String,
     pub(crate) years: Vec<u32>,
     pub(crate) secret: Vec<u8>,
-    pub(crate) last_refresh: NaiveDateTime
+    pub(crate) last_refresh: NaiveDateTime,
 }
 
 impl User {
@@ -32,7 +35,7 @@ impl User {
             hashed_password: hashed_password.to_owned(),
             years,
             secret: generate_secret().to_vec(),
-            last_refresh: Utc::now().naive_utc()
+            last_refresh: Utc::now().naive_utc(),
         }
     }
 
@@ -49,7 +52,7 @@ impl User {
                 .collect::<Vec<String>>()
                 .join(",")),
             secret: Set(self.secret.clone()),
-            last_refresh: Set(self.last_refresh.clone())
+            last_refresh: Set(self.last_refresh.clone()),
         }
         .insert(db)
         .await?
@@ -77,13 +80,9 @@ impl User {
 
     pub async fn refresh_secret(&self, db: &DatabaseConnection) -> Result<User> {
         let new_secret = generate_secret();
-        // get ActiveModel of this user
         let mut active: ActiveModel = <User as Into<Model>>::into(self.clone()).into();
-        // set secret to new_secret
-        active.secret = Set(String::from_utf8(new_secret.to_vec()).unwrap().into());
-        // update last_refresh to current datetime
+        active.secret = Set(new_secret.to_vec());
         active.last_refresh = Set(Utc::now().naive_local());
-        // execute query
         Ok(active.update(db).await?.into())
     }
 }
@@ -91,8 +90,9 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use migration::{Migrator, MigratorTrait};
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
+    use sea_orm::{Database, DatabaseBackend, MockDatabase, Transaction};
 
     #[rstest]
     async fn test_one_from_db() {
@@ -103,7 +103,7 @@ mod tests {
             hashed_password: "hashedpassword".into(),
             years: "2,3".into(),
             secret: vec![127; 64],
-            last_refresh: Utc::now().naive_utc()
+            last_refresh: Utc::now().naive_utc(),
         }];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
@@ -131,7 +131,7 @@ mod tests {
                 hashed_password: "hashedpassword".into(),
                 years: "2,3".into(),
                 secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc()
+                last_refresh: Utc::now().naive_utc(),
             },
             Model {
                 first_names: "test2".into(),
@@ -140,7 +140,7 @@ mod tests {
                 hashed_password: "hashedpassword".into(),
                 years: "1,2,3,4,5,6".into(),
                 secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc()
+                last_refresh: Utc::now().naive_utc(),
             },
         ];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
@@ -176,7 +176,7 @@ mod tests {
             hashed_password: "hashedpass".into(),
             years: "1,2,3".into(),
             secret: secret.to_vec(),
-            last_refresh: refresh_dt.clone()
+            last_refresh: refresh_dt.clone(),
         };
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![vec![model.clone()]])
@@ -194,10 +194,28 @@ mod tests {
                 "hashedpass".into(),
                 "1,2,3".into(),
                 secret.to_vec().into(),
-                refresh_dt.into()
+                refresh_dt.into(),
             ],
         );
         assert_eq!(t_log[0], exp_query);
+    }
+
+    #[rstest]
+    async fn test_refresh_secret() {
+        let secret = [129; 64];
+        let refresh_dt: NaiveDateTime = NaiveDateTime::from_timestamp_millis(1662921288).unwrap();
+        let mut user = User::new("test", "user", "test@test.com", "hashedpass", vec![1, 2, 3]);
+        user.last_refresh = refresh_dt;
+        user.secret = secret.into();
+        let db = Database::connect("sqlite::memory:").await.unwrap();
+        Migrator::up(&db, None).await.unwrap();
+        let result = user.save(&db).await;
+        assert!(result.is_ok());
+        let refresh_result = user.refresh_secret(&db).await;
+        assert!(refresh_result.is_ok());
+        let refreshed = refresh_result.unwrap();
+        assert_ne!(refreshed.secret, secret.to_vec());
+        assert!(refreshed.last_refresh > refresh_dt);
     }
 }
 
@@ -217,7 +235,7 @@ impl From<Model> for User {
                 })
                 .collect(),
             secret: value.secret.into(),
-            last_refresh: value.last_refresh
+            last_refresh: value.last_refresh,
         }
     }
 }
@@ -236,7 +254,7 @@ impl From<User> for Model {
                 .collect::<Vec<String>>()
                 .join(","),
             secret: value.secret,
-            last_refresh: value.last_refresh
+            last_refresh: value.last_refresh,
         }
     }
 }
@@ -258,7 +276,7 @@ mod trait_tests {
             hashed_password: "hashedpassword".into(),
             years: years_string,
             secret: vec![127; 64],
-            last_refresh: Utc::now().naive_utc()
+            last_refresh: Utc::now().naive_utc(),
         };
         let user_attempt = User::from(model);
     }
@@ -278,7 +296,7 @@ mod trait_tests {
             hashed_password: "hashedpassword".into(),
             years: years_string,
             secret: vec![127; 64],
-            last_refresh: Utc::now().naive_utc()
+            last_refresh: Utc::now().naive_utc(),
         };
         let user_attempt = User::from(model);
     }

@@ -1,10 +1,14 @@
 use crate::{
     app_state::AppState,
-    auth::{generate_auth_token, authorize_token, decode_token},
+    auth::{authorize_token, decode_token, generate_auth_token},
     error::{Error, ErrorKind, Result},
     models::User,
 };
-use axum::{extract::State, Json, TypedHeader, headers::{Authorization, authorization::Bearer}};
+use axum::{
+    extract::State,
+    headers::{authorization::Bearer, Authorization},
+    Json, TypedHeader,
+};
 use http::StatusCode;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -25,17 +29,20 @@ pub async fn login_handler(
 
 pub async fn logout_handler(
     State(state): State<AppState>,
-    TypedHeader(auth_token): TypedHeader<Authorization<Bearer>>
+    TypedHeader(auth_token): TypedHeader<Authorization<Bearer>>,
 ) -> Result<StatusCode> {
     let decoded = decode_token(auth_token.token())?;
     // get user
     let user = User::one_from_db(&decoded.email_address, state.database()).await?;
     // authorize token
-    if let Ok(valid_token) = authorize_token(auth_token.token(), &user.secret) {
-        user.refresh_secret(state.database()).await;
+    if let Ok(_) = authorize_token(auth_token.token(), &user.secret) {
+        user.refresh_secret(state.database()).await?;
         Ok(StatusCode::OK)
     } else {
-        Err(Error { kind: ErrorKind::InvalidJwt, message: Some("token is invalid".into())})
+        Err(Error {
+            kind: ErrorKind::InvalidJwt,
+            message: Some("token is invalid".into()),
+        })
     }
 }
 
@@ -68,7 +75,9 @@ async fn get_and_validate_user(
         }
     } else {
         tracing::error!("user with email {} does not exist", &email);
-        Err(Error::user_does_not_exist(Some(&format!("user with email {} does not exist", &email))))
+        Err(Error::user_does_not_exist(Some(&format!(
+            "user with email {} does not exist",
+            &email
+        ))))
     }
 }
-

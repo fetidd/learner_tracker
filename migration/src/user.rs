@@ -38,7 +38,7 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
         last_name: Set("user".into()),
         email_address: Set("test@test.com".into()),
         hashed_password: Set("password".into()),
-        years: Set("5,6".into()),
+        years: Set("1,6".into()),
         secret: Set(vec![127; 64]),
         last_refresh: Set(Utc::now().naive_local())
     }.insert(db).await?;

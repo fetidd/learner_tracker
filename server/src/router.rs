@@ -4,15 +4,16 @@ use crate::{
 };
 use axum::{
     routing::{get, post},
-    Router,
+    Router, middleware::from_fn_with_state,
 };
 use hyper::Method;
 use tower_http::cors::{Any, CorsLayer};
+use std::sync::Arc;
 
-pub fn router() -> Router<AppState> {
+pub fn router(state: AppState) -> Router<AppState> {
     let auth_router = Router::new()
         .route("/login", post(login_handler))
-        .route("/logout", post(logout_handler));
+        .route("/logout", get(logout_handler));
     let pupils_router = Router::new()
         .route("/", get(get_pupils).post(create_pupil))
         .route("/:id", get(get_pupil_by_id));
@@ -28,7 +29,8 @@ pub fn router() -> Router<AppState> {
         "/api",
         Router::new()
             .nest("/data", data_router)
+            .layer(from_fn_with_state(Arc::clone(&state),crate::auth::auth_service))
             .nest("/auth", auth_router)
-            .layer(cors_layer),
+            .layer(cors_layer)
     )
 }

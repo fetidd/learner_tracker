@@ -1,9 +1,17 @@
 use crate::{
+    app_state::AppState,
     error::{Error, ErrorKind, Result},
     models::User,
 };
+use axum::{
+    extract::{State, TypedHeader},
+    middleware::Next,
+    response::Response, headers::{Authorization, authorization::Bearer},
+};
 use base64::{engine::general_purpose, Engine};
 use chrono::Utc;
+use http::StatusCode;
+use hyper::Request;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
@@ -12,10 +20,9 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) fn generate_auth_token(user: &User) -> Result<String> {
     let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::seconds(60))
+        .checked_add_signed(chrono::Duration::minutes(60))
         .expect("valid timestamp")
         .timestamp();
-
     let claims = AuthToken {
         email_address: user.email_address.to_owned(),
         exp: expiration as usize,
@@ -40,9 +47,33 @@ pub(crate) fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
 }
 
 pub(crate) fn decode_token(token: &str) -> Result<AuthToken> {
-    Ok(serde_json::from_str(&String::from_utf8(
-        general_purpose::STANDARD_NO_PAD.decode(token.split('.').collect::<Vec<&str>>()[1])?,
-    )?)?)
+    match token.split('.').collect::<Vec<&str>>().get(1) {
+        Some(claims) => {
+            let decoded = general_purpose::STANDARD_NO_PAD.decode(*claims)?;
+            let decoded_string = String::from_utf8(decoded)?;
+            let token = serde_json::from_str(&decoded_string)?;
+            Ok(token)
+        },
+        None => Err(Error { kind: ErrorKind::DecodeError, message: Some("token was just a header".into())})
+    }
+}
+
+pub async fn auth_service<B>(
+    State(state): State<AppState>,
+    TypedHeader(auth_header): TypedHeader<Authorization<Bearer>>,
+    mut request: Request<B>,
+    next: Next<B>,
+) -> Result<Response> {
+    let decoded = decode_token(auth_header.token())?;
+    let user = User::one_from_db(&decoded.email_address, state.database()).await?;
+    if let Ok(_) = authorize_token(auth_header.token(), &user.secret) {
+        request.extensions_mut().insert(user);
+        let response = next.run(request).await;
+        // create fresh token to pass in response
+        Ok(response)
+    } else {
+        Err(Error { kind: ErrorKind::InvalidJwt, message: Some("invalid auth token".into())})
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]

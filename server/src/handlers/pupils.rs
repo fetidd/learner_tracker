@@ -1,7 +1,7 @@
-use crate::{app_state::AppState, error::*, models::Pupil};
+use crate::{app_state::AppState, error::*, models::{Pupil, User}};
 use axum::{
     extract::{Json, Path, State},
-    http::StatusCode,
+    http::StatusCode, Extension,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -14,17 +14,18 @@ pub async fn create_pupil(
     Ok(StatusCode::CREATED)
 }
 
-pub async fn get_pupils(State(state): State<AppState>) -> Result<Json<PupilsResponse>> {
+pub async fn get_pupils(State(state): State<AppState>, Extension(user): Extension<User>) -> Result<Json<PupilsResponse>> {
     tracing::info!("requested all pupils");
-    let pupils = Pupil::all_from_db(state.database().as_ref()).await?;
+    let pupils = Pupil::all_from_db(&user, state.database().as_ref()).await?;
     Ok(Json(PupilsResponse { pupils: pupils }))
 }
 
 pub async fn get_pupil_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
+    Extension(user): Extension<User>
 ) -> Result<Json<PupilsResponse>> {
-    let pupil = Pupil::one_from_db(id, state.database().as_ref()).await?;
+    let pupil = Pupil::one_from_db(&user, id, state.database().as_ref()).await?;
     Ok(Json(PupilsResponse {
         pupils: vec![pupil],
     }))
