@@ -103,7 +103,7 @@ mod tests {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
-        let query_res = Pupil::one_from_db(&user, results[0].id, &db).await;
+        let query_res = Pupil::one_from_db(&user, results[0].id, &db).await; // TEST user restrictions
         assert!(query_res.is_ok());
         let pupil = query_res.unwrap();
         assert_eq!(pupil, results[0].clone().into());
@@ -142,7 +142,7 @@ mod tests {
                 ..Default::default()
             },
         ];
-        let user = User::new("test", "user", "test@test.com", "pass", vec![1]);
+        let user = User::new("test", "user", "test@test.com", "pass", vec![1]);  // TEST user restrictions
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
