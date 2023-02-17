@@ -16,10 +16,10 @@ pub async fn login_handler(
     let user = get_and_validate_user(
         login_req.email_address,
         login_req.hashed_password,
-        state.database().as_ref(),
+        state.database(),
     )
     .await?;
-    let auth_token = generate_auth_token(&user, &state.secret())?;
+    let auth_token = generate_auth_token(&user)?;
     Ok(Json(LoginResponse { token: auth_token }))
 }
 
@@ -31,11 +31,11 @@ pub async fn logout_handler(
     // get user
     let user = User::one_from_db(&decoded.email_address, state.database()).await?;
     // authorize token
-    if let Ok(valid_token) = authorize_token(auth_token.token(), user.get_secret()) {
-        user.refresh_secret();
+    if let Ok(valid_token) = authorize_token(auth_token.token(), &user.secret) {
+        user.refresh_secret(state.database()).await;
         Ok(StatusCode::OK)
     } else {
-        Err(Error { kind: ErrorKind::InvalidJwt, message: "token is invalid".into()})
+        Err(Error { kind: ErrorKind::InvalidJwt, message: Some("token is invalid".into())})
     }
 }
 
@@ -63,15 +63,12 @@ async fn get_and_validate_user(
             tracing::error!("passwords did not match");
             Err(Error {
                 kind: ErrorKind::InvalidUserPassword,
-                message: "passwords did not match".into(),
+                message: Some("passwords did not match".into()),
             })
         }
     } else {
         tracing::error!("user with email {} does not exist", &email);
-        Err(Error {
-            kind: ErrorKind::UserDoesNotExist,
-            message: format!("user with email {} does not exist", &email),
-        })
+        Err(Error::user_does_not_exist(Some(&format!("user with email {} does not exist", &email))))
     }
 }
 

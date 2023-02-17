@@ -33,7 +33,7 @@ impl Pupil {
             Some(pupil) => Ok(pupil.into()),
             None => Err(Error {
                 kind: ErrorKind::PupilDoesNotExist,
-                message: "".into(),
+                message: Some("".into()),
             }),
         }
     }

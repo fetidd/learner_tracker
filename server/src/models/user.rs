@@ -1,6 +1,7 @@
 use crate::{error::{Error, ErrorKind, Result}, utils::generate_secret};
+use chrono::{NaiveDateTime, Utc};
 use entity::user::{ActiveModel, Entity, Model};
-use sea_orm::{ActiveModelTrait, EntityTrait, ActiveValue::NotSet};
+use sea_orm::{ActiveModelTrait, EntityTrait, QuerySelect};
 use sea_orm::{DatabaseConnection, Set};
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +13,8 @@ pub struct User {
     #[serde(skip_serializing)]
     pub(crate) hashed_password: String,
     pub(crate) years: Vec<u32>,
+    pub(crate) secret: Vec<u8>,
+    pub(crate) last_refresh: NaiveDateTime
 }
 
 impl User {
@@ -28,6 +31,8 @@ impl User {
             email_address: email_address.to_owned(),
             hashed_password: hashed_password.to_owned(),
             years,
+            secret: generate_secret().to_vec(),
+            last_refresh: Utc::now().naive_utc()
         }
     }
 
@@ -43,7 +48,8 @@ impl User {
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(",")),
-            secret: Set(generate_secret().into())
+            secret: Set(self.secret.clone()),
+            last_refresh: Set(self.last_refresh.clone())
         }
         .insert(db)
         .await?
@@ -55,7 +61,7 @@ impl User {
             Some(user) => Ok(user.into()),
             None => Err(Error {
                 kind: ErrorKind::UserDoesNotExist,
-                message: "user with email {email} does not exist".into(),
+                message: Some("user with email {email} does not exist".into()),
             }),
         }
     }
@@ -69,13 +75,23 @@ impl User {
             .collect())
     }
 
-    pub async fn get_secret(&self) -> [u8; 64] {
-
+    pub async fn refresh_secret(&self, db: &DatabaseConnection) -> Result<User> {
+        let new_secret = generate_secret();
+        // get ActiveModel of this user
+        let mut active: ActiveModel = <User as Into<Model>>::into(self.clone()).into();
+        // set secret to new_secret
+        active.secret = Set(String::from_utf8(new_secret.to_vec()).unwrap().into());
+        // update last_refresh to current datetime
+        active.last_refresh = Set(Utc::now().naive_local());
+        // execute query
+        Ok(active.update(db).await?.into())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::generate_secret;
+
     use super::*;
     use rstest::*;
     use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
@@ -88,6 +104,8 @@ mod tests {
             email_address: "test@test.com".into(),
             hashed_password: "hashedpassword".into(),
             years: "2,3".into(),
+            secret: vec![127; 64],
+            last_refresh: Utc::now().naive_utc()
         }];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
@@ -99,7 +117,7 @@ mod tests {
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"SELECT "user"."first_names", "user"."last_name", "user"."email_address", "user"."hashed_password", "user"."years" FROM "user" WHERE "user"."email_address" = $1 LIMIT $2"#,
+            r#"SELECT "user"."first_names", "user"."last_name", "user"."email_address", "user"."hashed_password", "user"."years", "user"."secret", "user"."last_refresh" FROM "user" WHERE "user"."email_address" = $1 LIMIT $2"#,
             [results[0].email_address.clone().into(), 1u64.into()],
         );
         assert_eq!(t_log[0], exp_query);
@@ -114,6 +132,8 @@ mod tests {
                 email_address: "test@test.com".into(),
                 hashed_password: "hashedpassword".into(),
                 years: "2,3".into(),
+                secret: vec![127; 64],
+                last_refresh: Utc::now().naive_utc()
             },
             Model {
                 first_names: "test2".into(),
@@ -121,6 +141,8 @@ mod tests {
                 email_address: "test2@test.com".into(),
                 hashed_password: "hashedpassword".into(),
                 years: "1,2,3,4,5,6".into(),
+                secret: vec![127; 64],
+                last_refresh: Utc::now().naive_utc()
             },
         ];
         let db = MockDatabase::new(DatabaseBackend::Postgres)
@@ -136,7 +158,7 @@ mod tests {
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"SELECT "user"."first_names", "user"."last_name", "user"."email_address", "user"."hashed_password", "user"."years" FROM "user""#,
+            r#"SELECT "user"."first_names", "user"."last_name", "user"."email_address", "user"."hashed_password", "user"."years", "user"."secret", "user"."last_refresh" FROM "user""#,
             [],
         );
         assert_eq!(t_log[0], exp_query);
@@ -144,22 +166,37 @@ mod tests {
 
     #[rstest]
     async fn test_save() {
-        let user = User::new("test", "user", "test@test.com", "hashedpass", vec![1, 2, 3]);
+        let secret = [129; 64];
+        let refresh_dt: NaiveDateTime = NaiveDateTime::from_timestamp_millis(1662921288).unwrap();
+        let mut user = User::new("test", "user", "test@test.com", "hashedpass", vec![1, 2, 3]);
+        user.last_refresh = refresh_dt;
+        user.secret = secret.into();
+        let model = Model {
+            first_names: "test".into(),
+            last_name: "user".into(),
+            email_address: "test@test.com".into(),
+            hashed_password: "hashedpass".into(),
+            years: "1,2,3".into(),
+            secret: secret.to_vec(),
+            last_refresh: refresh_dt.clone()
+        };
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results(vec![vec![<User as Into<Model>>::into(user.clone())]])
+            .append_query_results(vec![vec![model.clone()]])
             .into_connection();
         let result = user.save(&db).await;
         assert!(result.is_ok());
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"INSERT INTO "user" ("first_names", "last_name", "email_address", "hashed_password", "years") VALUES ($1, $2, $3, $4, $5) RETURNING "first_names", "last_name", "email_address", "hashed_password", "years""#,
+            r#"INSERT INTO "user" ("first_names", "last_name", "email_address", "hashed_password", "years", "secret", "last_refresh") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "first_names", "last_name", "email_address", "hashed_password", "years", "secret", "last_refresh""#,
             [
                 "test".into(),
                 "user".into(),
                 "test@test.com".into(),
                 "hashedpass".into(),
                 "1,2,3".into(),
+                secret.to_vec().into(),
+                refresh_dt.into()
             ],
         );
         assert_eq!(t_log[0], exp_query);
@@ -181,6 +218,8 @@ impl From<Model> for User {
                         .expect("should be comma-sep'd list of ints")
                 })
                 .collect(),
+            secret: value.secret.into(),
+            last_refresh: value.last_refresh
         }
     }
 }
@@ -198,6 +237,8 @@ impl From<User> for Model {
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(","),
+            secret: value.secret,
+            last_refresh: value.last_refresh
         }
     }
 }
@@ -220,6 +261,8 @@ mod trait_tests {
             email_address: "test@test.com".into(),
             hashed_password: "hashedpassword".into(),
             years: years_string,
+            secret: vec![127; 64],
+            last_refresh: Utc::now().naive_utc()
         };
         let user_attempt = User::from(model);
     }
@@ -238,6 +281,8 @@ mod trait_tests {
             email_address: "test@test.com".into(),
             hashed_password: "hashedpassword".into(),
             years: years_string,
+            secret: vec![127; 64],
+            last_refresh: Utc::now().naive_utc()
         };
         let user_attempt = User::from(model);
     }

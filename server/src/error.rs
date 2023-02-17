@@ -10,14 +10,26 @@ use serde_json::json;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Error {
     pub(crate) kind: ErrorKind,
-    pub(crate) message: String,
+    pub(crate) message: Option<String>,
+}
+// TODO make a derive macro to create assoc. funcs to create each kind of error, with optional message arg, as below
+impl Error {
+    pub fn user_does_not_exist(msg: Option<&str>) -> Self {
+        Error {
+            kind: ErrorKind::UserDoesNotExist,
+            message: msg.map(|msg| msg.to_owned())
+        }
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} | {}", self.kind.as_string(), self.message)
+        match &self.message {
+            Some(msg) => write!(f, "[{}]::> {}", self.kind.as_string(), msg),
+            None =>  write!(f, "[{}]", self.kind.as_string()),
+        }
     }
 }
 
@@ -58,7 +70,7 @@ macro_rules! impl_from_error {
             fn from(value: $error) -> Self {
                 Error {
                     kind: ErrorKind::$kind,
-                    message: value.to_string(),
+                    message: Some(value.to_string()),
                 }
             }
         }
@@ -68,7 +80,7 @@ macro_rules! impl_from_error {
             fn from(value: $error) -> Self {
                 Error {
                     kind: ErrorKind::$kind,
-                    message: $msg.to_string(),
+                    message: Some($msg.to_string()),
                 }
             }
         }
@@ -108,7 +120,7 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    // TODO turn this into a proc_macro_attribute to use on the enum: https://developerlife.com/2022/03/30/rust-proc-macro/
+    // TODO turn this into a proc_macro_derive to use on the enum: https://developerlife.com/2022/03/30/rust-proc-macro/
     fn as_string(&self) -> String {
         match self {
             ErrorKind::InvalidApiRequest => String::from("InvalidApiRequest"),

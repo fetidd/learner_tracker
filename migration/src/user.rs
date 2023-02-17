@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+use chrono::Utc;
 use entity::user::ActiveModel;
 use sea_orm::DatabaseConnection;
 use sea_orm_migration::{prelude::*, sea_orm::{Set, ActiveModelTrait}};
@@ -18,7 +19,8 @@ pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
             )
             .col(ColumnDef::new(User::HashedPassword).string().not_null())
             .col(ColumnDef::new(User::Years).string().not_null().default(""))
-            .col(ColumnDef::new(User::Secret).string_len(64).not_null())
+            .col(ColumnDef::new(User::Secret).blob(BlobSize::Long).not_null())
+            .col(ColumnDef::new(User::LastRefresh).date_time().not_null())
             .to_owned(),
         ).await
 }
@@ -37,7 +39,8 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
         email_address: Set("test@test.com".into()),
         hashed_password: Set("password".into()),
         years: Set("5,6".into()),
-        secret: Set(vec![127; 64])
+        secret: Set(vec![127; 64]),
+        last_refresh: Set(Utc::now().naive_local())
     }.insert(db).await?;
     Ok(())
 }
@@ -51,4 +54,5 @@ enum User {
     HashedPassword,
     Years,
     Secret,
+    LastRefresh,
 }

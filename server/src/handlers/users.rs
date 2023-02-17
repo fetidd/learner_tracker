@@ -1,4 +1,4 @@
-use crate::models::User;
+use crate::{models::User, utils::generate_secret};
 use crate::utils;
 use crate::{
     app_state::AppState,
@@ -48,22 +48,22 @@ impl RequestUser {
         if self.first_names.is_empty() || self.last_name.is_empty() {
             Err(Error {
                 kind: ErrorKind::InvalidApiRequest,
-                message: "names cannot be empty".into(),
+                message: Some("names cannot be empty".into()),
             })
         } else if self.hashed_password.is_empty() {
             Err(Error {
                 kind: ErrorKind::InvalidApiRequest,
-                message: "password cannot be empty".into(),
+                message: Some("password cannot be empty".into()),
             })
         } else if self.years.is_empty() {
             Err(Error {
                 kind: ErrorKind::InvalidApiRequest,
-                message: "must specify at least one year group".into(),
+                message: Some("must specify at least one year group".into()),
             })
         } else if !utils::is_valid_email(&self.email_address) {
             Err(Error {
                 kind: ErrorKind::InvalidApiRequest,
-                message: "email address is invalid".into(),
+                message: Some("email address is invalid".into()),
             })
         } else {
             Ok(())
@@ -102,6 +102,7 @@ mod tests {
     use super::*;
     use crate::utils::test_utils::*;
     use crate::MockCtx;
+    use chrono::Utc;
     use entity::user::{Entity, Model};
     use http::StatusCode;
     use rstest::*;
@@ -118,6 +119,8 @@ mod tests {
                 email_address: "first_user@test.com".into(),
                 hashed_password: "hashed_password".into(),
                 years: "5,6".into(),
+                secret: vec![127; 64],
+                last_refresh: Utc::now().naive_utc()
             },
             Model {
                 first_names: "second".into(),
@@ -125,6 +128,8 @@ mod tests {
                 email_address: "second_user@test.com".into(),
                 hashed_password: "hashed_password".into(),
                 years: "2".into(),
+                secret: vec![127; 64],
+                last_refresh: Utc::now().naive_utc()
             },
         ];
         let to_insert: Vec<entity::user::ActiveModel> = users
@@ -172,13 +177,13 @@ mod tests {
 
     #[rstest]
     #[case("test", "user", "test@test.com", "password", vec![2,3],  Ok(()))]
-    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: "names cannot be empty".into()}))]
-    #[case("test", "", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: "names cannot be empty".into()}))]
-    #[case("test", "user", "test@test.", "password", vec![2,3],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
-    #[case("test", "user", "testattest.com", "password", vec![2,3], Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
-    #[case("test", "user", "", "password", vec![2,3],               Err(Error {kind: ErrorKind::InvalidApiRequest, message: "email address is invalid".into()}))]
-    #[case("test", "user", "test@test.com", "", vec![2,3],          Err(Error {kind: ErrorKind::InvalidApiRequest, message: "password cannot be empty".into()}))]
-    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: "must specify at least one year group".into()}))]
+    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("names cannot be empty".into())}))]
+    #[case("test", "", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("names cannot be empty".into())}))]
+    #[case("test", "user", "test@test.", "password", vec![2,3],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
+    #[case("test", "user", "testattest.com", "password", vec![2,3], Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
+    #[case("test", "user", "", "password", vec![2,3],               Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
+    #[case("test", "user", "test@test.com", "", vec![2,3],          Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("password cannot be empty".into())}))]
+    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("must specify at least one year group".into())}))]
     fn test_validate_request_user(
         #[case] first_names: String,
         #[case] last_name: String,
