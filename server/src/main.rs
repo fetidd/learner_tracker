@@ -1,5 +1,5 @@
 use axum::Server;
-use learner_tracker_server::{
+use lt_server::{
     app_state::{AppState, AppStateObj},
     error::Result,
     router::router,
@@ -8,12 +8,21 @@ use learner_tracker_server::{
 use migration::{seed_database, Migrator, MigratorTrait};
 use std::{net::SocketAddr, sync::Arc};
 use tower_http::trace::TraceLayer;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     let current_env = std::env::var("ENVIRONMENT")?;
-    tracing_subscriber::fmt::init();
+    let log_fmt = tracing_subscriber::fmt::format() // TODO move to log module
+        .pretty()
+        .without_time()
+        .with_target(true)
+        .with_thread_names(false);
+    tracing_subscriber::fmt()
+        .event_format(log_fmt)
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
     let secret: [u8; 64] = utils::generate_secret();
     let db = Arc::new(sea_orm::Database::connect(std::env::var("DATABASE_URL")?).await?);
     if current_env == "dev" {

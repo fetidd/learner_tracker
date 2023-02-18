@@ -17,7 +17,7 @@ impl Error {
     pub fn user_does_not_exist(msg: Option<&str>) -> Self {
         Error {
             kind: ErrorKind::UserDoesNotExist,
-            message: msg.map(|msg| msg.to_owned())
+            message: msg.map(|msg| msg.to_owned()),
         }
     }
 }
@@ -28,7 +28,7 @@ impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.message {
             Some(msg) => write!(f, "[{}]::> {}", self.kind.as_string(), msg),
-            None =>  write!(f, "[{}]", self.kind.as_string()),
+            None => write!(f, "[{}]", self.kind.as_string()),
         }
     }
 }
@@ -52,10 +52,8 @@ impl IntoResponse for Error {
             | ErrorKind::DecodeError
             | ErrorKind::ParseError
             | ErrorKind::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorKind::Unauthorised
-            | ErrorKind::InvalidJwt => StatusCode::UNAUTHORIZED,
+            ErrorKind::Unauthorised | ErrorKind::InvalidJwt => StatusCode::UNAUTHORIZED,
         };
-        tracing::error!("{}", self.to_string()); // ??? is logging the error here correct?
         (
             code,
             Json(json!({"error": self.kind.as_string(), "details": self.message})),
