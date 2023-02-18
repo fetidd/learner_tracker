@@ -1,8 +1,8 @@
-use crate::{models::User, utils::generate_secret};
+use crate::models::User;
 use crate::utils;
 use crate::{
-    app_state::AppState,
     error::{Error, ErrorKind, Result},
+    state::AppState,
 };
 use axum::{
     extract::{Json, State},
@@ -120,7 +120,7 @@ mod tests {
                 hashed_password: "hashed_password".into(),
                 years: "5,6".into(),
                 secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc()
+                last_refresh: Utc::now().naive_utc(),
             },
             Model {
                 first_names: "second".into(),
@@ -129,7 +129,7 @@ mod tests {
                 hashed_password: "hashed_password".into(),
                 years: "2".into(),
                 secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc()
+                last_refresh: Utc::now().naive_utc(),
             },
         ];
         let to_insert: Vec<entity::user::ActiveModel> = users

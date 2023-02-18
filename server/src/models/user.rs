@@ -4,7 +4,7 @@ use crate::{
 };
 use chrono::{NaiveDateTime, Utc};
 use entity::user::{ActiveModel, Entity, Model};
-use sea_orm::{ActiveModelTrait, EntityTrait, QuerySelect};
+use sea_orm::{ActiveModelTrait, EntityTrait};
 use sea_orm::{DatabaseConnection, Set};
 use serde::{Deserialize, Serialize};
 

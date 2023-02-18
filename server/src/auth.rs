@@ -1,16 +1,16 @@
 use crate::{
-    app_state::AppState,
     error::{Error, ErrorKind, Result},
     models::User,
+    state::AppState,
 };
 use axum::{
     extract::{State, TypedHeader},
+    headers::{authorization::Bearer, Authorization},
     middleware::Next,
-    response::Response, headers::{Authorization, authorization::Bearer},
+    response::Response,
 };
 use base64::{engine::general_purpose, Engine};
 use chrono::Utc;
-use http::StatusCode;
 use hyper::Request;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
@@ -53,8 +53,11 @@ pub(crate) fn decode_token(token: &str) -> Result<AuthToken> {
             let decoded_string = String::from_utf8(decoded)?;
             let token = serde_json::from_str(&decoded_string)?;
             Ok(token)
-        },
-        None => Err(Error { kind: ErrorKind::DecodeError, message: Some("token was just a header".into())})
+        }
+        None => Err(Error {
+            kind: ErrorKind::DecodeError,
+            message: Some("token was just a header".into()),
+        }),
     }
 }
 
@@ -72,7 +75,10 @@ pub async fn auth_service<B>(
         // create fresh token to pass in response
         Ok(response)
     } else {
-        Err(Error { kind: ErrorKind::InvalidJwt, message: Some("invalid auth token".into())})
+        Err(Error {
+            kind: ErrorKind::InvalidJwt,
+            message: Some("invalid auth token".into()),
+        })
     }
 }
 

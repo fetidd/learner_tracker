@@ -1,8 +1,8 @@
 use crate::{
-    app_state::AppState,
     auth::{authorize_token, decode_token, generate_auth_token},
     error::{Error, ErrorKind, Result},
     models::User,
+    state::AppState,
 };
 use axum::{
     extract::State,
@@ -67,17 +67,9 @@ async fn get_and_validate_user(
         if pass == user.hashed_password {
             Ok(user)
         } else {
-            tracing::error!("passwords did not match");
-            Err(Error {
-                kind: ErrorKind::InvalidUserPassword,
-                message: Some("passwords did not match".into()),
-            })
+            Err(incorrect_password!())
         }
     } else {
-        tracing::error!("user with email {} does not exist", &email);
-        Err(Error::user_does_not_exist(Some(&format!(
-            "user with email {} does not exist",
-            &email
-        ))))
+        Err(user_does_not_exist!())
     }
 }

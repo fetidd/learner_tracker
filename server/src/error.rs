@@ -5,6 +5,7 @@ use axum::{
     Json,
 };
 use http::StatusCode;
+use serde::Serialize;
 use serde_json::json;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -22,6 +23,45 @@ impl Error {
     }
 }
 
+#[macro_export]
+macro_rules! user_does_not_exist {
+    () => {{
+        let e = Error {
+            kind: ErrorKind::UserDoesNotExist,
+            message: None,
+        };
+        tracing::error!("{}", e.to_string());
+        e
+    }};
+    ($msg:expr) => {{
+        let e = Error {
+            kind: ErrorKind::UserDoesNotExist,
+            message: String::from($msg),
+        };
+        tracing::error!("{}", e.to_string());
+        e
+    }};
+}
+
+macro_rules! incorrect_password {
+    () => {{
+        let e = Error {
+            kind: ErrorKind::InvalidUserPassword,
+            message: None,
+        };
+        tracing::error!("{}", e.to_string());
+        e
+    }};
+    ($msg:expr) => {{
+        let e = Error {
+            kind: ErrorKind::InvalidUserPassword,
+            message: String::from($msg),
+        };
+        tracing::error!("{}", e.to_string());
+        e
+    }};
+}
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl Display for Error {
@@ -31,6 +71,13 @@ impl Display for Error {
             None => write!(f, "[{}]", self.kind.as_string()),
         }
     }
+}
+
+#[derive(Serialize, PartialEq, Clone, Debug)]
+struct ErrorResponse {
+    error: ErrorKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    details: Option<String>,
 }
 
 impl IntoResponse for Error {
@@ -56,7 +103,10 @@ impl IntoResponse for Error {
         };
         (
             code,
-            Json(json!({"error": self.kind.as_string(), "details": self.message})),
+            Json(ErrorResponse {
+                error: self.kind,
+                details: self.message,
+            }),
         )
             .into_response()
     }
@@ -97,7 +147,7 @@ impl_from_error! {base64::DecodeError, DecodeError}
 
 //=====================================================================================================
 /// Different kinds of error that can be thrown in the system.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum ErrorKind {
     InvalidApiRequest,
     InvalidUserPassword,

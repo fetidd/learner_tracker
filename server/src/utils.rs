@@ -18,7 +18,10 @@ pub fn is_valid_email(email: &str) -> bool {
 
 #[cfg(test)]
 pub mod test_utils {
-    use crate::{app_state::{MockAppStateTrait, AppStateTrait}, router::router};
+    use crate::{
+        router::router,
+        state::{AppStateTrait, MockAppStateTrait},
+    };
     use axum_test_helper::TestClient;
     use migration::{Migrator, MigratorTrait};
     use rstest::*;
