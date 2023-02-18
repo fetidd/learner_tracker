@@ -1884,6 +1884,7 @@ dependencies = [
  "hyper",
  "jsonwebtoken",
  "lazy_static",
+ "macros",
  "migration",
  "mockall",
  "password-hash",
@@ -1895,6 +1896,7 @@ dependencies = [
  "sea-orm",
  "serde",
  "serde_json",
+ "shared_utils",
  "thiserror",
  "tokio",
  "tower-http",
@@ -1902,6 +1904,10 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
 ]
+
+[[package]]
+name = "macros"
+version = "0.1.0"
 
 [[package]]
 name = "matchers"
@@ -3125,6 +3131,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "900fba806f70c630b0a382d0d825e17a0f19fcd059a2ade1ff237bcddf446b31"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "shared_utils"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "regex",
 ]
 
 [[package]]

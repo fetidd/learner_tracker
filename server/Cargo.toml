@@ -37,6 +37,8 @@ regex = "1.7.1"
 lazy_static = "1.4.0"
 jsonwebtoken = "8.2.0"
 base64 = "0.21.0"
+shared_utils = { path = "../shared_utils" }
+macros = { path = "../macros"}
 
 [dev-dependencies]
 async-std = "1.12.0"

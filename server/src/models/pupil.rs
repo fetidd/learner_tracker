@@ -2,7 +2,7 @@ use crate::error::{Error, ErrorKind, Result};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Entity, Model};
 use migration::Condition;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, QueryFilter, ColumnTrait};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -37,16 +37,13 @@ impl Pupil {
                 if user.years.contains(&(pupil.year as u32)) {
                     Ok(pupil.into())
                 } else {
-                    Err(Error {
-                        kind: ErrorKind::Unauthorised,
-                        message: Some(format!("you don't have permission to view year {}", pupil.year))
-                    })
+                    Err(Unauthorised!(format!(
+                        "you don't have permission to view year {}",
+                        pupil.year
+                    )))
                 }
-            },
-            None => Err(Error {
-                kind: ErrorKind::PupilDoesNotExist,
-                message: Some("".into()),
-            }),
+            }
+            None => Err(PupilDoesNotExist!()),
         }
     }
 
@@ -55,7 +52,13 @@ impl Pupil {
         for year in &user.years {
             cond = cond.add(entity::pupil::Column::Year.eq(*year));
         }
-        Ok(Entity::find().filter(cond).all(db).await?.into_iter().map(Into::into).collect())
+        Ok(Entity::find()
+            .filter(cond)
+            .all(db)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect())
     }
 
     pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
@@ -142,7 +145,7 @@ mod tests {
                 ..Default::default()
             },
         ];
-        let user = User::new("test", "user", "test@test.com", "pass", vec![1]);  // TEST user restrictions
+        let user = User::new("test", "user", "test@test.com", "pass", vec![1]); // TEST user restrictions
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();

@@ -1,68 +1,37 @@
-use std::{fmt::Display, string::FromUtf8Error};
-
 use axum::{
     response::{IntoResponse, Response},
     Json,
 };
 use http::StatusCode;
+use macros::*;
 use serde::Serialize;
-use serde_json::json;
+use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Error {
     pub(crate) kind: ErrorKind,
     pub(crate) message: Option<String>,
 }
-// TODO make a derive macro to create assoc. funcs to create each kind of error, with optional message arg, as below
-impl Error {
-    pub fn user_does_not_exist(msg: Option<&str>) -> Self {
-        Error {
-            kind: ErrorKind::UserDoesNotExist,
-            message: msg.map(|msg| msg.to_owned()),
-        }
-    }
-}
 
-#[macro_export]
-macro_rules! user_does_not_exist {
-    () => {{
-        let e = Error {
-            kind: ErrorKind::UserDoesNotExist,
-            message: None,
-        };
-        tracing::error!("{}", e.to_string());
-        e
-    }};
-    ($msg:expr) => {{
-        let e = Error {
-            kind: ErrorKind::UserDoesNotExist,
-            message: String::from($msg),
-        };
-        tracing::error!("{}", e.to_string());
-        e
-    }};
-}
-
-macro_rules! incorrect_password {
-    () => {{
-        let e = Error {
-            kind: ErrorKind::InvalidUserPassword,
-            message: None,
-        };
-        tracing::error!("{}", e.to_string());
-        e
-    }};
-    ($msg:expr) => {{
-        let e = Error {
-            kind: ErrorKind::InvalidUserPassword,
-            message: String::from($msg),
-        };
-        tracing::error!("{}", e.to_string());
-        e
-    }};
+error_macro! { // creates an Error for each with optional message, logs it, then returns it
+    InvalidApiRequest,
+    InvalidUserPassword,
+    UserDoesNotExist,
+    PupilDoesNotExist,
+    InvalidJwt, // jsonwebtoken::errors::Error
+    Unauthorised
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+from_error! {sea_orm::DbErr > DatabaseError}
+from_error! {std::env::VarError > MissingEnvVariable}
+from_error! {std::net::AddrParseError > AddrParseError}
+from_error! {hyper::Error > ServerError}
+from_error! {jsonwebtoken::errors::Error > InvalidJwt}
+from_error! {serde_json::Error > SerializeError}
+from_error! {std::string::FromUtf8Error > ParseError}
+from_error! {base64::DecodeError > DecodeError: "error decoding"}
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -111,39 +80,6 @@ impl IntoResponse for Error {
             .into_response()
     }
 }
-
-//=====================================================================================================
-macro_rules! impl_from_error {
-    ($error:ty, $kind:ident) => {
-        impl From<$error> for Error {
-            fn from(value: $error) -> Self {
-                Error {
-                    kind: ErrorKind::$kind,
-                    message: Some(value.to_string()),
-                }
-            }
-        }
-    };
-    ($error:ty, $kind:ident, $msg:expr) => {
-        impl From<$error> for Error {
-            fn from(value: $error) -> Self {
-                Error {
-                    kind: ErrorKind::$kind,
-                    message: Some($msg.to_string()),
-                }
-            }
-        }
-    };
-}
-
-impl_from_error! {sea_orm::DbErr, DatabaseError}
-impl_from_error! {std::env::VarError, MissingEnvVariable}
-impl_from_error! {std::net::AddrParseError, AddrParseError}
-impl_from_error! {hyper::Error, ServerError}
-impl_from_error! {jsonwebtoken::errors::Error, InvalidJwt}
-impl_from_error! {serde_json::Error, SerializeError}
-impl_from_error! {FromUtf8Error, ParseError}
-impl_from_error! {base64::DecodeError, DecodeError}
 
 //=====================================================================================================
 /// Different kinds of error that can be thrown in the system.

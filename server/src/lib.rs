@@ -1,7 +1,7 @@
-pub mod auth;
-pub mod constant;
 #[macro_use]
 pub mod error;
+pub mod auth;
+pub mod constant;
 pub mod handlers;
 pub mod log;
 pub mod models;

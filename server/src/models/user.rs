@@ -62,10 +62,9 @@ impl User {
     pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> {
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
-            None => Err(Error {
-                kind: ErrorKind::UserDoesNotExist,
-                message: Some("user with email {email} does not exist".into()),
-            }),
+            None => Err(UserDoesNotExist!(format!(
+                "user with email {email} does not exist"
+            ))),
         }
     }
 

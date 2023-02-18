@@ -25,7 +25,7 @@ pub async fn get_pupils(
 ) -> Result<Json<PupilsResponse>> {
     tracing::info!("requested all pupils");
     let pupils = Pupil::all_from_db(&user, state.database().as_ref()).await?;
-    Ok(Json(PupilsResponse { pupils: pupils }))
+    Ok(Json(PupilsResponse { pupils }))
 }
 
 pub async fn get_pupil_by_id(

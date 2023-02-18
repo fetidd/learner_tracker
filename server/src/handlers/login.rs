@@ -39,10 +39,7 @@ pub async fn logout_handler(
         user.refresh_secret(state.database()).await?;
         Ok(StatusCode::OK)
     } else {
-        Err(Error {
-            kind: ErrorKind::InvalidJwt,
-            message: Some("token is invalid".into()),
-        })
+        Err(InvalidJwt!())
     }
 }
 
@@ -67,9 +64,9 @@ async fn get_and_validate_user(
         if pass == user.hashed_password {
             Ok(user)
         } else {
-            Err(incorrect_password!())
+            Err(InvalidUserPassword!())
         }
     } else {
-        Err(user_does_not_exist!())
+        Err(UserDoesNotExist!())
     }
 }

@@ -46,25 +46,13 @@ pub struct RequestUser {
 impl RequestUser {
     fn validate(&self) -> Result<()> {
         if self.first_names.is_empty() || self.last_name.is_empty() {
-            Err(Error {
-                kind: ErrorKind::InvalidApiRequest,
-                message: Some("names cannot be empty".into()),
-            })
+            Err(InvalidApiRequest!("names cannot be empty"))
         } else if self.hashed_password.is_empty() {
-            Err(Error {
-                kind: ErrorKind::InvalidApiRequest,
-                message: Some("password cannot be empty".into()),
-            })
+            Err(InvalidApiRequest!("password cannot be empty"))
         } else if self.years.is_empty() {
-            Err(Error {
-                kind: ErrorKind::InvalidApiRequest,
-                message: Some("must specify at least one year group".into()),
-            })
+            Err(InvalidApiRequest!("must specify at least 1 year group"))
         } else if !utils::is_valid_email(&self.email_address) {
-            Err(Error {
-                kind: ErrorKind::InvalidApiRequest,
-                message: Some("email address is invalid".into()),
-            })
+            Err(InvalidApiRequest!("email address is invalid"))
         } else {
             Ok(())
         }
