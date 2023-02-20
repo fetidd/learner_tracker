@@ -3,11 +3,11 @@ use crate::common::*;
 use chrono::Utc;
 use entity::{pupil::Model as Pupil, user::Model as User};
 use http::StatusCode;
-use lt_server::{auth::generate_auth_token, constant};
+use lt_server::constant;
 use rstest::*;
 use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -143,10 +143,10 @@ async fn login_and_get_pupils(#[future] mock_ctx: MockCtx) {
         .await;
     assert_eq!(res.status(), StatusCode::OK);
     let mut res_body: serde_json::Value = res.json().await;
-    let mut pupils = res_body["pupils"].as_array_mut().expect("array of pupils");
+    let pupils = res_body["pupils"].as_array_mut().expect("array of pupils");
     let ids: Vec<String> = pupils
         .iter_mut()
-        .map(|mut p| {
+        .map(|p| {
             p.as_object_mut()
                 .unwrap()
                 .remove_entry("id")
@@ -253,7 +253,7 @@ async fn test_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
 }
 
 #[rstest]
-async fn test_get_users(#[future] mock_ctx: MockCtx) {
+async fn login_and_get_users(#[future] mock_ctx: MockCtx) {
     let ctx = mock_ctx.await;
     let users = vec![
         entity::user::Model {
@@ -284,10 +284,48 @@ async fn test_get_users(#[future] mock_ctx: MockCtx) {
         .exec(ctx.check_db())
         .await
         .expect("inserting user");
-    let res = ctx.client().get(constant::USERS_ENDPOINT).send().await;
+    add_user(&[127; 64], "2021-01-01T00:00:00", ctx.check_db()).await;
+    let log_res = ctx
+        .client()
+        .post(constant::LOGIN_ENDPOINT)
+        .json(&json!({"email_address": "test_user@integration.com", "hashed_password": "password"}))
+        .send()
+        .await;
+    assert_eq!(log_res.status(), StatusCode::OK);
+    let res_json: HashMap<String, String> = log_res.json().await;
+    let token = res_json.get("token").expect("auth token");
+    let res = ctx
+        .client()
+        .get(constant::USERS_ENDPOINT)
+        .header("Authorization", format!("Bearer {token}"))
+        .send()
+        .await;
     assert_eq!(res.status(), StatusCode::OK);
-    let res_body: String = res.json().await;
-    assert_eq!(res_body, "")
+    let mut res_body: serde_json::Value = res.json().await;
+    let users = res_body["users"].as_array_mut().expect("array of users");
+    assert_eq!(
+        *users,
+        vec![
+            json!({
+                "first_names": "first",
+                "last_name": "user",
+                "email_address": "first_user@test.com",
+                "years": vec![5,6]
+            }),
+            json!({
+                "first_names": "second",
+                "last_name": "user",
+                "email_address": "second_user@test.com",
+                "years": vec![2]
+            }),
+            json!({
+                "first_names": "Integration Test",
+                "last_name": "User",
+                "email_address": "test_user@integration.com",
+                "years": vec![5,6]
+            }),
+        ]
+    );
 }
 
 #[rstest]
