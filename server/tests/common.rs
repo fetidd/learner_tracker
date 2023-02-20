@@ -1,12 +1,17 @@
 use axum_test_helper::TestClient;
+use chrono::Utc;
+use entity::{pupil::Model as Pupil, user::Model as User};
 use lt_server::{
+    constant,
     router::router,
     state::{AppStateTrait, MockAppStateTrait},
 };
 use migration::{Migrator, MigratorTrait};
 use rstest::*;
-use sea_orm::{Database, DatabaseConnection};
-use std::sync::Arc;
+use sea_orm::{Database, DatabaseConnection, EntityTrait};
+use serde_json::json;
+use std::{collections::HashMap, sync::Arc};
+use uuid::Uuid;
 
 #[fixture]
 pub async fn mock_ctx() -> MockCtx {
@@ -41,4 +46,82 @@ impl MockCtx {
     pub fn client(&self) -> &TestClient {
         &self.client
     }
+
+    pub async fn login(&self) -> String {
+        add_user(&[127; 64], "2021-01-01T00:00:00", self.check_db()).await;
+        let login = self.client()
+            .post(constant::LOGIN_ENDPOINT)
+            .json(&json!({"email_address": "test_user@integration.com", "hashed_password": "password"}))
+            .send()
+            .await;
+        assert_eq!(login.status(), http::StatusCode::OK);
+        let token = login.json::<HashMap<String, String>>().await;
+        token["token"].to_owned()
+    }
+}
+
+pub async fn add_user(secret: &[u8], last_refresh: &str, db: &DatabaseConnection) -> User {
+    let user = User {
+        first_names: "Integration Test".into(),
+        last_name: "User".into(),
+        email_address: "test_user@integration.com".into(),
+        hashed_password: "password".into(),
+        years: "5,6".into(),
+        secret: secret.to_vec(),
+        last_refresh: last_refresh.parse().expect("parse last_refresh"),
+    };
+    entity::user::Entity::insert(<User as Into<entity::user::ActiveModel>>::into(
+        user.clone(),
+    ))
+    .exec(db)
+    .await
+    .expect("insert test user");
+    user
+}
+
+pub async fn add_pupils(db: &DatabaseConnection) {
+    let pupils = vec![
+        Pupil {
+            id: Uuid::new_v4(),
+            first_names: "first".into(),
+            last_name: "student".into(),
+            start_date: "2021-01-01".parse().unwrap(),
+            end_date: "2027-01-01".parse().unwrap(),
+            gender: "gender".into(),
+            year: 6,
+            active: true,
+            ..Default::default()
+        },
+        Pupil {
+            id: Uuid::new_v4(),
+            first_names: "second".into(),
+            last_name: "student".into(),
+            start_date: "2021-01-01".parse().unwrap(),
+            end_date: "2027-01-01".parse().unwrap(),
+            gender: "gender".into(),
+            year: 6,
+            active: true,
+            ..Default::default()
+        },
+        Pupil {
+            id: Uuid::new_v4(),
+            first_names: "third".into(),
+            last_name: "student".into(),
+            start_date: "2021-01-01".parse().unwrap(),
+            end_date: "2027-01-01".parse().unwrap(),
+            gender: "gender".into(),
+            year: 2,
+            active: true,
+            ..Default::default()
+        },
+    ];
+    let to_insert: Vec<entity::pupil::ActiveModel> = pupils
+        .clone()
+        .into_iter()
+        .map(entity::pupil::ActiveModel::from)
+        .collect();
+    entity::pupil::Entity::insert_many(to_insert)
+        .exec(db)
+        .await
+        .expect("insert test pupils");
 }
