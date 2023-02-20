@@ -277,7 +277,7 @@ mod trait_tests {
             secret: vec![127; 64],
             last_refresh: Utc::now().naive_utc(),
         };
-        let user_attempt = User::from(model);
+        let _user_attempt = User::from(model);
     }
 
     #[rstest]
@@ -297,7 +297,7 @@ mod trait_tests {
             secret: vec![127; 64],
             last_refresh: Utc::now().naive_utc(),
         };
-        let user_attempt = User::from(model);
+        let _user_attempt = User::from(model);
     }
 
     #[rstest]

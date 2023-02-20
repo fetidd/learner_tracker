@@ -163,8 +163,8 @@ mod tests {
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"SELECT "pupil"."id", "pupil"."first_names", "pupil"."last_name", "pupil"."year", "pupil"."start_date", "pupil"."end_date", "pupil"."active", "pupil"."more_able_and_talented", "pupil"."english_as_additional_language", "pupil"."free_school_meals", "pupil"."additional_learning_needs", "pupil"."looked_after_child", "pupil"."gender" FROM "pupil""#,
-            [],
+            r#"SELECT "pupil"."id", "pupil"."first_names", "pupil"."last_name", "pupil"."year", "pupil"."start_date", "pupil"."end_date", "pupil"."active", "pupil"."more_able_and_talented", "pupil"."english_as_additional_language", "pupil"."free_school_meals", "pupil"."additional_learning_needs", "pupil"."looked_after_child", "pupil"."gender" FROM "pupil" WHERE "pupil"."year" = $1"#,
+            [1u32.into()],
         );
         assert_eq!(t_log[0], exp_query);
     }

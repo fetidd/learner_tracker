@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 // TODO add a way to reset the secret for every user that hasnt been refreshed in 24hours, check
 // every 15 mins. Will need a last_refreshes field in yser table uodated in refresh_secret
 
-pub(crate) fn generate_auth_token(user: &User) -> Result<String> {
+pub fn generate_auth_token(user: &User) -> Result<String> {
     let expiration = Utc::now()
         .checked_add_signed(chrono::Duration::minutes(60))
         .expect("valid timestamp")
@@ -37,7 +37,7 @@ pub(crate) fn generate_auth_token(user: &User) -> Result<String> {
     })
 }
 
-pub(crate) fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
+pub fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
     Ok(decode::<AuthToken>(
         &token,
         &DecodingKey::from_secret(secret),
@@ -46,7 +46,7 @@ pub(crate) fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
     .claims)
 }
 
-pub(crate) fn decode_token(token: &str) -> Result<AuthToken> {
+pub fn decode_token(token: &str) -> Result<AuthToken> {
     match token.split('.').collect::<Vec<&str>>().get(1) {
         Some(claims) => {
             let decoded = general_purpose::STANDARD_NO_PAD.decode(*claims)?;
@@ -83,7 +83,7 @@ pub async fn auth_service<B>(
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub(crate) struct AuthToken {
+pub struct AuthToken {
     pub(crate) email_address: String,
     pub(crate) exp: usize,
     pub(crate) first_names: String,

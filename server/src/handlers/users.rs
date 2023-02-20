@@ -1,8 +1,8 @@
 use crate::models::User;
-use crate::utils;
 use crate::{
     error::{Error, ErrorKind, Result},
     state::AppState,
+    utils,
 };
 use axum::{
     extract::{Json, State},
@@ -59,8 +59,7 @@ impl RequestUser {
     }
 }
 
-#[derive(Serialize, Clone, PartialEq, Debug)]
-#[cfg_attr(test, derive(Deserialize))]
+#[derive(Serialize, Clone, PartialEq, Debug, Deserialize)]
 pub struct ResponseUser {
     first_names: String,
     last_name: String,
@@ -79,8 +78,7 @@ impl From<User> for ResponseUser {
     }
 }
 
-#[derive(Serialize)]
-#[cfg_attr(test, derive(Deserialize))]
+#[derive(Serialize, Deserialize)]
 pub struct UsersResponse {
     users: Vec<ResponseUser>,
 }
@@ -88,90 +86,17 @@ pub struct UsersResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::test_utils::*;
-    use crate::MockCtx;
-    use chrono::Utc;
-    use entity::user::{Entity, Model};
-    use http::StatusCode;
     use rstest::*;
-    use sea_orm::EntityTrait;
-    use serde_json::json;
-
-    #[rstest]
-    async fn test_get_users(#[future] mock_ctx: MockCtx) {
-        let ctx = mock_ctx.await;
-        let users = vec![
-            Model {
-                first_names: "first".into(),
-                last_name: "user".into(),
-                email_address: "first_user@test.com".into(),
-                hashed_password: "hashed_password".into(),
-                years: "5,6".into(),
-                secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc(),
-            },
-            Model {
-                first_names: "second".into(),
-                last_name: "user".into(),
-                email_address: "second_user@test.com".into(),
-                hashed_password: "hashed_password".into(),
-                years: "2".into(),
-                secret: vec![127; 64],
-                last_refresh: Utc::now().naive_utc(),
-            },
-        ];
-        let to_insert: Vec<entity::user::ActiveModel> = users
-            .clone()
-            .into_iter()
-            .map(entity::user::ActiveModel::from)
-            .collect();
-        entity::user::Entity::insert_many(to_insert)
-            .exec(ctx.check_db())
-            .await
-            .expect("inserting user");
-        let res = ctx.client().get("/api/data/users").send().await;
-        assert_eq!(res.status(), StatusCode::OK);
-        let res_body: UsersResponse = res.json().await;
-        let res_users = res_body.users;
-        assert_eq!(
-            res_users,
-            users
-                .into_iter()
-                .map(User::from)
-                .map(ResponseUser::from)
-                .collect::<Vec<ResponseUser>>()
-        )
-    }
-
-    #[rstest]
-    async fn test_create_user(#[future] mock_ctx: MockCtx) {
-        let ctx = mock_ctx.await;
-        let new_user_json = json!({"first_names": "test", "last_name": "user", "email_address": "test@test.com", "hashed_password": "password", "years": vec![2,3]});
-        let res = ctx
-            .client()
-            .post("/api/data/users")
-            .json(&new_user_json)
-            .send()
-            .await;
-        assert_eq!(res.status(), StatusCode::CREATED);
-        let inserted = Entity::find_by_id("test@test.com")
-            .one(ctx.check_db())
-            .await
-            .unwrap()
-            .unwrap();
-        assert_eq!(inserted.email_address, "test@test.com");
-        assert_eq!(inserted.years, "2,3");
-    }
 
     #[rstest]
     #[case("test", "user", "test@test.com", "password", vec![2,3],  Ok(()))]
-    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("names cannot be empty".into())}))]
+    #[case("", "user", "test@test.com", "password", vec![2,3],      Err(InvalidApiRequest!("names cannot be empty")))]
     #[case("test", "", "test@test.com", "password", vec![2,3],      Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("names cannot be empty".into())}))]
     #[case("test", "user", "test@test.", "password", vec![2,3],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
     #[case("test", "user", "testattest.com", "password", vec![2,3], Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
     #[case("test", "user", "", "password", vec![2,3],               Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("email address is invalid".into())}))]
     #[case("test", "user", "test@test.com", "", vec![2,3],          Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("password cannot be empty".into())}))]
-    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("must specify at least one year group".into())}))]
+    #[case("test", "user", "test@test.com", "password", vec![],     Err(Error {kind: ErrorKind::InvalidApiRequest, message: Some("must specify at least 1 year group".into())}))]
     fn test_validate_request_user(
         #[case] first_names: String,
         #[case] last_name: String,
