@@ -1,6 +1,8 @@
 use proc_macro::*;
 use quote::quote;
 use syn::{self, parse_macro_input, DataEnum, DeriveInput};
+use regex::Regex;
+use lazy_static::lazy_static;
 
 #[proc_macro_derive(KindError, attributes(code, from))]
 pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
@@ -12,6 +14,7 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
     );
     match data {
         syn::Data::Enum(DataEnum { variants, .. }) => {
+            let strings = variants.iter().map(|f| stringify_errorkind(&f.ident.to_string()));
             let kinds = variants.iter().map(|f| &f.ident);
             quote! {
                 #[derive(Clone, Debug, PartialEq)]
@@ -23,30 +26,26 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
                 impl std::fmt::Display for Error {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                         match &self.message {
-                            Some(msg) => write!(f, "[{}]::> {}", self.kind.as_string(), msg),
-                            None => write!(f, "[{}]", self.kind.as_string()),
+                            Some(msg) => write!(f, "{}: {}", self.kind, msg),
+                            None => write!(f, "{}", self.kind),
                         }
                     }
                 }
 
                 impl std::fmt::Display for ErrorKind {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(f, "{}", self.as_string())
+                        let string = match self {
+                            #(Self::#kinds => String::from(#strings)),*
+                        };
+                        write!(f, "{}", string)
                     }
                 }
 
                 #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
                 struct ErrorResponse {
-                    error: ErrorKind,
+                    error: String,
                     #[serde(skip_serializing_if="Option::is_none")]
                     details: Option<String>
-                }
-                impl #ident {
-                    pub fn as_string(&self) -> String {
-                        match self {
-                            #(Self::#kinds => String::from(stringify!(#kinds))),*
-                        }
-                    }
                 }
             }
             .into()
@@ -86,3 +85,29 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
 //             .into_response()
 //     }
 // }
+
+
+fn stringify_errorkind(var: &str) -> String {
+    lazy_static!{
+        static ref KIND_PATTERN: &'static str = r"[A-Z][a-z]+";
+    }
+    let re = Regex::new(&KIND_PATTERN).expect("KIND_PATTERN invalid");
+    let caps = re.captures_iter(var);
+    caps.map(|c| c[0].to_uppercase()).collect::<Vec<String>>().join(" ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_stringify_errorkind() {
+        let tests: Vec<(&str, &str)> = vec![
+            ("Error", "ERROR"),
+            ("InvalidCredentials", "INVALID CREDENTIALS"),
+        ];
+        for (input, exp) in tests {
+            assert_eq!(exp.to_string(), stringify_errorkind(input));
+        }
+    }
+}

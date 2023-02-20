@@ -33,10 +33,13 @@ pub async fn get_pupil_by_id(
     Path(id): Path<Uuid>,
     Extension(user): Extension<User>,
 ) -> Result<Json<PupilsResponse>> {
-    let pupil = Pupil::one_from_db(&user, id, state.database().as_ref()).await?;
-    Ok(Json(PupilsResponse {
-        pupils: vec![pupil],
-    }))
+    match Pupil::one_from_db(&user, id, state.database().as_ref()).await {
+        Ok(pupil) => Ok(Json(PupilsResponse {
+            pupils: vec![pupil],
+        })),
+        Err(error) => Err(error)
+    }
+    
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

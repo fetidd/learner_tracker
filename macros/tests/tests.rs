@@ -4,12 +4,14 @@ use serde::{Deserialize, Serialize};
 #[test]
 fn test_kind_error() {
     #[derive(KindError, Debug, PartialEq, Clone, Deserialize, Serialize)]
-    enum ErrorKind {
+    pub enum ErrorKind {
         Red,
-        Blue,
+        BlueGreen,
         Green,
     }
-    assert_eq!(ErrorKind::Red.as_string(), String::from("Red"));
-    assert_eq!(ErrorKind::Blue.as_string(), String::from("Blue"));
-    assert_eq!(ErrorKind::Green.as_string(), String::from("Green"));
+    assert_eq!(ErrorKind::Red.to_string(), String::from("RED"));
+    assert_eq!(ErrorKind::BlueGreen.to_string(), String::from("BLUE GREEN"));
+    assert_eq!(ErrorKind::Green.to_string(), String::from("GREEN"));
+
+
 }

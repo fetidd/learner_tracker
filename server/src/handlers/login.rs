@@ -64,7 +64,7 @@ async fn get_and_validate_user(
         if pass == user.hashed_password {
             Ok(user)
         } else {
-            Err(InvalidUserPassword!())
+            Err(InvalidCredentials!())
         }
     } else {
         Err(UserDoesNotExist!())

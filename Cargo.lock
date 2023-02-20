@@ -1910,7 +1910,9 @@ name = "macros"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "lazy_static",
  "quote",
+ "regex",
  "serde",
  "serde_json",
  "syn",
