@@ -28,7 +28,7 @@ pub enum ErrorKind {
     ParseError,
     Unauthorised,
 
-    UnknownError
+    UnknownError,
 }
 
 error_macro! { // creates an Error for each with optional message, logs it, then returns it
@@ -56,7 +56,8 @@ from_error! {serde_json::Error > SerializeError}
 from_error! {std::string::FromUtf8Error > ParseError}
 from_error! {base64::DecodeError > DecodeError: "error decoding"}
 
-impl IntoResponse for Error { // TODO integrate this with the KindError macro
+impl IntoResponse for Error {
+    // TODO integrate this with the KindError macro
     fn into_response(self) -> Response {
         let code = match self.kind {
             ErrorKind::InvalidApiRequest

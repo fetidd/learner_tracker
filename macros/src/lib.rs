@@ -1,8 +1,8 @@
+use lazy_static::lazy_static;
 use proc_macro::*;
 use quote::quote;
-use syn::{self, parse_macro_input, DataEnum, DeriveInput};
 use regex::Regex;
-use lazy_static::lazy_static;
+use syn::{self, parse_macro_input, DataEnum, DeriveInput};
 
 #[proc_macro_derive(KindError, attributes(code, from))]
 pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
@@ -14,7 +14,9 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
     );
     match data {
         syn::Data::Enum(DataEnum { variants, .. }) => {
-            let strings = variants.iter().map(|f| stringify_errorkind(&f.ident.to_string()));
+            let strings = variants
+                .iter()
+                .map(|f| stringify_errorkind(&f.ident.to_string()));
             let kinds = variants.iter().map(|f| &f.ident);
             // let attrs = variants.iter().map(|f| &f.attrs);
             quote! {
@@ -87,14 +89,15 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
 //     }
 // }
 
-
 fn stringify_errorkind(var: &str) -> String {
-    lazy_static!{
+    lazy_static! {
         static ref KIND_PATTERN: &'static str = r"[A-Z][a-z]+";
     }
     let re = Regex::new(&KIND_PATTERN).expect("KIND_PATTERN invalid");
     let caps = re.captures_iter(var);
-    caps.map(|c| c[0].to_uppercase()).collect::<Vec<String>>().join(" ")
+    caps.map(|c| c[0].to_uppercase())
+        .collect::<Vec<String>>()
+        .join(" ")
 }
 
 #[cfg(test)]

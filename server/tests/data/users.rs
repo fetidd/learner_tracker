@@ -84,7 +84,7 @@ async fn login_and_create_user(#[future] mock_ctx: MockCtx) {
     });
     let res = ctx
         .client()
-        .post(constant::USERS_ENDPOINT)
+        .put(constant::USERS_ENDPOINT)
         .json(&new_user_json)
         .header("Authorization", format!("Bearer {}", ctx.login().await))
         .send()

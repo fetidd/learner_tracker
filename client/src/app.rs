@@ -47,12 +47,12 @@ pub fn app() -> Html {
                                 if let Err(error) = logout_response.send().await {
                                     error!(error.to_string())
                                 }
-                            },
+                            }
                             Err(error) => {
                                 error!(error.to_string());
                             }
                         }
-                    },
+                    }
                     Err(error) => {
                         error!(error.to_string());
                     }

@@ -1,5 +1,5 @@
 use sea_orm::entity::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "user")]
@@ -11,7 +11,7 @@ pub struct Model {
     pub hashed_password: String,
     pub years: String,
     pub secret: Vec<u8>,
-    pub last_refresh: DateTime
+    pub last_refresh: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

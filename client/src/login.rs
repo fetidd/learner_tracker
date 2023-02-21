@@ -1,9 +1,9 @@
 use web_sys::HtmlInputElement;
 use yew::function_component;
 
+use crate::routes::Route;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use crate::{routes::Route};
 
 #[function_component(LoginForm)]
 pub fn login_form(p: &LoginFormProps) -> Html {
@@ -18,8 +18,8 @@ pub fn login_form(p: &LoginFormProps) -> Html {
             let password = entered_password.cast::<HtmlInputElement>().unwrap().value();
             let hashed_password = password;
             login_callback.emit((
-                entered_email.cast::<HtmlInputElement>().unwrap().value(), 
-                hashed_password
+                entered_email.cast::<HtmlInputElement>().unwrap().value(),
+                hashed_password,
             ));
             navigator.replace(&Route::Menu);
         })

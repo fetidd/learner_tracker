@@ -79,10 +79,10 @@ pub async fn add_user(secret: &[u8], last_refresh: &str, db: &DatabaseConnection
     user
 }
 
-pub async fn add_pupils(db: &DatabaseConnection) {
+pub async fn add_pupils(db: &DatabaseConnection) -> Vec<&'static str> {
     let pupils = vec![
         Pupil {
-            id: Uuid::new_v4(),
+            id: "a71ba7e6-0d07-4009-9515-414edd7f603a".parse().unwrap(),
             first_names: "first".into(),
             last_name: "student".into(),
             start_date: "2021-01-01".parse().unwrap(),
@@ -93,7 +93,7 @@ pub async fn add_pupils(db: &DatabaseConnection) {
             ..Default::default()
         },
         Pupil {
-            id: Uuid::new_v4(),
+            id: "f5e05074-4867-42de-8163-23e04a2a6e8b".parse().unwrap(),
             first_names: "second".into(),
             last_name: "student".into(),
             start_date: "2021-01-01".parse().unwrap(),
@@ -104,7 +104,7 @@ pub async fn add_pupils(db: &DatabaseConnection) {
             ..Default::default()
         },
         Pupil {
-            id: Uuid::new_v4(),
+            id: "8623e00f-b802-43d1-916e-8ac7a78ee001".parse().unwrap(),
             first_names: "third".into(),
             last_name: "student".into(),
             start_date: "2021-01-01".parse().unwrap(),
@@ -124,4 +124,9 @@ pub async fn add_pupils(db: &DatabaseConnection) {
         .exec(db)
         .await
         .expect("insert test pupils");
+    vec![
+        "a71ba7e6-0d07-4009-9515-414edd7f603a",
+        "f5e05074-4867-42de-8163-23e04a2a6e8b",
+        "8623e00f-b802-43d1-916e-8ac7a78ee001",
+    ]
 }

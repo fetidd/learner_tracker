@@ -96,4 +96,3 @@ fn get_dates_from_year(year: i32) -> (NaiveDate, NaiveDate) {
         NaiveDate::from_ymd_opt(curr_year + (6 - year), 7, 20).unwrap(),
     )
 }
-

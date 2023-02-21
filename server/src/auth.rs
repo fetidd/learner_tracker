@@ -1,7 +1,8 @@
 use crate::{
+    constant,
     error::{Error, ErrorKind, Result},
     models::User,
-    state::AppState, constant,
+    state::AppState,
 };
 use axum::{
     extract::{State, TypedHeader},
@@ -20,7 +21,9 @@ use serde::{Deserialize, Serialize};
 
 pub fn generate_auth_token(user: &User) -> Result<String> {
     let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::minutes(constant::AUTH_TOKEN_EXPIRY_MINUTES))
+        .checked_add_signed(chrono::Duration::minutes(
+            constant::AUTH_TOKEN_EXPIRY_MINUTES,
+        ))
         .expect("valid timestamp")
         .timestamp();
     let claims = AuthToken {

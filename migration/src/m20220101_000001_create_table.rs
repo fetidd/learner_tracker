@@ -1,8 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::{
-    build_pupil_table, build_user_table, drop_pupil_table, drop_user_table
-};
+use crate::{build_pupil_table, build_user_table, drop_pupil_table, drop_user_table};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;

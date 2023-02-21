@@ -1,4 +1,8 @@
-use crate::{models::{Pupil, User}, routes::Route, constant, error};
+use crate::{
+    constant, error,
+    models::{Pupil, User},
+    routes::Route,
+};
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
 use uuid::Uuid;
@@ -19,7 +23,9 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
             move |_| {
                 let pupils = pupils.clone();
                 spawn_local(async move {
-                    if let Ok(sid) = SessionStorage::get::<Uuid>(constant::SESSION_ID_SESSIONSTORAGE_KEY) {
+                    if let Ok(sid) =
+                        SessionStorage::get::<Uuid>(constant::SESSION_ID_SESSIONSTORAGE_KEY)
+                    {
                         let response = Request::get(constant::GET_PUPILS_PATH)
                             .header(constant::SESSION_ID_COOKIE, &sid.to_string())
                             .send()
@@ -28,7 +34,7 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
                             Ok(fetched) => {
                                 match fetched.json().await {
                                     Ok(fetched_pupils) => pupils.set(fetched_pupils),
-                                    Err(err) => error!(err.to_string())
+                                    Err(err) => error!(err.to_string()),
                                 };
                             }
                             Err(err) => error!(err.to_string()),
@@ -80,13 +86,13 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
             </>
         }
     } else {
-        html!{ <Redirect<Route> to={Route::Login} /> }
+        html! { <Redirect<Route> to={Route::Login} /> }
     }
 }
 
 #[derive(Properties, PartialEq)]
 pub struct PupilTableProps {
-    pub current_user: Option<User>
+    pub current_user: Option<User>,
 }
 
 #[function_component(PupilRow)]

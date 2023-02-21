@@ -1,8 +1,10 @@
 use crate::error::{Error, ErrorKind, Result};
 use chrono::NaiveDate;
-use entity::pupil::{ActiveModel, Entity, Model};
+use entity::pupil::{ActiveModel, Column, Entity, Model};
 use migration::Condition;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged, DeleteResult,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -50,7 +52,7 @@ impl Pupil {
     pub async fn all_from_db(user: &User, db: &DatabaseConnection) -> Result<Vec<Self>> {
         let mut cond = Condition::any();
         for year in &user.years {
-            cond = cond.add(entity::pupil::Column::Year.eq(*year));
+            cond = cond.add(Column::Year.eq(*year));
         }
         Ok(Entity::find()
             .filter(cond)
@@ -61,7 +63,7 @@ impl Pupil {
             .collect())
     }
 
-    pub async fn save(&self, db: &DatabaseConnection) -> Result<Self> {
+    pub async fn insert(&self, db: &DatabaseConnection) -> Result<Self> {
         Ok(ActiveModel {
             id: Set(self.id.clone()),
             first_names: Set(self.first_names.clone()),
@@ -81,13 +83,114 @@ impl Pupil {
         .await?
         .into())
     }
+
+    pub async fn update(&self, db: &DatabaseConnection) -> Result<Self> {
+        Ok(ActiveModel {
+            id: Unchanged(self.id.clone()),
+            first_names: Set(self.first_names.clone()),
+            last_name: Set(self.last_name.clone()),
+            year: Set(self.year),
+            start_date: Set(self.start_date.clone()),
+            end_date: Set(self.end_date.clone()),
+            active: Set(self.active),
+            more_able_and_talented: Set(self.more_able_and_talented),
+            english_as_additional_language: Set(self.english_as_additional_language),
+            free_school_meals: Set(self.free_school_meals),
+            additional_learning_needs: Set(self.additional_learning_needs),
+            looked_after_child: Set(self.looked_after_child),
+            gender: Set(self.gender.clone()),
+        }
+        .update(db)
+        .await?
+        .into())
+    }
+
+    pub fn set_from_update(&mut self, update: PupilUpdate) {
+        // TODO is there a nicer way of doing this?
+        if update.first_names.is_some() {
+            self.first_names = update.first_names.unwrap();
+        }
+        if update.last_name.is_some() {
+            self.last_name = update.last_name.unwrap();
+        }
+        if update.year.is_some() {
+            self.year = update.year.unwrap();
+        }
+        if update.start_date.is_some() {
+            self.start_date = update.start_date.unwrap();
+        }
+        if update.end_date.is_some() {
+            self.end_date = update.end_date.unwrap();
+        }
+        if update.active.is_some() {
+            self.active = update.active.unwrap();
+        }
+        if update.more_able_and_talented.is_some() {
+            self.more_able_and_talented = update.more_able_and_talented.unwrap();
+        }
+        if update.english_as_additional_language.is_some() {
+            self.english_as_additional_language = update.english_as_additional_language.unwrap();
+        }
+        if update.free_school_meals.is_some() {
+            self.free_school_meals = update.free_school_meals.unwrap();
+        }
+        if update.additional_learning_needs.is_some() {
+            self.additional_learning_needs = update.additional_learning_needs.unwrap();
+        }
+        if update.looked_after_child.is_some() {
+            self.looked_after_child = update.looked_after_child.unwrap();
+        }
+        if update.gender.is_some() {
+            self.gender = update.gender.unwrap();
+        }
+    }
+
+    pub async fn delete(&self, db: &DatabaseConnection) -> Result<()> {
+        Entity::delete_by_id(self.id).exec(db).await?;
+        Ok(()) // ignore the delete result
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Deserialize, Default)]
+pub struct PupilUpdate {
+    first_names: Option<String>,
+    last_name: Option<String>,
+    year: Option<i32>,
+    start_date: Option<NaiveDate>,
+    end_date: Option<NaiveDate>,
+    active: Option<bool>,
+    more_able_and_talented: Option<bool>,
+    english_as_additional_language: Option<bool>,
+    free_school_meals: Option<bool>,
+    additional_learning_needs: Option<bool>,
+    looked_after_child: Option<bool>,
+    gender: Option<String>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use rstest::*;
-    use sea_orm::{DatabaseBackend, MockDatabase, Transaction};
+    use sea_orm::{DatabaseBackend, MockDatabase, MockExecResult, Transaction};
+
+    #[fixture]
+    fn test_pupil() -> Pupil {
+        Pupil {
+            id: "1164ce28-8915-4126-924d-fa580f1e9f01".parse().unwrap(),
+            first_names: "test".into(),
+            last_name: "pupil".into(),
+            year: 6,
+            start_date: "2021-01-01".parse().unwrap(),
+            end_date: "2021-01-01".parse().unwrap(),
+            active: true,
+            more_able_and_talented: false,
+            english_as_additional_language: false,
+            free_school_meals: false,
+            additional_learning_needs: false,
+            looked_after_child: false,
+            gender: "gender".into(),
+        }
+    }
 
     #[rstest]
     async fn test_one_from_db() {
@@ -170,46 +273,114 @@ mod tests {
     }
 
     #[rstest]
-    async fn test_save() {
-        let pupil = Pupil {
-            id: Uuid::new_v4(),
-            first_names: "test".into(),
-            last_name: "student".into(),
-            year: 2,
-            start_date: "2022-01-01".parse().unwrap(),
-            end_date: "2028-01-01".parse().unwrap(),
-            active: true,
-            more_able_and_talented: false,
-            english_as_additional_language: false,
-            free_school_meals: false,
-            additional_learning_needs: false,
-            looked_after_child: false,
-            gender: "male".into(),
-        };
+    async fn test_save(test_pupil: Pupil) {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results(vec![vec![<Pupil as Into<Model>>::into(pupil.clone())]])
+            .append_query_results(vec![vec![<Pupil as Into<Model>>::into(test_pupil.clone())]])
             .into_connection();
-        let result = pupil.save(&db).await;
+        let result = test_pupil.insert(&db).await;
         assert!(result.is_ok());
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
             r#"INSERT INTO "pupil" ("id", "first_names", "last_name", "year", "start_date", "end_date", "active", "more_able_and_talented", "english_as_additional_language", "free_school_meals", "additional_learning_needs", "looked_after_child", "gender") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING "id", "first_names", "last_name", "year", "start_date", "end_date", "active", "more_able_and_talented", "english_as_additional_language", "free_school_meals", "additional_learning_needs", "looked_after_child", "gender""#,
             [
-                pupil.id.into(),
+                test_pupil.id.into(),
                 "test".into(),
-                "student".into(),
-                2.into(),
-                pupil.start_date.into(),
-                pupil.end_date.into(),
+                "pupil".into(),
+                6.into(),
+                test_pupil.start_date.into(),
+                test_pupil.end_date.into(),
                 true.into(),
                 false.into(),
                 false.into(),
                 false.into(),
                 false.into(),
                 false.into(),
-                "male".into(),
+                "gender".into(),
             ],
+        );
+        assert_eq!(t_log[0], exp_query);
+    }
+
+    #[rstest]
+    async fn test_update(mut test_pupil: Pupil) {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_query_results(vec![vec![<Pupil as Into<Model>>::into(test_pupil.clone())]])
+            .into_connection();
+        let update = PupilUpdate {
+            last_name: Some("newname".into()),
+            free_school_meals: Some(true),
+            ..Default::default()
+        };
+        test_pupil.set_from_update(update);
+        let result = test_pupil.update(&db).await;
+        assert!(result.is_ok());
+        let t_log = db.into_transaction_log();
+        let exp_query = Transaction::from_sql_and_values(
+            DatabaseBackend::Postgres,
+            r#"UPDATE "pupil" SET "first_names" = $1, "last_name" = $2, "year" = $3, "start_date" = $4, "end_date" = $5, "active" = $6, "more_able_and_talented" = $7, "english_as_additional_language" = $8, "free_school_meals" = $9, "additional_learning_needs" = $10, "looked_after_child" = $11, "gender" = $12 WHERE "pupil"."id" = $13 RETURNING "id", "first_names", "last_name", "year", "start_date", "end_date", "active", "more_able_and_talented", "english_as_additional_language", "free_school_meals", "additional_learning_needs", "looked_after_child", "gender""#,
+            [
+                "test".into(),
+                "newname".into(),
+                6.into(),
+                test_pupil.start_date.into(),
+                test_pupil.end_date.into(),
+                true.into(),
+                false.into(),
+                false.into(),
+                true.into(),
+                false.into(),
+                false.into(),
+                "gender".into(),
+                "1164ce28-8915-4126-924d-fa580f1e9f01"
+                    .parse::<Uuid>()
+                    .unwrap()
+                    .into(),
+            ],
+        );
+        assert_eq!(t_log[0], exp_query);
+    }
+
+    #[rstest] // TODO add more cases
+    #[case(PupilUpdate{last_name: Some("newname".into()), ..Default::default()}, Pupil {
+        id: "1164ce28-8915-4126-924d-fa580f1e9f01".parse().unwrap(),
+        first_names: "test".into(),
+        last_name: "newname".into(),
+        year: 6,
+        start_date: "2021-01-01".parse().unwrap(),
+        end_date: "2021-01-01".parse().unwrap(),
+        active: true,
+        more_able_and_talented: false,
+        english_as_additional_language: false,
+        free_school_meals: false,
+        additional_learning_needs: false,
+        looked_after_child: false,
+        gender: "gender".into(),
+    })]
+    async fn test_set_from_update(
+        mut test_pupil: Pupil,
+        #[case] update: PupilUpdate,
+        #[case] expected: Pupil,
+    ) {
+        test_pupil.set_from_update(update);
+        assert_eq!(expected, test_pupil);
+    }
+
+    #[rstest]
+    async fn test_delete(test_pupil: Pupil) {
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_exec_results(vec![MockExecResult{rows_affected: 1, last_insert_id: 0}])
+            .into_connection();
+        let result = test_pupil.delete(&db).await;
+        assert!(result.is_ok());
+        let t_log = db.into_transaction_log();
+        let exp_query = Transaction::from_sql_and_values(
+            DatabaseBackend::Postgres,
+            r#"DELETE FROM "pupil" WHERE "pupil"."id" = $1"#,
+            ["1164ce28-8915-4126-924d-fa580f1e9f01"
+                .parse::<Uuid>()
+                .unwrap()
+                .into()],
         );
         assert_eq!(t_log[0], exp_query);
     }

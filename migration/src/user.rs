@@ -2,27 +2,31 @@
 use chrono::Utc;
 use entity::user::ActiveModel;
 use sea_orm::DatabaseConnection;
-use sea_orm_migration::{prelude::*, sea_orm::{Set, ActiveModelTrait}};
+use sea_orm_migration::{
+    prelude::*,
+    sea_orm::{ActiveModelTrait, Set},
+};
 
 pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     manager
         .create_table(
-        Table::create()
-            .table(User::Table)
-            .col(ColumnDef::new(User::FirstNames).string().not_null())
-            .col(ColumnDef::new(User::LastName).string().not_null())
-            .col(
-                ColumnDef::new(User::EmailAddress)
-                    .string()
-                    .not_null()
-                    .primary_key(),
-            )
-            .col(ColumnDef::new(User::HashedPassword).string().not_null())
-            .col(ColumnDef::new(User::Years).string().not_null().default(""))
-            .col(ColumnDef::new(User::Secret).blob(BlobSize::Tiny).not_null())
-            .col(ColumnDef::new(User::LastRefresh).date_time().not_null())
-            .to_owned(),
-        ).await
+            Table::create()
+                .table(User::Table)
+                .col(ColumnDef::new(User::FirstNames).string().not_null())
+                .col(ColumnDef::new(User::LastName).string().not_null())
+                .col(
+                    ColumnDef::new(User::EmailAddress)
+                        .string()
+                        .not_null()
+                        .primary_key(),
+                )
+                .col(ColumnDef::new(User::HashedPassword).string().not_null())
+                .col(ColumnDef::new(User::Years).string().not_null().default(""))
+                .col(ColumnDef::new(User::Secret).blob(BlobSize::Tiny).not_null())
+                .col(ColumnDef::new(User::LastRefresh).date_time().not_null())
+                .to_owned(),
+        )
+        .await
 }
 
 pub async fn drop_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
@@ -40,8 +44,10 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
         hashed_password: Set("password".into()),
         years: Set("1,6".into()),
         secret: Set(vec![127; 64]),
-        last_refresh: Set(Utc::now().naive_local())
-    }.insert(db).await?;
+        last_refresh: Set(Utc::now().naive_local()),
+    }
+    .insert(db)
+    .await?;
     Ok(())
 }
 

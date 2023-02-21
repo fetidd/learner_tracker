@@ -26,7 +26,7 @@ async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
     });
     let res = ctx
         .client()
-        .post(constant::PUPILS_ENDPOINT)
+        .put(constant::PUPILS_ENDPOINT)
         .json(&pupil)
         .header("Authorization", format!("Bearer {}", ctx.login().await))
         .send()
@@ -151,4 +151,60 @@ async fn login_and_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
             "looked_after_child": false
         })
     );
+}
+
+#[rstest]
+async fn login_and_update_pupil(#[future] mock_ctx: MockCtx) {
+    let ctx = mock_ctx.await;
+    let ids = add_pupils(ctx.check_db()).await;
+    let res = ctx
+        .client()
+        .post(&format!("{}/{}", constant::PUPILS_ENDPOINT, ids[0]))
+        .json(&json!({
+            "free_school_meals": true,
+            "looked_after_child": true,
+            "last_name": "newname"
+        }))
+        .header("Authorization", format!("Bearer {}", ctx.login().await))
+        .send()
+        .await;
+    assert_eq!(res.status(), StatusCode::OK);
+    let updated_pupil =
+        entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
+            .one(ctx.check_db())
+            .await
+            .expect("successful query")
+            .expect("found updated pupil");
+    assert_eq!(updated_pupil, Pupil {
+        id: ids[0].parse().unwrap(),
+        first_names: "first".into(),
+        last_name: "newname".into(),
+        start_date: "2021-01-01".parse().unwrap(),
+        end_date: "2027-01-01".parse().unwrap(),
+        gender: "gender".into(),
+        year: 6,
+        active: true,
+        looked_after_child: true,
+        free_school_meals: true,
+        ..Default::default()
+    });
+}
+
+#[rstest]
+async fn login_and_delete_pupil(#[future] mock_ctx: MockCtx) {
+    let ctx = mock_ctx.await;
+    let ids = add_pupils(ctx.check_db()).await;
+    let res = ctx
+        .client()
+        .delete(&format!("{}/{}", constant::PUPILS_ENDPOINT, ids[0]))
+        .header("Authorization", format!("Bearer {}", ctx.login().await))
+        .send()
+        .await;
+    assert_eq!(res.status(), StatusCode::OK);
+    let updated_pupil =
+        entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
+            .one(ctx.check_db())
+            .await
+            .expect("successful query");
+    assert_eq!(updated_pupil, None);
 }

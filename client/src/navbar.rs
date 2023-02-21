@@ -28,7 +28,7 @@ pub fn Navbar(p: &NavbarProps) -> Html {
                         <div class={classes!("navbar-item")}>
                            <a class={classes!("button", "is-danger")} onclick={logout}>{"Log out"}</a>
                         </div>
-                    } 
+                    }
                 </div>
             </div>
         </nav>
