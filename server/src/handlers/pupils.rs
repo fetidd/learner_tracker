@@ -15,8 +15,13 @@ pub async fn create_pupil(
     State(state): State<AppState>,
     Json(pupil): Json<Pupil>,
 ) -> Result<StatusCode> {
-    pupil.save(state.database().as_ref()).await?;
-    Ok(StatusCode::CREATED)
+    match pupil.save(state.database().as_ref()).await {
+        Ok(_) => Ok(StatusCode::CREATED),
+        Err(error) => match error.kind {
+            ErrorKind::DatabaseError => Err(DatabaseError!()),
+            _ => Err(UnknownError!()),
+        },
+    }
 }
 
 pub async fn get_pupils(
@@ -24,8 +29,13 @@ pub async fn get_pupils(
     Extension(user): Extension<User>,
 ) -> Result<Json<PupilsResponse>> {
     tracing::info!("requested all pupils");
-    let pupils = Pupil::all_from_db(&user, state.database().as_ref()).await?;
-    Ok(Json(PupilsResponse { pupils }))
+    match Pupil::all_from_db(&user, state.database().as_ref()).await {
+        Ok(pupils) => Ok(Json(PupilsResponse { pupils })),
+        Err(error) => match error.kind {
+            ErrorKind::DatabaseError => Err(DatabaseError!()),
+            _ => Err(UnknownError!()),
+        },
+    }
 }
 
 pub async fn get_pupil_by_id(
@@ -37,9 +47,12 @@ pub async fn get_pupil_by_id(
         Ok(pupil) => Ok(Json(PupilsResponse {
             pupils: vec![pupil],
         })),
-        Err(error) => Err(error)
+        Err(error) => match error.kind {
+            ErrorKind::DatabaseError => Err(DatabaseError!(error.to_string())),
+            ErrorKind::PupilDoesNotExist => Err(PupilDoesNotExist!()),
+            _ => Err(UnknownError!()),
+        },
     }
-    
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

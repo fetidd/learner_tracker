@@ -16,6 +16,7 @@ pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
         syn::Data::Enum(DataEnum { variants, .. }) => {
             let strings = variants.iter().map(|f| stringify_errorkind(&f.ident.to_string()));
             let kinds = variants.iter().map(|f| &f.ident);
+            // let attrs = variants.iter().map(|f| &f.attrs);
             quote! {
                 #[derive(Clone, Debug, PartialEq)]
                 pub struct Error {

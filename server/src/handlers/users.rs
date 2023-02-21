@@ -22,15 +22,26 @@ pub async fn create_user(
         &req.hashed_password,
         req.years,
     );
-    user.save(state.database().as_ref()).await?;
-    Ok(StatusCode::CREATED)
+    match user.save(state.database().as_ref()).await {
+        Ok(_) => Ok(StatusCode::CREATED),
+        Err(error) => match error.kind {
+            ErrorKind::DatabaseError => Err(DatabaseError!()),
+            _ => Err(UnknownError!()),
+        },
+    }
 }
 
 pub async fn get_users(State(state): State<AppState>) -> Result<Json<UsersResponse>> {
-    let users = User::all_from_db(state.database().as_ref()).await?;
-    Ok(Json(UsersResponse {
-        users: users.into_iter().map(ResponseUser::from).collect(),
-    }))
+    match User::all_from_db(state.database().as_ref()).await {
+        Ok(users) => Ok(Json(UsersResponse {
+            users: users.into_iter().map(ResponseUser::from).collect(),
+        })),
+        Err(error) => match error.kind {
+            ErrorKind::DatabaseError => Err(DatabaseError!()),
+            ErrorKind::UserDoesNotExist => Err(UserDoesNotExist!()),
+            _ => Err(UnknownError!()),
+        },
+    }
 }
 
 #[derive(Deserialize)]

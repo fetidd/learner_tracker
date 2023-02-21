@@ -1,7 +1,7 @@
 use crate::{
     error::{Error, ErrorKind, Result},
     models::User,
-    state::AppState,
+    state::AppState, constant,
 };
 use axum::{
     extract::{State, TypedHeader},
@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 
 pub fn generate_auth_token(user: &User) -> Result<String> {
     let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::minutes(60))
+        .checked_add_signed(chrono::Duration::minutes(constant::AUTH_TOKEN_EXPIRY_MINUTES))
         .expect("valid timestamp")
         .timestamp();
     let claims = AuthToken {
@@ -31,10 +31,8 @@ pub fn generate_auth_token(user: &User) -> Result<String> {
         years: user.years.to_owned(),
     };
     let header = Header::new(Algorithm::HS512);
-    encode(&header, &claims, &EncodingKey::from_secret(&user.secret)).map_err(|e| Error {
-        kind: ErrorKind::JWTTokenCreationError,
-        message: Some(e.to_string()),
-    })
+    encode(&header, &claims, &EncodingKey::from_secret(&user.secret))
+        .map_err(|e| JWTTokenCreationError!(e.to_string()))
 }
 
 pub fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
@@ -54,10 +52,7 @@ pub fn decode_token(token: &str) -> Result<AuthToken> {
             let token = serde_json::from_str(&decoded_string)?;
             Ok(token)
         }
-        None => Err(Error {
-            kind: ErrorKind::DecodeError,
-            message: Some("token was just a header".into()),
-        }),
+        None => Err(DecodeError!()),
     }
 }
 
@@ -75,10 +70,7 @@ pub async fn auth_service<B>(
         // create fresh token to pass in response
         Ok(response)
     } else {
-        Err(Error {
-            kind: ErrorKind::InvalidJwt,
-            message: Some("invalid auth token".into()),
-        })
+        Err(InvalidJwt!())
     }
 }
 

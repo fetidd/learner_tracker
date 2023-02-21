@@ -27,6 +27,8 @@ pub enum ErrorKind {
     EncodeError,
     ParseError,
     Unauthorised,
+
+    UnknownError
 }
 
 error_macro! { // creates an Error for each with optional message, logs it, then returns it
@@ -35,7 +37,12 @@ error_macro! { // creates an Error for each with optional message, logs it, then
     UserDoesNotExist,
     PupilDoesNotExist,
     InvalidJwt, // jsonwebtoken::errors::Error
-    Unauthorised
+    Unauthorised,
+    DatabaseError,
+    DecodeError,
+    JWTTokenCreationError,
+
+    UnknownError
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -67,6 +74,7 @@ impl IntoResponse for Error { // TODO integrate this with the KindError macro
             | ErrorKind::EncodeError
             | ErrorKind::DecodeError
             | ErrorKind::ParseError
+            | ErrorKind::UnknownError
             | ErrorKind::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorKind::Unauthorised | ErrorKind::InvalidJwt => StatusCode::UNAUTHORIZED,
         };
