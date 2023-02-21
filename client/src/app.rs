@@ -1,3 +1,4 @@
+use crate::utils;
 use crate::{
     constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route,
 };
@@ -5,7 +6,6 @@ use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
 use serde::Deserialize;
 use std::collections::HashMap;
-use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -18,16 +18,18 @@ pub fn app() -> Html {
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    if let Ok(user_value) =
-                        SessionStorage::get(constant::CURRENT_USER_SESSIONSTORAGE_KEY)
+                    if let Ok(stored_token) = SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY)
                     {
-                        let user_value: User = user_value;
-                        debug!(
-                            "found user in sessionstorage =>",
-                            user_value.email_address.clone()
-                        );
-                        // TODOCLIENT verify user with backend to ensure the user has a valid session
-                        current_user.set(Some(user_value));
+                        match utils::decode_auth_token(stored_token) {
+                            Ok(user) => {
+                                debug!(
+                                    "found user in sessionstorage =>",
+                                    user.email_address.clone()
+                                );
+                                current_user.set(Some(user));
+                            }
+                            Err(error) => error!(error.to_string()),
+                        }
                     }
                 });
                 || ()
@@ -40,13 +42,15 @@ pub fn app() -> Html {
         let current_user = current_user.clone();
         Callback::from(move |_| {
             spawn_local(async move {
-                match SessionStorage::get::<Uuid>(constant::SESSION_ID_SESSIONSTORAGE_KEY) {
-                    Ok(session_id) => {
-                        match Request::post(constant::LOGOUT_PATH).json(&session_id) {
-                            Ok(logout_response) => {
-                                if let Err(error) = logout_response.send().await {
-                                    error!(error.to_string())
-                                }
+                match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
+                    Ok(token) => {
+                        match Request::get(constant::LOGOUT_PATH)
+                            .header("Authorization", &format!("Bearer {token}"))
+                            .send()
+                            .await
+                        {
+                            Ok(_) => {
+                                log!("logged out");
                             }
                             Err(error) => {
                                 error!(error.to_string());
@@ -57,8 +61,7 @@ pub fn app() -> Html {
                         error!(error.to_string());
                     }
                 }
-                SessionStorage::delete(constant::CURRENT_USER_SESSIONSTORAGE_KEY);
-                SessionStorage::delete(constant::SESSION_ID_SESSIONSTORAGE_KEY);
+                SessionStorage::delete(constant::AUTH_TOKEN_STORAGE_KEY);
             });
             current_user.set(None);
         })
@@ -120,15 +123,24 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
                 if let Ok(login_response) = res.json::<LoginResponseJson>().await {
                     match login_response.error {
                         None => {
-                            let logged_in_user = login_response.user;
-                            let session_id = login_response.session_id;
-                            user_handle.set(logged_in_user.clone());
-                            match (SessionStorage::set(constant::CURRENT_USER_SESSIONSTORAGE_KEY, logged_in_user.clone()), SessionStorage::set(constant::SESSION_ID_SESSIONSTORAGE_KEY, session_id.clone())) {
-                                (Ok(_), Ok(_)) => debug!("saved login response to sessionstorage =>", logged_in_user.expect("this should be here if there was no error in the response...").email_address, session_id.expect("this should be here if there was no error in the response...").to_string()),
-                                (Err(err1), Err(err2)) => error!(err1.to_string(), "and", err2.to_string()),
-                                (Ok(_), Err(err)) => error!( err.to_string()),
-                                (Err(err), Ok(_)) => error!(err.to_string())
+                            match login_response.token {
+                                Some(token) if !token.is_empty() => {
+                                    if let Err(error) = SessionStorage::set(
+                                        constant::AUTH_TOKEN_STORAGE_KEY,
+                                        token.clone(),
+                                    ) {
+                                        error!(error.to_string());
+                                    }
+                                    match utils::decode_auth_token(token) {
+                                        Ok(user) => {
+                                            user_handle.set(Some(user));
+                                        }
+                                        Err(_) => todo!(),
+                                    }
+                                }
+                                _ => error!("no or blank token"),
                             }
+                            
                         }
                         Some(err) => error!(err.to_string()),
                     }
@@ -142,6 +154,5 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
 #[derive(Deserialize)]
 struct LoginResponseJson {
     error: Option<String>,
-    session_id: Option<Uuid>,
-    user: Option<User>,
+    token: Option<String>,
 }

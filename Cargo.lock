@@ -1802,26 +1802,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "learner_tracker_client"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "gloo-console",
- "gloo-net",
- "gloo-storage",
- "lazy_static",
- "rand",
- "regex",
- "serde",
- "serde_json",
- "uuid",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
- "yew-router",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1865,6 +1845,27 @@ checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if 1.0.0",
  "value-bag",
+]
+
+[[package]]
+name = "lt_client"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.0",
+ "chrono",
+ "gloo-console",
+ "gloo-net",
+ "gloo-storage",
+ "lazy_static",
+ "rand",
+ "regex",
+ "serde",
+ "serde_json",
+ "uuid",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+ "yew-router",
 ]
 
 [[package]]

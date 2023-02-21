@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     constant, error,
     models::{Pupil, User},
@@ -5,10 +7,17 @@ use crate::{
 };
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
-use uuid::Uuid;
+use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::Redirect;
+use serde_json::{Value};
+
+#[derive(Deserialize, Clone, PartialEq, Debug)]
+pub struct AllPupilsResponse {
+    pupils: Option<Vec<Pupil>>,
+    error: Option<String>
+}
 
 #[function_component(PupilTable)]
 pub fn pupil_table(p: &PupilTableProps) -> Html {
@@ -23,24 +32,29 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
             move |_| {
                 let pupils = pupils.clone();
                 spawn_local(async move {
-                    if let Ok(sid) =
-                        SessionStorage::get::<Uuid>(constant::SESSION_ID_SESSIONSTORAGE_KEY)
+                    if let Ok(token) =
+                        SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY)
                     {
-                        let response = Request::get(constant::GET_PUPILS_PATH)
-                            .header(constant::SESSION_ID_COOKIE, &sid.to_string())
-                            .send()
-                            .await;
-                        match response {
-                            Ok(fetched) => {
-                                match fetched.json().await {
-                                    Ok(fetched_pupils) => pupils.set(fetched_pupils),
-                                    Err(err) => error!(err.to_string()),
+                        match Request::get(constant::GET_PUPILS_PATH)
+                        .header("Authorization", &format!("Bearer {token}"))
+                        .send()
+                        .await {
+                            Ok(response) => {
+                                match response.json::<AllPupilsResponse>().await {
+                                    Ok(pupil_response) => {
+                                        if let Some(error) = pupil_response.error {
+                                            error!(error.to_string())
+                                        } else {
+                                            pupils.set(pupil_response.pupils.unwrap());
+                                        }
+                                    },
+                                    Err(err) => error!(format!("{err} when parsing pupil response")),
                                 };
                             }
-                            Err(err) => error!(err.to_string()),
+                            Err(err) => error!(format!("{err} when getting pupils")),
                         }
                     } else {
-                        error!("no session found, how are we at the pupils page?!");
+                        error!("no token found, how are we at the pupils page?!");
                     };
                 });
                 || ()
