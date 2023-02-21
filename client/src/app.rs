@@ -1,7 +1,5 @@
 use crate::utils;
-use crate::{
-    constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route,
-};
+use crate::{constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route};
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
 use serde::Deserialize;
@@ -18,14 +16,10 @@ pub fn app() -> Html {
         use_effect_with_deps(
             move |_| {
                 spawn_local(async move {
-                    if let Ok(stored_token) = SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY)
-                    {
+                    if let Ok(stored_token) = SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
                         match utils::decode_auth_token(stored_token) {
                             Ok(user) => {
-                                debug!(
-                                    "found user in sessionstorage =>",
-                                    user.email_address.clone()
-                                );
+                                debug!("found user in sessionstorage =>", user.email_address.clone());
                                 current_user.set(Some(user));
                             }
                             Err(error) => error!(error.to_string()),
@@ -43,20 +37,14 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             spawn_local(async move {
                 match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
-                    Ok(token) => {
-                        match Request::get(constant::LOGOUT_PATH)
-                            .header("Authorization", &format!("Bearer {token}"))
-                            .send()
-                            .await
-                        {
-                            Ok(_) => {
-                                log!("logged out");
-                            }
-                            Err(error) => {
-                                error!(error.to_string());
-                            }
+                    Ok(token) => match Request::get(constant::LOGOUT_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
+                        Ok(_) => {
+                            log!("logged out");
                         }
-                    }
+                        Err(error) => {
+                            error!(error.to_string());
+                        }
+                    },
                     Err(error) => {
                         error!(error.to_string());
                     }
@@ -88,22 +76,23 @@ pub fn app() -> Html {
                     html! { <pupils::PupilTable current_user={current_user} />}
                 }
                 (Route::ManageUsers, true) => todo!(),
-                (Route::Score1, true) => html! {"score1"},
                 _ => html! { <login::LoginForm  login_handler={login}/> },
             }
         })
     };
 
     html! {
+        <div class={classes!("p-2")}>
         <BrowserRouter>
         <navbar::Navbar
             current_user={(*current_user).clone()}
             logout_handler={logout}
         />
-        <div class={classes!("mx-6", "my-4")}>
+        <div class={classes!()}>
             <Switch<Route> render={routing_callback} />
         </div>
         </BrowserRouter>
+        </div>
     }
 }
 
@@ -111,10 +100,7 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
     // TEST try fantoccini
     spawn_local(async move {
         let response = Request::post(constant::LOGIN_PATH)
-            .json(&HashMap::from([
-                ("email_address", email.to_owned()),
-                ("hashed_password", password.to_owned()),
-            ]))
+            .json(&HashMap::from([("email_address", email.to_owned()), ("hashed_password", password.to_owned())]))
             .unwrap()
             .send()
             .await;
@@ -122,26 +108,20 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
             Ok(res) => {
                 if let Ok(login_response) = res.json::<LoginResponseJson>().await {
                     match login_response.error {
-                        None => {
-                            match login_response.token {
-                                Some(token) if !token.is_empty() => {
-                                    if let Err(error) = SessionStorage::set(
-                                        constant::AUTH_TOKEN_STORAGE_KEY,
-                                        token.clone(),
-                                    ) {
-                                        error!(error.to_string());
-                                    }
-                                    match utils::decode_auth_token(token) {
-                                        Ok(user) => {
-                                            user_handle.set(Some(user));
-                                        }
-                                        Err(_) => todo!(),
-                                    }
+                        None => match login_response.token {
+                            Some(token) if !token.is_empty() => {
+                                if let Err(error) = SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, token.clone()) {
+                                    error!(error.to_string());
                                 }
-                                _ => error!("no or blank token"),
+                                match utils::decode_auth_token(token) {
+                                    Ok(user) => {
+                                        user_handle.set(Some(user));
+                                    }
+                                    Err(_) => todo!(),
+                                }
                             }
-                            
-                        }
+                            _ => error!("no or blank token"),
+                        },
                         Some(err) => error!(err.to_string()),
                     }
                 }

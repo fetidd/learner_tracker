@@ -1,8 +1,8 @@
-use base64::{*, engine::general_purpose};
+use base64::{engine::general_purpose, *};
 
 use crate::models::User;
 
-pub fn decode_auth_token(token:String) -> Result<User, String> {
+pub fn decode_auth_token(token: String) -> Result<User, String> {
     match token.split('.').collect::<Vec<&str>>().get(1) {
         Some(claims) => {
             let decoded = general_purpose::STANDARD_NO_PAD.decode(*claims).map_err(|_| String::from("failed decoding from base64"))?;

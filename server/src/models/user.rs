@@ -21,13 +21,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(
-        first_names: &str,
-        last_name: &str,
-        email_address: &str,
-        hashed_password: &str,
-        years: Vec<u32>,
-    ) -> Self {
+    pub fn new(first_names: &str, last_name: &str, email_address: &str, hashed_password: &str, years: Vec<u32>) -> Self {
         Self {
             first_names: first_names.to_owned(),
             last_name: last_name.to_owned(),
@@ -45,12 +39,7 @@ impl User {
             last_name: Set(self.last_name.clone()),
             email_address: Set(self.email_address.clone()),
             hashed_password: Set(self.hashed_password.clone()),
-            years: Set(self
-                .years
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .join(",")),
+            years: Set(self.years.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(",")),
             secret: Set(self.secret.clone()),
             last_refresh: Set(self.last_refresh.clone()),
         }
@@ -62,19 +51,12 @@ impl User {
     pub async fn one_from_db(email: &str, db: &DatabaseConnection) -> Result<Self> {
         match Entity::find_by_id(email.to_owned()).one(db).await? {
             Some(user) => Ok(user.into()),
-            None => Err(UserDoesNotExist!(format!(
-                "user with email {email} does not exist"
-            ))),
+            None => Err(UserDoesNotExist!(format!("user with email {email} does not exist"))),
         }
     }
 
     pub async fn all_from_db(db: &DatabaseConnection) -> Result<Vec<Self>> {
-        Ok(Entity::find()
-            .all(db)
-            .await?
-            .into_iter()
-            .map(Into::into)
-            .collect())
+        Ok(Entity::find().all(db).await?.into_iter().map(Into::into).collect())
     }
 
     pub async fn refresh_secret(&self, db: &DatabaseConnection) -> Result<User> {
@@ -104,9 +86,7 @@ mod tests {
             secret: vec![127; 64],
             last_refresh: Utc::now().naive_utc(),
         }];
-        let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results(vec![results.clone()])
-            .into_connection();
+        let db = MockDatabase::new(DatabaseBackend::Postgres).append_query_results(vec![results.clone()]).into_connection();
         let query_res = User::one_from_db(&results[0].email_address, &db).await;
         assert!(query_res.is_ok());
         let user = query_res.unwrap();
@@ -142,16 +122,11 @@ mod tests {
                 last_refresh: Utc::now().naive_utc(),
             },
         ];
-        let db = MockDatabase::new(DatabaseBackend::Postgres)
-            .append_query_results(vec![results.clone()])
-            .into_connection();
+        let db = MockDatabase::new(DatabaseBackend::Postgres).append_query_results(vec![results.clone()]).into_connection();
         let query_res = User::all_from_db(&db).await;
         assert!(query_res.is_ok());
         let user = query_res.unwrap();
-        assert_eq!(
-            user,
-            results.into_iter().map(User::from).collect::<Vec<User>>()
-        );
+        assert_eq!(user, results.into_iter().map(User::from).collect::<Vec<User>>());
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
@@ -225,14 +200,7 @@ impl From<Model> for User {
             last_name: value.last_name,
             email_address: value.email_address,
             hashed_password: value.hashed_password,
-            years: value
-                .years
-                .split(",")
-                .map(|x| {
-                    x.parse::<u32>()
-                        .expect("should be comma-sep'd list of ints")
-                })
-                .collect(),
+            years: value.years.split(",").map(|x| x.parse::<u32>().expect("should be comma-sep'd list of ints")).collect(),
             secret: value.secret.into(),
             last_refresh: value.last_refresh,
         }
@@ -246,12 +214,7 @@ impl From<User> for Model {
             last_name: value.last_name,
             email_address: value.email_address,
             hashed_password: value.hashed_password,
-            years: value
-                .years
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .join(","),
+            years: value.years.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(","),
             secret: value.secret,
             last_refresh: value.last_refresh,
         }

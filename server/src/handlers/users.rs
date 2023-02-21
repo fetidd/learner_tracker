@@ -10,18 +10,9 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-pub async fn create_user(
-    State(state): State<AppState>,
-    Json(req): Json<RequestUser>,
-) -> Result<StatusCode> {
+pub async fn create_user(State(state): State<AppState>, Json(req): Json<RequestUser>) -> Result<StatusCode> {
     req.validate()?;
-    let user = User::new(
-        &req.first_names,
-        &req.last_name,
-        &req.email_address,
-        &req.hashed_password,
-        req.years,
-    );
+    let user = User::new(&req.first_names, &req.last_name, &req.email_address, &req.hashed_password, req.years);
     match user.save(state.database().as_ref()).await {
         Ok(_) => Ok(StatusCode::CREATED),
         Err(error) => match error.kind {

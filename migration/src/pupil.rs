@@ -20,42 +20,12 @@ pub async fn build_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr>
                 .col(ColumnDef::new(Pupil::Year).integer().not_null())
                 .col(ColumnDef::new(Pupil::StartDate).date().not_null())
                 .col(ColumnDef::new(Pupil::EndDate).date().not_null())
-                .col(
-                    ColumnDef::new(Pupil::Active)
-                        .boolean()
-                        .not_null()
-                        .default(true),
-                )
-                .col(
-                    ColumnDef::new(Pupil::MoreAbleAndTalented)
-                        .boolean()
-                        .not_null()
-                        .default(false),
-                )
-                .col(
-                    ColumnDef::new(Pupil::EnglishAsAdditionalLanguage)
-                        .boolean()
-                        .not_null()
-                        .default(false),
-                )
-                .col(
-                    ColumnDef::new(Pupil::FreeSchoolMeals)
-                        .boolean()
-                        .not_null()
-                        .default(false),
-                )
-                .col(
-                    ColumnDef::new(Pupil::AdditionalLearningNeeds)
-                        .boolean()
-                        .not_null()
-                        .default(false),
-                )
-                .col(
-                    ColumnDef::new(Pupil::LookedAfterChild)
-                        .boolean()
-                        .not_null()
-                        .default(false),
-                )
+                .col(ColumnDef::new(Pupil::Active).boolean().not_null().default(true))
+                .col(ColumnDef::new(Pupil::MoreAbleAndTalented).boolean().not_null().default(false))
+                .col(ColumnDef::new(Pupil::EnglishAsAdditionalLanguage).boolean().not_null().default(false))
+                .col(ColumnDef::new(Pupil::FreeSchoolMeals).boolean().not_null().default(false))
+                .col(ColumnDef::new(Pupil::AdditionalLearningNeeds).boolean().not_null().default(false))
+                .col(ColumnDef::new(Pupil::LookedAfterChild).boolean().not_null().default(false))
                 .col(ColumnDef::new(Pupil::Gender).string().not_null())
                 .to_owned(),
         )
@@ -63,9 +33,7 @@ pub async fn build_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr>
 }
 
 pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
-    manager
-        .drop_table(Table::drop().table(Pupil::Table).to_owned())
-        .await?;
+    manager.drop_table(Table::drop().table(Pupil::Table).to_owned()).await?;
     Ok(())
 }
 

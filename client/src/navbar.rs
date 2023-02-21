@@ -12,25 +12,16 @@ pub fn Navbar(p: &NavbarProps) -> Html {
         navigator.replace(&Route::Login);
     });
     html! {
-        <nav class={classes!("navbar")}>
-            <div class={classes!("navbar-brand")}>
-                <Link<Route> to={Route::Menu}>
-                    <a class={classes!("navbar-item")}>{"Main Menu"}</a>
-                </Link<Route>>
+        <nav class={classes!("w-full", "flex", "justify-between", "bg-gray-100")}>
+        if let Some(user) = &p.current_user {
+            <Link<Route> to={Route::Menu}>
+                <a class={classes!("bg-blue-300")}>{"Main Menu"}</a>
+            </Link<Route>>
+            <div class={classes!()}>
+                <span>{&format!("Hi, {}!", user.first_names)}</span>
+                <button class={classes!("bg-red-300")} onclick={logout}>{"Log out"}</button>
             </div>
-            <div class={classes!("navbar-menu")}>
-                <div class={classes!("navbar-start")}></div>
-                <div class={classes!("navbar-end")}>
-                    if let Some(user) = &p.current_user {
-                        <div class={classes!("navbar-item")}>
-                           <span>{&format!("Hi, {}!", user.first_names)}</span>
-                        </div>
-                        <div class={classes!("navbar-item")}>
-                           <a class={classes!("button", "is-danger")} onclick={logout}>{"Log out"}</a>
-                        </div>
-                    }
-                </div>
-            </div>
+            }
         </nav>
     }
 }

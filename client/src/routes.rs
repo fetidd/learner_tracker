@@ -10,6 +10,4 @@ pub enum Route {
     ManagePupils,
     #[at("/users")]
     ManageUsers,
-    #[at("/score1")]
-    Score1,
 }

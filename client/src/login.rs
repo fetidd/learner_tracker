@@ -17,31 +17,26 @@ pub fn login_form(p: &LoginFormProps) -> Html {
         Callback::from(move |_| {
             let password = entered_password.cast::<HtmlInputElement>().unwrap().value();
             let hashed_password = password;
-            login_callback.emit((
-                entered_email.cast::<HtmlInputElement>().unwrap().value(),
-                hashed_password,
-            ));
+            login_callback.emit((entered_email.cast::<HtmlInputElement>().unwrap().value(), hashed_password));
             navigator.replace(&Route::Menu);
         })
     };
     html! {
-        <div class={classes!("level", "is-flex", "is-justify-content-center")}>
-            <form class={classes!{"box", "is-flex", "is-flex-direction-column"}}>
-                <div class={classes!("field")}>
-                    <div class={classes!("control")}>
-                        <input class={classes!("input")} type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
-                    </div>
+        <form class={classes!()}>
+            <div class={classes!()}>
+                <div class={classes!()}>
+                    <input class={classes!()} type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
                 </div>
-                <div class={classes!("field")}>
-                    <div class={classes!("control")}>
-                        <input class={classes!("input")} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
-                    </div>
+            </div>
+            <div class={classes!()}>
+                <div class={classes!()}>
+                    <input class={classes!("input")} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
                 </div>
-                <div class={classes!("control", "is-flex", "is-justify-content-center")}>
-                    <button class={classes!("button", "is-link")} onclick={login_callback}>{"Submit"}</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class={classes!()}>
+                <button class={classes!("bg-green-100")} onclick={login_callback}>{"Submit"}</button>
+            </div>
+        </form>
     }
 }
 

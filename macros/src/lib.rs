@@ -7,16 +7,10 @@ use syn::{self, parse_macro_input, DataEnum, DeriveInput};
 #[proc_macro_derive(KindError, attributes(code, from))]
 pub fn derive_kind_error(_in: TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(_in);
-    assert_eq!(
-        ident.to_string(),
-        "ErrorKind",
-        "must be an enum called ErrorKind"
-    );
+    assert_eq!(ident.to_string(), "ErrorKind", "must be an enum called ErrorKind");
     match data {
         syn::Data::Enum(DataEnum { variants, .. }) => {
-            let strings = variants
-                .iter()
-                .map(|f| stringify_errorkind(&f.ident.to_string()));
+            let strings = variants.iter().map(|f| stringify_errorkind(&f.ident.to_string()));
             let kinds = variants.iter().map(|f| &f.ident);
             // let attrs = variants.iter().map(|f| &f.attrs);
             quote! {
@@ -95,9 +89,7 @@ fn stringify_errorkind(var: &str) -> String {
     }
     let re = Regex::new(&KIND_PATTERN).expect("KIND_PATTERN invalid");
     let caps = re.captures_iter(var);
-    caps.map(|c| c[0].to_uppercase())
-        .collect::<Vec<String>>()
-        .join(" ")
+    caps.map(|c| c[0].to_uppercase()).collect::<Vec<String>>().join(" ")
 }
 
 #[cfg(test)]
@@ -106,10 +98,7 @@ mod tests {
 
     #[test]
     fn test_stringify_errorkind() {
-        let tests: Vec<(&str, &str)> = vec![
-            ("Error", "ERROR"),
-            ("InvalidCredentials", "INVALID CREDENTIALS"),
-        ];
+        let tests: Vec<(&str, &str)> = vec![("Error", "ERROR"), ("InvalidCredentials", "INVALID CREDENTIALS")];
         for (input, exp) in tests {
             assert_eq!(exp.to_string(), stringify_errorkind(input));
         }

@@ -29,12 +29,7 @@ async fn main() -> Result<()> {
     let address: SocketAddr = std::env::var("SERVER_ADDR")?.parse()?;
     tracing::debug!("listening on {address}");
     Server::bind(&address)
-        .serve(
-            router(Arc::clone(&app_state))
-                .layer(TraceLayer::new_for_http())
-                .with_state(app_state)
-                .into_make_service(),
-        )
+        .serve(router(Arc::clone(&app_state)).layer(TraceLayer::new_for_http()).with_state(app_state).into_make_service())
         .await?;
     Ok(())
 }

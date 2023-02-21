@@ -60,10 +60,7 @@ impl IntoResponse for Error {
     // TODO integrate this with the KindError macro
     fn into_response(self) -> Response {
         let code = match self.kind {
-            ErrorKind::InvalidApiRequest
-            | ErrorKind::InvalidCredentials
-            | ErrorKind::UserDoesNotExist
-            | ErrorKind::PupilDoesNotExist => StatusCode::BAD_REQUEST,
+            ErrorKind::InvalidApiRequest | ErrorKind::InvalidCredentials | ErrorKind::UserDoesNotExist | ErrorKind::PupilDoesNotExist => StatusCode::BAD_REQUEST,
             ErrorKind::MissingEnvVariable
             | ErrorKind::AddrParseError
             | ErrorKind::IoError
