@@ -1,8 +1,4 @@
-use rand::RngCore;
-pub use shared_utils::*;
+pub mod functions;
+pub mod log;
 
-pub fn generate_secret() -> [u8; 64] {
-    let mut secret: [u8; 64] = [0u8; 64];
-    rand::thread_rng().fill_bytes(&mut secret);
-    secret
-}
+pub use shared_utils::*;

@@ -1,6 +1,8 @@
 use crate::{
-    handlers::{login::*, pupils::*, users::*},
-    state::AppState,
+    app::state::AppState,
+    auth::{handlers::*, token::*},
+    pupil::handlers::*,
+    user::handlers::*,
 };
 use axum::{
     middleware::from_fn_with_state,
@@ -24,7 +26,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         "/api",
         Router::new()
             .nest("/data", data_router)
-            .layer(from_fn_with_state(Arc::clone(&state), crate::auth::auth_service))
+            .layer(from_fn_with_state(Arc::clone(&state), auth_service))
             .nest("/auth", auth_router)
             .layer(cors_layer),
     )
