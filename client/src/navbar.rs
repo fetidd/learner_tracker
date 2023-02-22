@@ -14,9 +14,7 @@ pub fn Navbar(p: &NavbarProps) -> Html {
     html! {
         <nav class={classes!("w-full", "flex", "justify-between", "bg-gray-100")}>
         if let Some(user) = &p.current_user {
-            <Link<Route> to={Route::Menu}>
-                <a class={classes!("bg-blue-300")}>{"Main Menu"}</a>
-            </Link<Route>>
+            <div><input type={"text"} /></div>
             <div class={classes!()}>
                 <span>{&format!("Hi, {}!", user.first_names)}</span>
                 <button class={classes!("bg-red-300")} onclick={logout}>{"Log out"}</button>
