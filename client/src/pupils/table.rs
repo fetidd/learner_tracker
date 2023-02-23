@@ -50,15 +50,13 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
     }
     if p.current_user.is_some() {
         html! {
-            <div class={classes!()}>
+            <div class={classes!("flex", "space-x-10")}>
                 <PupilCreateBox />
-                <div class={classes!("overflow-y-auto", "max-h-96")}>
+                <div class={classes!("overflow-y-auto", "pupil-table", "px-5", "grow")}>
                     <table class={classes!{"w-full"}}>
-                        <thead class={classes!("sticky", "top-0", "bg-white")}>
-                            <th>{"Name"}</th>
+                        <thead class={classes!("sticky", "top-0", "bg-white", "h-12")}>
+                            <th class={classes!("text-left")}>{"Name"}</th>
                             <th>{"Start date"}</th>
-                            <th>{"Leave date"}</th>
-                            <th>{"Gender"}</th>
                             <th>{"Tags"}</th>
                         </thead>
                         <tbody>

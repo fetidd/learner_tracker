@@ -5,7 +5,6 @@ use axum::{
 use http::StatusCode;
 use macros::KindError;
 use serde::{Deserialize, Serialize};
-use shared_utils::*;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, KindError)]
 pub enum ErrorKind {
@@ -31,6 +30,56 @@ pub enum ErrorKind {
     UnknownError,
 }
 
+#[macro_export]
+macro_rules! from_error {
+    ($error:ty > $kind:ident) => {
+        impl From<$error> for Error {
+            fn from(value: $error) -> Self {
+                Error {
+                    kind: ErrorKind::$kind,
+                    message: Some(value.to_string()),
+                }
+            }
+        }
+    };
+    ($error:ty > $kind:ident: $msg:expr) => {
+        impl From<$error> for Error {
+            fn from(_value: $error) -> Self {
+                Error {
+                    kind: ErrorKind::$kind,
+                    message: Some($msg.to_string()),
+                }
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! error_macro {
+    ($($kind:ident),+) => {
+        $(macro_rules! $kind {
+            () => {{
+                let e = crate::core::error::Error {
+                    kind: crate::core::error::ErrorKind::$kind,
+                    message: None,
+                };
+                tracing::error!("{}", e.to_string());
+                e
+            }};
+            ($msg:expr) => {{
+                let e = crate::core::error::Error {
+                    kind: crate::core::error::ErrorKind::$kind,
+                    message: Some(String::from($msg)),
+                };
+                tracing::error!("{}", e.to_string());
+                e
+            }};
+        })+
+    };
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 error_macro! { // creates an Error for each with optional message, logs it, then returns it
     InvalidApiRequest,
     InvalidCredentials,
@@ -44,8 +93,6 @@ error_macro! { // creates an Error for each with optional message, logs it, then
 
     UnknownError
 }
-
-pub type Result<T> = std::result::Result<T, Error>;
 
 from_error! {sea_orm::DbErr > DatabaseError}
 from_error! {std::env::VarError > MissingEnvVariable}

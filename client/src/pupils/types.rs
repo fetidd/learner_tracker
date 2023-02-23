@@ -18,3 +18,8 @@ pub struct PupilTableProps {
 pub struct PupilRowProps {
     pub pupil: Pupil,
 }
+
+#[derive(PartialEq, Properties)]
+pub struct PupilProps {
+    pub id: String
+}

@@ -1,14 +1,15 @@
 use axum::Server;
 use lt_server::{
     core::error::Result,
-    utils::{self, log::start_log},
+    utils::{log::start_log},
+    app::{state::{AppState, AppStateObj},router::router},
 };
 use migration::{seed_database, Migrator, MigratorTrait};
 use std::{net::SocketAddr, sync::Arc};
 use tower_http::trace::TraceLayer;
 
 #[tokio::main]
-async fn main() -> Result {
+async fn main() -> Result<()> {
     dotenv::dotenv().ok();
     start_log();
     let current_env = std::env::var("ENVIRONMENT")?;

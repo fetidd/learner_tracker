@@ -1,7 +1,7 @@
-use crate::models::User;
 use crate::{
-    error::{Error, ErrorKind, Result},
-    state::AppState,
+    core::error::{Error, ErrorKind, Result},
+    app::state::AppState,
+    user::model::*,
     utils,
 };
 use axum::{

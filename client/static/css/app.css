@@ -1,3 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+button {
+    padding: 3px;
+    margin: 2px;
+    border-radius: 5px;
+}
+
+.tag {
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.pupil-table {
+    max-height: 90vh;
+}
+

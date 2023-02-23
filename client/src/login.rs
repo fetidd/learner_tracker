@@ -22,21 +22,17 @@ pub fn login_form(p: &LoginFormProps) -> Html {
         })
     };
     html! {
-        <form class={classes!()}>
-            <div class={classes!()}>
-                <div class={classes!()}>
-                    <input class={classes!()} type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
-                </div>
+        <div class={classes!("w-full", "my-auto")}>
+            <div class={classes!("flex", "justify-center")}>
+                <input class={classes!()} type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
             </div>
-            <div class={classes!()}>
-                <div class={classes!()}>
-                    <input class={classes!("input")} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
-                </div>
+            <div class={classes!("flex", "justify-center")}>
+                <input class={classes!()} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
             </div>
-            <div class={classes!()}>
-                <button class={classes!("bg-green-100")} onclick={login_callback}>{"Submit"}</button>
+            <div class={classes!("flex", "justify-center")}>
+                <button class={classes!("bg-green-100", "w-[181px]")} onclick={login_callback}>{"Submit"}</button>
             </div>
-        </form>
+        </div>
     }
 }
 

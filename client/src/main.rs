@@ -7,7 +7,6 @@ mod models;
 mod navbar;
 mod pupils;
 mod routes;
-mod scores;
 mod utils;
 
 fn main() {

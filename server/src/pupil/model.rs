@@ -1,12 +1,13 @@
-use crate::error::{Error, ErrorKind, Result};
+use crate::{
+    core::error::{Error, ErrorKind, Result},
+    user::model::*,
+};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Column, Entity, Model};
 use migration::Condition;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DeleteResult, EntityTrait, QueryFilter, Set, Unchanged};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use super::User;
 
 #[derive(Clone, Debug, Serialize, PartialEq, Deserialize)]
 pub struct Pupil {

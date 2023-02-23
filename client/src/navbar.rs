@@ -12,15 +12,20 @@ pub fn Navbar(p: &NavbarProps) -> Html {
         navigator.replace(&Route::Login);
     });
     html! {
-        <nav class={classes!("w-full", "flex", "justify-between", "bg-gray-100")}>
         if let Some(user) = &p.current_user {
-            <div><input type={"text"} /></div>
-            <div class={classes!()}>
-                <span>{&format!("Hi, {}!", user.first_names)}</span>
-                <button class={classes!("bg-red-300")} onclick={logout}>{"Log out"}</button>
+        <nav class={classes!("w-full", "flex", "justify-between", "bg-slate-100", "h-16",  "items-center", "px-3")}>
+            <div class={classes!("flex", "items-center", "space-x-10")}>
+                <Link<Route> to={Route::Menu}><div class={classes!("px-4")}><span class={classes!("text-2xl", "font-bold")}>{"Menu"}</span></div></Link<Route>>
+                <div><input class={classes!("w-96")} type={"text"} /></div>
             </div>
-            }
-        </nav>
+            <div>
+                <div class={classes!("flex", "items-center", "space-x-5")}>
+                    <span>{&format!("Hi, {}!", user.first_names)}</span>
+                    <button class={classes!("bg-red-300")} onclick={logout}>{"Log out"}</button>
+                </div>
+            </div>
+            </nav>
+        }
     }
 }
 

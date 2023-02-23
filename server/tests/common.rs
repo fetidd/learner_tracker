@@ -2,9 +2,9 @@ use axum_test_helper::TestClient;
 use chrono::Utc;
 use entity::{pupil::Model as Pupil, user::Model as User};
 use lt_server::{
-    constant,
-    router::router,
-    state::{AppStateTrait, MockAppStateTrait},
+    core::constant,
+    app::router::router,
+    app::state::{AppStateTrait, MockAppStateTrait},
 };
 use migration::{Migrator, MigratorTrait};
 use rstest::*;

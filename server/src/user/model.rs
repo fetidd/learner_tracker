@@ -1,6 +1,6 @@
 use crate::{
-    error::{Error, ErrorKind, Result},
-    utils::generate_secret,
+    core::error::{Error, ErrorKind, Result},
+    utils::functions::generate_secret,
 };
 use chrono::{NaiveDateTime, Utc};
 use entity::user::{ActiveModel, Entity, Model};

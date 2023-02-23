@@ -1,7 +1,8 @@
 use crate::{
-    error::*,
-    models::{pupil::PupilUpdate, Pupil, User},
-    state::AppState,
+    core::error::*,
+    pupil::{model::*},
+    user::{model::*},
+    app::state::AppState,
 };
 use axum::{
     extract::{Json, Path, State},

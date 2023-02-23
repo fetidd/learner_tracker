@@ -1,7 +1,7 @@
 use crate::common::*;
 use chrono::Utc;
 use http::StatusCode;
-use lt_server::constant;
+use lt_server::core::constant;
 use rstest::*;
 use sea_orm::EntityTrait;
 use serde_json::json;

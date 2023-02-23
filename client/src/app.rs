@@ -64,7 +64,7 @@ pub fn app() -> Html {
     };
 
     let routing_callback = {
-        // TODOCLIENT turn this into a ContextProvider
+        // TODO turn this into a ContextProvider
         let current_user = current_user.clone();
         Callback::from(move |route: Route| {
             let current_user = (*current_user).clone();
@@ -73,22 +73,27 @@ pub fn app() -> Html {
             match (route, current_user.is_some()) {
                 (Route::Menu, true) => html! { <menu::Menu />},
                 (Route::ManagePupils, true) => {
-                    html! { <pupils::PupilTable current_user={current_user} />}
+                    html! { <pupils::PupilTable {current_user} />}
                 }
-                (Route::ManageUsers, true) => todo!(),
+                (Route::ManageUsers, true) => {
+                    html! { <pupils::PupilTable {current_user} />}
+                },
+                (Route::Pupil {id}, true) => {
+                    html! { <pupils::Pupil {id} /> }
+                },
                 _ => html! { <login::LoginForm  login_handler={login}/> },
             }
         })
     };
 
     html! {
-        <div class={classes!("p-2")}>
+        <div class={classes!()}>
         <BrowserRouter>
         <navbar::Navbar
             current_user={(*current_user).clone()}
             logout_handler={logout}
         />
-        <div class={classes!()}>
+        <div class={classes!("p-2")}>
             <Switch<Route> render={routing_callback} />
         </div>
         </BrowserRouter>

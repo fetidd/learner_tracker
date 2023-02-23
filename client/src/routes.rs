@@ -8,6 +8,8 @@ pub enum Route {
     Menu,
     #[at("/pupils")]
     ManagePupils,
+    #[at("/pupils/:id")]
+    Pupil { id: String },
     #[at("/users")]
     ManageUsers,
 }
