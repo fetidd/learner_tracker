@@ -22,8 +22,6 @@ pub fn pupil_create_box() -> Html {
     let new_fsm = use_node_ref();
     let new_eal = use_node_ref();
 
-    
-
     // TODO can this management of noderefs be neater?
     let clear_callback = {
         clone_batch!(new_name,new_year,new_gender,new_start_date,new_leave_date,new_active,new_mat,new_lac,new_aln,new_fsm,new_eal);
@@ -61,7 +59,22 @@ pub fn pupil_create_box() -> Html {
     }
 
     // TODO add learner button func
-
+    let add_callback = {
+        clone_batch!(new_name,new_year,new_gender,new_start_date,new_leave_date,new_active,new_mat,new_lac,new_aln,new_fsm,new_eal);
+        Callback::from(move |_| {
+            let name = new_name.cast::<HtmlInputElement>().unwrap().value();
+            let year = new_year.cast::<HtmlInputElement>().unwrap().value();
+            let gender = new_gender.cast::<HtmlInputElement>().unwrap().value();
+            let start_date = new_start_date.cast::<HtmlInputElement>().unwrap().value();
+            let leave_date = new_leave_date.cast::<HtmlInputElement>().unwrap().value();
+            let active = new_active.cast::<HtmlInputElement>().unwrap().checked();
+            let mat = new_mat.cast::<HtmlInputElement>().unwrap().checked();
+            let lac = new_lac.cast::<HtmlInputElement>().unwrap().checked();
+            let aln = new_aln.cast::<HtmlInputElement>().unwrap().checked();
+            let fsm = new_fsm.cast::<HtmlInputElement>().unwrap().checked();
+            let eal = new_eal.cast::<HtmlInputElement>().unwrap().checked();
+        })
+    };
 
     html! {
         <div class={classes!("p-5", "w-96", "h-fit", "flex", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
@@ -111,7 +124,7 @@ pub fn pupil_create_box() -> Html {
             
             <div class={classes!("flex")}>
                 <button class={classes!("bg-red-100", "grow")} onclick={clear_callback}>{"Clear"}</button>
-                <button class={classes!("bg-green-100", "grow")}>{"Add learner"}</button>
+                <button class={classes!("bg-green-100", "grow")} onclick={add_callback}>{"Add learner"}</button>
             </div>
 
         </div>
