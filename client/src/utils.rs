@@ -1,6 +1,7 @@
 use base64::{engine::general_purpose, *};
+use gloo_storage::{SessionStorage, Storage};
 
-use crate::models::User;
+use crate::{models::User, constant};
 
 pub fn decode_auth_token(token: String) -> Result<User, String> {
     match token.split('.').collect::<Vec<&str>>().get(1) {
@@ -12,4 +13,8 @@ pub fn decode_auth_token(token: String) -> Result<User, String> {
         }
         None => Err("token had too few parts".into()),
     }
+}
+
+pub fn get_current_token() -> String {
+    SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY).expect("failed to get token") // TODO handle error
 }

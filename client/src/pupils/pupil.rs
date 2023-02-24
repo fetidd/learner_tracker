@@ -1,14 +1,54 @@
-use yew::prelude::*;
-use super::types::PupilProps;
+use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[function_component(Pupil)]
-pub fn pupil(props: &PupilProps) -> Html {
-    // TODO fetch pupil data from server using id in props - use_effect_deps
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, PartialOrd, Ord, Eq)]
+pub struct Pupil {
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub id: Option<Uuid>,
+    pub first_names: String,
+    pub last_name: String,
+    pub year: i32,
+    pub start_date: NaiveDate,
+    pub end_date: NaiveDate,
+    pub active: bool,
+    pub more_able_and_talented: bool,
+    pub english_as_additional_language: bool,
+    pub free_school_meals: bool,
+    pub additional_learning_needs: bool,
+    pub looked_after_child: bool,
+    pub gender: String,
+}
 
-
-    html!{
-        <div>
-            <span>{props.id.clone()}</span>
-        </div>
+impl Pupil {
+    pub fn new(
+        first_names: String,
+        last_name: String,
+        year: i32,
+        start_date: NaiveDate,
+        end_date: NaiveDate,
+        active: bool,
+        more_able_and_talented: bool,
+        english_as_additional_language: bool,
+        free_school_meals: bool,
+        additional_learning_needs: bool,
+        looked_after_child: bool,
+        gender: String,
+    ) -> Pupil {
+        Pupil {
+            id: None,
+            first_names,
+            last_name,
+            year,
+            start_date,
+            end_date,
+            active,
+            more_able_and_talented,
+            english_as_additional_language,
+            free_school_meals,
+            additional_learning_needs,
+            looked_after_child,
+            gender,
+        }
     }
 }

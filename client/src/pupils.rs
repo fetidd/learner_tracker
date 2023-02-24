@@ -1,9 +1,9 @@
 mod create_box;
-mod model;
+mod pupil;
 mod row;
 mod table;
 mod types;
-mod pupil;
+mod details;
 
 pub use table::PupilTable;
-pub use pupil::Pupil;
+pub use details::PupilDetails;

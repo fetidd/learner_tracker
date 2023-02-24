@@ -54,6 +54,7 @@ impl Pupil {
     }
 
     pub async fn insert(&self, db: &DatabaseConnection) -> Result<Self> {
+        tracing::debug!("inserting pupil {:?}", self);
         Ok(ActiveModel {
             id: Set(self.id.clone()),
             first_names: Set(self.first_names.clone()),

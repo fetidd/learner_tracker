@@ -6,8 +6,8 @@ use crate::routes::Route;
 #[function_component(PupilRow)]
 pub fn pupil_row(p: &PupilRowProps) -> Html { // FIXME these fucking rows arent all centered 
     html! { if p.pupil.active {
-        <tr key={p.pupil.id.to_string()} class={classes!("h-[42px]")}>
-        <Link<Route> to={Route::Pupil {id: p.pupil.id.to_string()}}>
+        <tr key={p.pupil.id.unwrap().to_string()} class={classes!("h-[42px]")}>
+        <Link<Route> to={Route::Pupil {id: p.pupil.id.unwrap().to_string()}}>
             <td class={classes!("align-middle", "h-[40px]")}><span class={classes!()}>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span></td>
         </Link<Route>>
         <td class={classes!("text-center")}>{format!("{}", p.pupil.start_date)}</td>

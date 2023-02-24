@@ -1,7 +1,7 @@
-use super::model::Pupil;
+use super::pupil::Pupil;
 use crate::models::User;
 use serde::Deserialize;
-use yew::Properties;
+use yew::{Properties, Callback};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct AllPupilsResponse {
@@ -20,6 +20,11 @@ pub struct PupilRowProps {
 }
 
 #[derive(PartialEq, Properties)]
-pub struct PupilProps {
+pub struct PupilDetailsProps {
     pub id: String
+}
+
+#[derive(PartialEq, Properties)]
+pub struct PupilCreateBoxProps {
+    pub refresh_callback: Callback<()>
 }

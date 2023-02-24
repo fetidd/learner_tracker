@@ -79,7 +79,7 @@ pub fn app() -> Html {
                     html! { <pupils::PupilTable {current_user} />}
                 },
                 (Route::Pupil {id}, true) => {
-                    html! { <pupils::Pupil {id} /> }
+                    html! { <pupils::PupilDetails {id} /> }
                 },
                 _ => html! { <login::LoginForm  login_handler={login}/> },
             }
