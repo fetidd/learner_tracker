@@ -6,14 +6,14 @@ use crate::routes::Route;
 #[function_component(PupilRow)]
 pub fn pupil_row(p: &PupilRowProps) -> Html { // FIXME these fucking rows arent all centered 
     html! { if p.pupil.active {
-        <tr key={p.pupil.id.expect("pupil should always have id here").to_string()} class={classes!("h-[42px]")}>
+        <tr key={p.pupil.id.expect("pupil should always have id here").to_string()} class={classes!("h-[42px]", "hover:bg-slate-100")}>
         <Link<Route> to={Route::Pupil {id: p.pupil.id.expect("pupil should always have id here").to_string()}}>
             <td class={classes!("align-middle", "h-[40px]")}><span class={classes!()}>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span></td>
         </Link<Route>>
         <td class={classes!("text-center")}>{format!("{}", p.pupil.start_date)}</td>
         // <td class={classes!("text-center")}>{format!("{}", p.pupil.end_date)}</td>
         // <td class={classes!("text-center")}>{format!("{}", p.pupil.gender)}</td>
-        <td class={classes!("flex", "justify-start", "items-center")}>
+        <td class={classes!("flex", "justify-start", "items-center", "space-x-1")}>
             if p.pupil.more_able_and_talented {
                 <span class={classes!("bg-purple-200", "tag")}>{"MAT"}</span>
             }

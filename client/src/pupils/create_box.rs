@@ -53,38 +53,38 @@ impl Component for PupilCreateBox {
                     <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"}  ref={self.refs["gender"].clone()}/>
                     <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"}  ref={self.refs["year"].clone()}/>
                 </div>
-                <div class={classes!("flex", "justify-between", "items-center")}>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                     <label><span>{"Start date"}</span></label>
                     <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"}  ref={self.refs["start_date"].clone()}/>
                 </div>
     
-                <div class={classes!("flex", "justify-between", "items-center")}>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                     <label><span>{"Leave date"}</span></label>
                     <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"}  ref={self.refs["leave_date"].clone()}/>
                 </div>
     
                 <div class={classes!("flex", "flex-col", "space-y-4", "my-4")}>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"active"}><span>{"Active"}</span></label>
                         <input id={"active"}type={"checkbox"} ref={self.refs["active"].clone()} checked={true} />
                     </div>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"mat"}><span>{"More able and talented"}</span></label>
                         <input id={"mat"}type={"checkbox"} ref={self.refs["mat"].clone()}/>
                     </div>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"lac"}><span>{"Looked after child"}</span></label>
                         <input id={"lac"}type={"checkbox"} ref={self.refs["lac"].clone()}/>
                     </div>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"eal"}><span>{"English as additional language"}</span></label>
                         <input id={"eal"}type={"checkbox"} ref={self.refs["eal"].clone()}/>
                     </div>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"aln"}><span>{"Additional learning needs"}</span></label>
                         <input id={"aln"}type={"checkbox"} ref={self.refs["aln"].clone()}/>
                     </div>
-                    <div class={classes!("flex", "justify-between", "items-center")}>
+                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                         <label for={"fsm"}><span>{"Free school meals"}</span></label>
                         <input id={"fsm"}type={"checkbox"} ref={self.refs["fsm"].clone()}/>
                     </div>
@@ -92,8 +92,8 @@ impl Component for PupilCreateBox {
                 </div>
                 
                 <div class={classes!("flex")}>
-                    <button class={classes!("bg-red-100", "grow")} onclick={reset_callback}>{"Reset"}</button>
-                    <button class={classes!("bg-green-100", "grow")} onclick={create_callback}>{"Add learner"}</button>
+                    <button class={classes!("bg-red-100", "grow", "hover:bg-red-200")} onclick={reset_callback}>{"Reset"}</button>
+                    <button class={classes!("bg-green-100", "grow", "hover:bg-green-200")} onclick={create_callback}>{"Add learner"}</button>
                 </div>
     
             </div>

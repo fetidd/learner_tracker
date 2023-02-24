@@ -74,21 +74,10 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
 async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result<()> {
     match Request::get(constant::PUPILS_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
         Ok(response) => {
-            match response.json::<AllPupilsResponse>().await {
-                Ok(pupil_response) => {
-                    if let Some(err) = pupil_response.error {
-                        Err(Unauthorized!(err))
-                    } else {
-                        let mut fetched = pupil_response.pupils.ok_or_else(|| JsonError!())?;
-                        fetched.sort_by(|a, b| a.last_name.partial_cmp(&b.last_name).expect("sort pupils by last name"));
-                        pupils.set(fetched);
-                        Ok(())
-                    }
-                }
-                Err(err) => {
-                    Err(ResponseParseError!(err.to_string()))
-                }
-            }
+            let mut fetched = response.json::<Vec<Pupil>>().await?;
+            fetched.sort_by(|a, b| a.last_name.partial_cmp(&b.last_name).expect("sort pupils by last name"));
+            pupils.set(fetched);
+            Ok(())
         }
         Err(err) => Err(ResponseParseError!(err.to_string())),
     }

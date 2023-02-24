@@ -6,10 +6,10 @@ use yew_router::prelude::*;
 pub fn menu() -> Html {
     html! {
       <div class={classes!("container", "mx-auto", "space-y-3", "my-10")}>
-        <div class={classes!("bg-green-100", "p-5")}>
+        <div class={classes!("bg-green-100", "hover:bg-green-200", "p-2")}>
           <MenuTile route={Route::ManagePupils} title={"Manage pupils"} subtitle={"Add, edit and delete pupils in your year groups"}/>
         </div>
-        <div class={classes!("bg-green-100", "p-5")}>
+        <div class={classes!("bg-green-100", "hover:bg-green-200", "p-2")}>
           <MenuTile route={Route::ManageUsers} title={"Manage users"} subtitle={"Add, edit and delete users of the tracker"}/>
         </div>
       </div>

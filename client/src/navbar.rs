@@ -21,7 +21,7 @@ pub fn Navbar(p: &NavbarProps) -> Html {
             <div>
                 <div class={classes!("flex", "items-center", "space-x-5")}>
                     <span>{&format!("Hi, {}!", user.first_names)}</span>
-                    <button class={classes!("bg-red-300")} onclick={logout}>{"Log out"}</button>
+                    <button class={classes!("bg-red-100", "hover:bg-red-200")} onclick={logout}>{"Log out"}</button>
                 </div>
             </div>
             </nav>

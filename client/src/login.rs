@@ -30,7 +30,7 @@ pub fn login_form(p: &LoginFormProps) -> Html {
                 <input class={classes!()} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
             </div>
             <div class={classes!("flex", "justify-center")}>
-                <button class={classes!("bg-green-100", "w-[181px]")} onclick={login_callback}>{"Submit"}</button>
+                <button class={classes!("bg-green-100", "hover:bg-green-200", "w-[181px]")} onclick={login_callback}>{"Submit"}</button>
             </div>
         </div>
     }

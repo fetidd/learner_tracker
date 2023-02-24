@@ -13,20 +13,17 @@ pub fn app() -> Html {
     let current_user: UseStateHandle<Option<User>> = use_state(|| None);
     {
         let current_user = current_user.clone();
-        use_effect_with_deps(
-            move |_| {
-                spawn_local(async move {
-                    if let Ok(stored_token) = SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
-                        match utils::decode_auth_token(stored_token) {
-                            Ok(user) => {
-                                debug!("found user in sessionstorage =>", user.email_address.clone());
-                                current_user.set(Some(user));
-                            }
-                            Err(error) => error!(error.to_string()),
-                        }
+        use_effect_with_deps(move |_| {
+            spawn_local(async move {
+                match utils::decode_auth_token(utils::get_current_token()) {
+                    Ok(user) => {
+                        debug!("found user in sessionstorage =>", user.email_address.clone());
+                        current_user.set(Some(user));
                     }
-                });
-                || ()
+                    Err(error) => error!(error.to_string()),
+                }
+            });
+            || ()
             },
             (),
         );

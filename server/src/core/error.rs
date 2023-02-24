@@ -101,6 +101,7 @@ from_error! {hyper::Error > ServerError}
 from_error! {jsonwebtoken::errors::Error > InvalidJwt}
 from_error! {serde_json::Error > SerializeError}
 from_error! {std::string::FromUtf8Error > ParseError}
+from_error! {uuid::Error > ParseError}
 from_error! {base64::DecodeError > DecodeError: "error decoding"}
 
 impl IntoResponse for Error {
