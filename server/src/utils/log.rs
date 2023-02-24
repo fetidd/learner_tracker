@@ -1,8 +1,8 @@
 use tracing_subscriber::{fmt, EnvFilter};
 
 pub fn start_log() {
-    let log_fmt = fmt::format() // TODO move to log module
-        .compact()
+    let log_fmt = fmt::format()
+        // .compact()
         .without_time()
         .with_target(true)
         .with_thread_names(false);
