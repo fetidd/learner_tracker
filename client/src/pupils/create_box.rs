@@ -1,34 +1,14 @@
+use std::collections::HashMap;
 use chrono::{Utc, NaiveDate};
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-
-use crate::{constant, utils, error, debug, routes::Route, error::*};
-
+use crate::{constant, utils, error, error::*};
 use super::{pupil::Pupil, types::PupilCreateBoxProps};
 
-macro_rules! clone_batch {
-    ($($to_clone:ident),+) => {
-        $(let $to_clone= $to_clone.clone();)*
-    };
-    ($obj:ident: $($to_clone:ident),+) => {
-        $(let $to_clone= $obj.$to_clone.clone();)*
-    }
-}
-
 pub struct PupilCreateBox {
-    name: NodeRef,
-    gender: NodeRef,
-    year: NodeRef,
-    start_date: NodeRef,
-    leave_date: NodeRef,
-    active: NodeRef,
-    mat: NodeRef,
-    aln: NodeRef,
-    eal: NodeRef,
-    lac: NodeRef,
-    fsm: NodeRef,
+    refs: HashMap<&'static str, NodeRef>
 }
 
 impl Component for PupilCreateBox {
@@ -36,41 +16,30 @@ impl Component for PupilCreateBox {
     type Properties = PupilCreateBoxProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            name: NodeRef::default(),
-            gender: NodeRef::default(),
-            year: NodeRef::default(),
-            start_date: NodeRef::default(),
-            leave_date: NodeRef::default(),
-            active: NodeRef::default(),
-            mat: NodeRef::default(),
-            aln: NodeRef::default(),
-            eal: NodeRef::default(),
-            lac: NodeRef::default(),
-            fsm: NodeRef::default(),
-        }
+        let refs: HashMap<&str, NodeRef> = vec!["name","gender","year","start_date","leave_date","active","mat","aln","eal","lac","fsm"].iter().map(|f| (*f, NodeRef::default())).collect();
+        Self {refs}
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-        clone_batch!(self: name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
-        reset_form(name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
+        let refs = self.refs.clone();
+        reset_form(refs);
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let reset_callback = {
-            clone_batch!(self: name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
+            let refs = self.refs.clone();
             Callback::from(move |_| {
-                clone_batch!(name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
-                reset_form(name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
+                let refs = refs.clone();
+                reset_form(refs);
             })
         };
 
         let create_callback = {
-            clone_batch!(self: name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
+            let refs = self.refs.clone();
             let refresh_callback = ctx.props().refresh_callback.clone();
             Callback::from(move |_| {
-                clone_batch!(name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
-                if let Err(err) = create_pupil(refresh_callback.clone(), name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal) {
+                let refs = refs.clone();
+                if let Err(err) = create_pupil(refresh_callback.clone(), refs) {
                     error!("ERROR CREATING PUPIL: ", err.to_string());
                 }
             })
@@ -79,45 +48,45 @@ impl Component for PupilCreateBox {
         html! {
             <div class={classes!("p-5", "w-96", "h-fit", "flex", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
                 <span class={classes!("text-3xl")}>{"Add a learner"}</span>
-                <input class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type={"text"} placeholder={"Names"}  ref={self.name.clone()}/>
+                <input class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type={"text"} placeholder={"Names"}  ref={self.refs["name"].clone()}/>
                 <div class={classes!("flex", "justify-between")}>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"}  ref={self.gender.clone()}/>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"}  ref={self.year.clone()}/>
+                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"}  ref={self.refs["gender"].clone()}/>
+                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"}  ref={self.refs["year"].clone()}/>
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center")}>
                     <label><span>{"Start date"}</span></label>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"}  ref={self.start_date.clone()}/>
+                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"}  ref={self.refs["start_date"].clone()}/>
                 </div>
     
                 <div class={classes!("flex", "justify-between", "items-center")}>
                     <label><span>{"Leave date"}</span></label>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"}  ref={self.leave_date.clone()}/>
+                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"}  ref={self.refs["leave_date"].clone()}/>
                 </div>
     
                 <div class={classes!("flex", "flex-col", "space-y-4", "my-4")}>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"active"}><span>{"Active"}</span></label>
-                        <input id={"active"}type={"checkbox"} ref={self.active.clone()} checked={true} />
+                        <input id={"active"}type={"checkbox"} ref={self.refs["active"].clone()} checked={true} />
                     </div>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"mat"}><span>{"More able and talented"}</span></label>
-                        <input id={"mat"}type={"checkbox"} ref={self.mat.clone()}/>
+                        <input id={"mat"}type={"checkbox"} ref={self.refs["mat"].clone()}/>
                     </div>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"lac"}><span>{"Looked after child"}</span></label>
-                        <input id={"lac"}type={"checkbox"} ref={self.lac.clone()}/>
+                        <input id={"lac"}type={"checkbox"} ref={self.refs["lac"].clone()}/>
                     </div>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"eal"}><span>{"English as additional language"}</span></label>
-                        <input id={"eal"}type={"checkbox"} ref={self.eal.clone()}/>
+                        <input id={"eal"}type={"checkbox"} ref={self.refs["eal"].clone()}/>
                     </div>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"aln"}><span>{"Additional learning needs"}</span></label>
-                        <input id={"aln"}type={"checkbox"} ref={self.aln.clone()}/>
+                        <input id={"aln"}type={"checkbox"} ref={self.refs["aln"].clone()}/>
                     </div>
                     <div class={classes!("flex", "justify-between", "items-center")}>
                         <label for={"fsm"}><span>{"Free school meals"}</span></label>
-                        <input id={"fsm"}type={"checkbox"} ref={self.fsm.clone()}/>
+                        <input id={"fsm"}type={"checkbox"} ref={self.refs["fsm"].clone()}/>
                     </div>
     
                 </div>
@@ -132,41 +101,30 @@ impl Component for PupilCreateBox {
     }
 }
 
-// TODO dry this up?
-fn reset_form(name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) -> Result<()> {
-    name.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
-    year.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
-    gender.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
-    start_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value(&Utc::now().naive_utc().date().to_string());
-    leave_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value(&Utc::now().naive_utc().date().to_string());
-    active.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(true);
-    mat.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
-    lac.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
-    aln.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
-    fsm.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
-    eal.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
-    Ok(())
+fn reset_form(refs: HashMap<&str, NodeRef>) {
+    for (field, n_ref) in refs {
+        match field {
+            "name"|"gender"|"year"          => n_ref.cast::<HtmlInputElement>().expect("cast input ref").set_value(""),
+            "start_date"|"leave_date"       => n_ref.cast::<HtmlInputElement>().expect("cast input ref").set_value(&Utc::now().naive_utc().date().to_string()),
+            "mat"|"aln"|"fsm"|"lac"|"eal"   => n_ref.cast::<HtmlInputElement>().expect("cast input ref").set_checked(false),
+            "active" => n_ref.cast::<HtmlInputElement>().expect("cast input ref").set_checked(true),
+            _ => panic!("key not attached to an input")
+        }
+    }
 }
 
-fn create_pupil(callback: Callback<()>, name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) -> Result<()> {
-    // spin off new thread to post to backend with data from refs
-    let name = name.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value();
-    let year = year.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<i32>()?;
-    let gender = gender.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value();
-    let start_date = start_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<NaiveDate>()?;
-    let leave_date = leave_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<NaiveDate>()?;
-    let active = active.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
-    let mat = mat.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
-    let lac = lac.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
-    let aln = aln.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
-    let fsm = fsm.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
-    let eal = eal.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+fn create_pupil(callback: Callback<()>, refs: HashMap<&str, NodeRef>) -> Result<()> {
+    let refs: HashMap<&str, HtmlInputElement> = refs.into_iter().map(|(field, n_ref)| (field, n_ref.cast::<HtmlInputElement>().expect("cast input ref in create_pupil"))).collect();
+    let name = refs["name"].value();
     let name = name.split(" ").collect::<Vec<&str>>();
     if name.len() < 2 {
         return Err(ValueError!("must have first name and last name"));
     }
     let (last_name, first_names) = name.split_last().expect("returns if name not 2 parts");
-    let pupil = Pupil::new(first_names.join(" "), last_name.to_string(),year,start_date,leave_date,active,mat,lac,aln,fsm,eal,gender);
+    let year = refs["year"].value().parse::<i32>()?;
+    let start_date = refs["start_date"].value().parse::<NaiveDate>()?;
+    let leave_date = refs["leave_date"].value().parse::<NaiveDate>()?;
+    let pupil = Pupil::new(first_names.join(" "), last_name.to_string(), year, start_date, leave_date, refs["active"].checked(), refs["mat"].checked(), refs["lac"].checked(), refs["aln"].checked(), refs["fsm"].checked(), refs["eal"].checked(),refs["gender"].value());
     let token = utils::get_current_token();
     spawn_local(async move {
         match Request::put(constant::PUPILS_PATH).json(&pupil).expect("TODO this should be able to convert into our error").header("Authorization", &format!("Bearer {}", token)).send().await {

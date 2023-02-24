@@ -25,10 +25,10 @@ impl std::fmt::Display for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-from_error!(() > ServerError);
 from_error!(gloo_net::Error > ServerError);
 from_error!(std::num::ParseIntError > ValueError: "failed to parse to int");
 from_error!(chrono::ParseError > ValueError: "failed to parse date or time");
+
 error_macro!{
     Unauthorized,
     ResponseParseError,
