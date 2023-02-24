@@ -1,7 +1,10 @@
+#[macro_use]
+mod macros;
+#[macro_use]
+mod error;
 mod app;
 mod constant;
 mod login;
-mod macros;
 mod menu;
 mod models;
 mod navbar;

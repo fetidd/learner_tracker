@@ -106,7 +106,7 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
     spawn_local(async move {
         let response = Request::post(constant::LOGIN_PATH)
             .json(&HashMap::from([("email_address", email.to_owned()), ("hashed_password", password.to_owned())]))
-            .unwrap()
+            .expect("app::login() should not fail")
             .send()
             .await;
         match response {

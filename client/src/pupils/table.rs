@@ -4,6 +4,7 @@ use crate::{
     pupils::pupil::Pupil,
     pupils::{create_box::PupilCreateBox, row::PupilRow, types::AllPupilsResponse},
     routes::Route, utils::get_current_token,
+    error::*,
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
@@ -21,7 +22,9 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
                 let pupils = pupils.clone();
                 spawn_local(async move {
                     let token = get_current_token();
-                    fetch_pupils(&token, pupils).await.unwrap()
+                    if let Err(error) = fetch_pupils(&token, pupils).await {
+                        //  TODO handle error - show an alert on screen?
+                    }
                 });
                 || ()
             },
@@ -35,7 +38,9 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
             let pupils = pupils.clone();
             spawn_local(async move {
                 let token = get_current_token();
-                fetch_pupils(&token, pupils).await.unwrap()
+                if let Err(error) = fetch_pupils(&token, pupils).await {
+                    //  TODO handle error - show an alert on screen?
+                }
             })
         })
            
@@ -66,27 +71,25 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
     }
 }
 
-async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result<(), String> {
+async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result<()> {
     match Request::get(constant::PUPILS_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
         Ok(response) => {
             match response.json::<AllPupilsResponse>().await {
                 Ok(pupil_response) => {
-                    if let Some(error) = pupil_response.error {
-                        error!(error.to_string());
-                        Err(format!("{error} when parsing pupil response"))
+                    if let Some(err) = pupil_response.error {
+                        Err(Unauthorized!(err))
                     } else {
-                        let mut fetched = pupil_response.pupils.unwrap();
-                        fetched.sort_by(|a, b| a.last_name.partial_cmp(&b.last_name).unwrap());
+                        let mut fetched = pupil_response.pupils.ok_or_else(|| JsonError!())?;
+                        fetched.sort_by(|a, b| a.last_name.partial_cmp(&b.last_name).expect("sort pupils by last name"));
                         pupils.set(fetched);
                         Ok(())
                     }
                 }
                 Err(err) => {
-                    error!(format!("{err} when parsing pupil response"));
-                    Err(format!("{err} when parsing pupil response"))
+                    Err(ResponseParseError!(err.to_string()))
                 }
             }
         }
-        Err(err) => {error!(format!("{err} when getting pupils")); Err(format!("{err} when parsing pupil response"))},
+        Err(err) => Err(ResponseParseError!(err.to_string())),
     }
 }

@@ -1,11 +1,10 @@
 use chrono::{Utc, NaiveDate};
-use gloo_net::http::{Response, Request};
+use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{scope_ext::RouterScopeExt, prelude::Navigator};
 
-use crate::{constant, utils, error, debug, routes::Route};
+use crate::{constant, utils, error, debug, routes::Route, error::*};
 
 use super::{pupil::Pupil, types::PupilCreateBoxProps};
 
@@ -71,7 +70,9 @@ impl Component for PupilCreateBox {
             let refresh_callback = ctx.props().refresh_callback.clone();
             Callback::from(move |_| {
                 clone_batch!(name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
-                create_pupil(refresh_callback.clone(), name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal);
+                if let Err(err) = create_pupil(refresh_callback.clone(), name,year,gender,start_date,leave_date,active,mat,lac,aln,fsm,eal) {
+                    error!("ERROR CREATING PUPIL: ", err.to_string());
+                }
             })
         };
 
@@ -131,41 +132,47 @@ impl Component for PupilCreateBox {
     }
 }
 
-fn reset_form(name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) {
-    name.cast::<HtmlInputElement>().expect("resetting form").set_value("");
-    year.cast::<HtmlInputElement>().expect("resetting form").set_value("");
-    gender.cast::<HtmlInputElement>().expect("resetting form").set_value("");
-    start_date.cast::<HtmlInputElement>().expect("resetting form").set_value(&Utc::now().naive_utc().date().to_string());
-    leave_date.cast::<HtmlInputElement>().expect("resetting form").set_value(&Utc::now().naive_utc().date().to_string());
-    active.cast::<HtmlInputElement>().expect("resetting form").set_checked(true);
-    mat.cast::<HtmlInputElement>().expect("resetting form").set_checked(false);
-    lac.cast::<HtmlInputElement>().expect("resetting form").set_checked(false);
-    aln.cast::<HtmlInputElement>().expect("resetting form").set_checked(false);
-    fsm.cast::<HtmlInputElement>().expect("resetting form").set_checked(false);
-    eal.cast::<HtmlInputElement>().expect("resetting form").set_checked(false);
+// TODO dry this up?
+fn reset_form(name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) -> Result<()> {
+    name.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
+    year.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
+    gender.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value("");
+    start_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value(&Utc::now().naive_utc().date().to_string());
+    leave_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_value(&Utc::now().naive_utc().date().to_string());
+    active.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(true);
+    mat.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
+    lac.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
+    aln.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
+    fsm.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
+    eal.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.set_checked(false);
+    Ok(())
 }
 
-fn create_pupil(callback: Callback<()>, name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) {
+fn create_pupil(callback: Callback<()>, name: NodeRef,year: NodeRef,gender: NodeRef,start_date: NodeRef,leave_date: NodeRef,active: NodeRef,mat: NodeRef,lac: NodeRef,aln: NodeRef,fsm: NodeRef,eal: NodeRef) -> Result<()> {
     // spin off new thread to post to backend with data from refs
-    let name = name.cast::<HtmlInputElement>().expect("adding pupil").value();
-    let year = year.cast::<HtmlInputElement>().expect("adding pupil").value().parse::<i32>().unwrap();
-    let gender = gender.cast::<HtmlInputElement>().expect("adding pupil").value();
-    let start_date = start_date.cast::<HtmlInputElement>().expect("adding pupil").value().parse::<NaiveDate>().unwrap();
-    let leave_date = leave_date.cast::<HtmlInputElement>().expect("adding pupil").value().parse::<NaiveDate>().unwrap();
-    let active = active.cast::<HtmlInputElement>().expect("adding pupil").checked();
-    let mat = mat.cast::<HtmlInputElement>().expect("adding pupil").checked();
-    let lac = lac.cast::<HtmlInputElement>().expect("adding pupil").checked();
-    let aln = aln.cast::<HtmlInputElement>().expect("adding pupil").checked();
-    let fsm = fsm.cast::<HtmlInputElement>().expect("adding pupil").checked();
-    let eal = eal.cast::<HtmlInputElement>().expect("adding pupil").checked();
+    let name = name.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value();
+    let year = year.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<i32>()?;
+    let gender = gender.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value();
+    let start_date = start_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<NaiveDate>()?;
+    let leave_date = leave_date.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.value().parse::<NaiveDate>()?;
+    let active = active.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+    let mat = mat.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+    let lac = lac.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+    let aln = aln.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+    let fsm = fsm.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
+    let eal = eal.cast::<HtmlInputElement>().ok_or(Error {kind: ErrorKind::CastError, details: None})?.checked();
     let name = name.split(" ").collect::<Vec<&str>>();
-    let (last_name, first_names) = name.split_last().unwrap();
+    if name.len() < 2 {
+        return Err(ValueError!("must have first name and last name"));
+    }
+    let (last_name, first_names) = name.split_last().expect("returns if name not 2 parts");
     let pupil = Pupil::new(first_names.join(" "), last_name.to_string(),year,start_date,leave_date,active,mat,lac,aln,fsm,eal,gender);
     let token = utils::get_current_token();
     spawn_local(async move {
-        match Request::put(constant::PUPILS_PATH).json(&pupil).unwrap().header("Authorization", &format!("Bearer {}", token)).send().await {
+        match Request::put(constant::PUPILS_PATH).json(&pupil).expect("TODO this should be able to convert into our error").header("Authorization", &format!("Bearer {}", token)).send().await {
             Ok(_res) => callback.emit(()),
             Err(err) => error!("failed to add pupil", err.to_string())
         }
-    })
+    });
+    Ok(())
 }
