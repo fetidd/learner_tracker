@@ -1,5 +1,8 @@
 use crate::utils;
-use crate::{constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route};
+use crate::{
+    constant, debug, error, log, login, menu, models::User, navbar, pupils, routes::Route,
+};
+use console_error_panic_hook::set_once;
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};
 use serde::Deserialize;
@@ -10,20 +13,25 @@ use yew_router::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
+    set_once();
     let current_user: UseStateHandle<Option<User>> = use_state(|| None);
     {
         let current_user = current_user.clone();
-        use_effect_with_deps(move |_| {
-            spawn_local(async move {
-                match utils::decode_auth_token(utils::get_current_token()) {
-                    Ok(user) => {
-                        debug!("found user in sessionstorage =>", user.email_address.clone());
-                        current_user.set(Some(user));
+        use_effect_with_deps(
+            move |_| {
+                spawn_local(async move {
+                    match utils::decode_auth_token(utils::get_current_token()) {
+                        Ok(user) => {
+                            debug!(
+                                "found user in sessionstorage =>",
+                                user.email_address.clone()
+                            );
+                            current_user.set(Some(user));
+                        }
+                        Err(error) => error!(error.to_string()),
                     }
-                    Err(error) => error!(error.to_string()),
-                }
-            });
-            || ()
+                });
+                || ()
             },
             (),
         );
@@ -34,7 +42,11 @@ pub fn app() -> Html {
         Callback::from(move |_| {
             spawn_local(async move {
                 match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
-                    Ok(token) => match Request::get(constant::LOGOUT_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
+                    Ok(token) => match Request::get(constant::LOGOUT_PATH)
+                        .header("Authorization", &format!("Bearer {token}"))
+                        .send()
+                        .await
+                    {
                         Ok(_) => {
                             log!("logged out");
                         }
@@ -74,10 +86,10 @@ pub fn app() -> Html {
                 }
                 (Route::ManageUsers, true) => {
                     html! { <pupils::PupilTable {current_user} />}
-                },
-                (Route::Pupil {id}, true) => {
+                }
+                (Route::Pupil { id }, true) => {
                     html! { <pupils::PupilDetails {id} /> }
-                },
+                }
                 _ => html! { <login::LoginForm  login_handler={login}/> },
             }
         })
@@ -102,7 +114,10 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
     // TEST try fantoccini
     spawn_local(async move {
         let response = Request::post(constant::LOGIN_PATH)
-            .json(&HashMap::from([("email_address", email.to_owned()), ("hashed_password", password.to_owned())]))
+            .json(&HashMap::from([
+                ("email_address", email.to_owned()),
+                ("hashed_password", password.to_owned()),
+            ]))
             .expect("app::login() should not fail")
             .send()
             .await;
@@ -112,7 +127,10 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
                     match login_response.error {
                         None => match login_response.token {
                             Some(token) if !token.is_empty() => {
-                                if let Err(error) = SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, token.clone()) {
+                                if let Err(error) = SessionStorage::set(
+                                    constant::AUTH_TOKEN_STORAGE_KEY,
+                                    token.clone(),
+                                ) {
                                     error!(error.to_string());
                                 }
                                 match utils::decode_auth_token(token) {

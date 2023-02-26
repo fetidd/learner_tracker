@@ -1,10 +1,11 @@
 use super::types::PupilTableProps;
 use crate::{
     constant, error,
+    error::*,
     pupils::pupil::Pupil,
     pupils::{create_box::PupilCreateBox, row::PupilRow, types::AllPupilsResponse},
-    routes::Route, utils::get_current_token,
-    error::*,
+    routes::Route,
+    utils::get_current_token,
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
@@ -43,26 +44,20 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
                 }
             })
         })
-           
     };
 
     if p.current_user.is_some() {
         html! {
-            <div class={classes!("flex", "space-x-10")}>
+            <div class={classes!("flex", "flex-col", "sm:flex-row", "space-x-10")}>
                 <PupilCreateBox {refresh_callback} />
                 <div class={classes!("overflow-y-auto", "pupil-table", "px-5", "grow")}>
-                    <table class={classes!{"w-full"}}>
-                        <thead class={classes!("sticky", "top-0", "bg-white", "h-12")}>
-                            <th class={classes!("text-left")}>{"Name"}</th>
-                            <th>{"Start date"}</th>
-                            <th>{"Tags"}</th>
-                        </thead>
-                        <tbody>
+                    <div class={classes!{"w-full"}}>
+                        <div>
                             {pupils.iter().map(|pupil| {
                                 html!{<PupilRow pupil={pupil.clone()} />}
-                            }).collect::<Html>()}
-                        </tbody>
-                    </table>
+                             }).collect::<Html>()}
+                        </div>
+                    </div>
                 </div>
             </div>
         }
@@ -72,10 +67,18 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
 }
 
 async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result<()> {
-    match Request::get(constant::PUPILS_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
+    match Request::get(constant::PUPILS_PATH)
+        .header("Authorization", &format!("Bearer {token}"))
+        .send()
+        .await
+    {
         Ok(response) => {
             let mut fetched = response.json::<Vec<Pupil>>().await?;
-            fetched.sort_by(|a, b| a.last_name.partial_cmp(&b.last_name).expect("sort pupils by last name"));
+            fetched.sort_by(|a, b| {
+                a.last_name
+                    .partial_cmp(&b.last_name)
+                    .expect("sort pupils by last name")
+            });
             pupils.set(fetched);
             Ok(())
         }
