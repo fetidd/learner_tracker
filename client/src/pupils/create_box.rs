@@ -2,221 +2,194 @@ use super::{pupil::Pupil, types::PupilCreateBoxProps};
 use crate::{constant, error, error::*, utils};
 use chrono::{NaiveDate, Utc};
 use gloo_net::http::Request;
-use std::{collections::HashMap, cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{HtmlElement, HtmlInputElement, HtmlBaseElement, Element};
+use web_sys::{HtmlElement, HtmlInputElement};
 use yew::prelude::*;
 
-pub struct PupilCreateBox {
-    refs: HashMap<&'static str, NodeRef>,
-    expanded: Rc<RefCell<bool>>,
+#[derive(Clone)]
+struct InputState {
+    name: String,
+    gender: String,
+    start_date: NaiveDate,
+    leave_date: NaiveDate,
+    active: bool,
+    mat: bool,
+    lac: bool,
+    fsm: bool,
+    eal: bool,
+    aln: bool,
+    year: i32,
 }
 
-impl Component for PupilCreateBox {
-    type Message = ();
-    type Properties = PupilCreateBoxProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        let refs: HashMap<&str, NodeRef> = vec![
-            "name",
-            "gender",
-            "year",
-            "start_date",
-            "leave_date",
-            "active",
-            "mat",
-            "aln",
-            "eal",
-            "lac",
-            "fsm",
-            "create_box",
-            "expand_btn",
-        ]
-        .iter()
-        .map(|f| (*f, NodeRef::default()))
-        .collect();
+impl Default for InputState {
+    fn default() -> Self {
+        let today = Utc::now().date_naive();
         Self {
-            refs,
-            expanded: Rc::new(RefCell::new(false)),
+            name: Default::default(),
+            gender: Default::default(),
+            start_date: today,
+            leave_date: today,
+            active: true,
+            mat: Default::default(),
+            lac: Default::default(),
+            fsm: Default::default(),
+            eal: Default::default(),
+            aln: Default::default(),
+            year: Default::default(),
         }
     }
+}
 
-    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
-        let refs = self.refs.clone();
-        reset_form(refs);
-    }
+#[function_component(PupilCreateBox)]
+pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
+    let create_box = use_node_ref();
+    let input_state = use_state(|| InputState::default());
+    let is_expanded = use_state(|| false);
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let reset_callback = {
-            let refs = self.refs.clone();
-            Callback::from(move |_| {
-                let refs = refs.clone();
-                reset_form(refs);
-            })
-        };
+    let reset_callback = {
+        let input_state = input_state.clone();
+        Callback::from(move |_| {
+            let input_state = input_state.clone();
+            input_state.set(InputState::default());
+        })
+    };
 
-        let create_callback = {
-            let refs = self.refs.clone();
-            let refresh_callback = ctx.props().refresh_callback.clone();
-            Callback::from(move |_| {
-                let refs = refs.clone();
-                if let Err(err) = create_pupil(refresh_callback.clone(), refs) {
-                    error!("ERROR CREATING PUPIL: ", err.to_string());
+    let create_callback = {
+        let refresh_callback = props.refresh_callback.clone();
+        let input_state = input_state.clone();
+        Callback::from(move |_| {
+            let refresh_callback = refresh_callback.clone();
+            let name = input_state.name.split(" ").collect::<Vec<&str>>();
+            let (last_name, first_names) = name.split_last().expect("returns if name not 2 parts");
+            let pupil = Pupil::new(
+                first_names.join(" "),
+                last_name.to_string(),
+                input_state.year,
+                input_state.start_date,
+                input_state.leave_date,
+                input_state.active,
+                input_state.mat,
+                input_state.eal,
+                input_state.fsm,
+                input_state.aln,
+                input_state.lac,
+                input_state.gender.clone(),
+            );
+            let token = utils::get_current_token();
+            spawn_local(async move {
+                match Request::put(constant::PUPILS_PATH)
+                    .json(&pupil)
+                    .expect("TODO this should be able to convert into our error")
+                    .header("Authorization", &format!("Bearer {}", token))
+                    .send()
+                    .await
+                {
+                    Ok(_res) => refresh_callback.emit(()),
+                    Err(err) => error!("failed to add pupil", err.to_string()),
                 }
-            })
-        };
+            });
+        })
+    };
 
-        let toggle_box_cb = {
-            let refs = self.refs.clone();
-            let expanded = self.expanded.clone();
-            Callback::from(move |ev: MouseEvent| {
-                let create_box: HtmlElement = refs["create_box"].cast().unwrap();
-                let ev: HtmlElement = ev.target_unchecked_into();
-                let mut expanded = expanded.as_ref().borrow_mut();
-                let mut classes = Classes::from(create_box.class_name());
-                if *expanded {
-                    classes.push("hidden");
-                    ev.set_text_content(Some("Add new learner"));
-                    *expanded = false;
-                } else {
-                    classes = classes.into_iter().filter(|cl| cl != "hidden").collect();
-                    ev.set_text_content(Some("Hide"));
-                    *expanded = true;
-                }
-                create_box.set_class_name(&classes.to_string());
-            })
-        };
+    let toggle_box_cb = {
+        let create_box = create_box.clone();
+        let is_expanded = is_expanded.clone();
+        Callback::from(move |ev: MouseEvent| {
+            let create_box: HtmlElement =
+                create_box.cast().expect("cast create_box to htmlelement");
+            let ev: HtmlElement = ev.target_unchecked_into();
+            let mut classes = Classes::from(create_box.class_name());
+            if *is_expanded {
+                classes.push("hidden");
+                ev.set_text_content(Some("Add new learner"));
+                is_expanded.set(false);
+            } else {
+                classes = classes.into_iter().filter(|cl| cl != "hidden").collect();
+                ev.set_text_content(Some("Hide"));
+                is_expanded.set(true);
+            }
+            create_box.set_class_name(&classes.to_string());
+        })
+    };
 
-        html! {
-            <>
-            <div ref={self.refs["create_box"].clone()} class={classes!("hidden", "md:flex", "p-5", "w-96", "h-fit", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
-                <span class={classes!("text-3xl")}>{"Add a learner"}</span>
-                <input class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type={"text"} placeholder={"Names"}  ref={self.refs["name"].clone()}/>
-                <div class={classes!("flex", "justify-between")}>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"}  ref={self.refs["gender"].clone()}/>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"}  ref={self.refs["year"].clone()}/>
-                </div>
-                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label><span>{"Start date"}</span></label>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"}  ref={self.refs["start_date"].clone()}/>
-                </div>
+    let update_state_cb = {
+        let input_state = input_state.clone();
+        Callback::from(move |ev: Event| {
+            let mut state = (*input_state).clone();
+            let target: HtmlInputElement = ev.target_unchecked_into();
+            match target.id().as_str() {
+                "name" => state.name = target.value(),
+                "gender" => state.gender = target.value(),
+                "year" => state.year = target.value().parse::<i32>().expect("TODO HANDLE"),
+                "start_date" => state.start_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE"),
+                "leave_date" => state.leave_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE"),
+                "active" => state.active = target.checked(),
+                "mat" => state.mat = target.checked(),
+                "lac" => state.lac = target.checked(),
+                "aln" => state.aln = target.checked(),
+                "fsm" => state.fsm = target.checked(),
+                "eal" => state.eal = target.checked(),
+                _ => panic!("input trying to change non-existent state")
+            }
+            input_state.set(state);
+        })
+    };
 
-                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label><span>{"Leave date"}</span></label>
-                    <input class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"}  ref={self.refs["leave_date"].clone()}/>
-                </div>
-
-                <div class={classes!("flex", "flex-col", "space-y-4", "my-4")}>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"active"}><span>{"Active"}</span></label>
-                        <input id={"active"} type={"checkbox"} ref={self.refs["active"].clone()} checked={true} />
-                    </div>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"mat"}><span>{"More able and talented"}</span></label>
-                        <input id={"mat"} type={"checkbox"} ref={self.refs["mat"].clone()}/>
-                    </div>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"lac"}><span>{"Looked after child"}</span></label>
-                        <input id={"lac"} type={"checkbox"} ref={self.refs["lac"].clone()}/>
-                    </div>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"eal"}><span>{"English as additional language"}</span></label>
-                        <input id={"eal"} type={"checkbox"} ref={self.refs["eal"].clone()}/>
-                    </div>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"aln"}><span>{"Additional learning needs"}</span></label>
-                        <input id={"aln"} type={"checkbox"} ref={self.refs["aln"].clone()}/>
-                    </div>
-                    <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                        <label for={"fsm"}><span>{"Free school meals"}</span></label>
-                        <input id={"fsm"} type={"checkbox"} ref={self.refs["fsm"].clone()}/>
-                    </div>
-
-                </div>
-
-                <div class={classes!("flex")}>
-                    <button class={classes!("bg-red-100", "grow", "hover:bg-red-200")} onclick={reset_callback}>{"Reset"}</button>
-                    <button class={classes!("bg-green-100", "grow", "hover:bg-green-200")} onclick={create_callback}>{"Add learner"}</button>
-                </div>
+    html! {
+        <>
+        <div ref={create_box} class={classes!("hidden", "md:flex", "p-5", "w-96", "h-fit", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
+            <span class={classes!("text-3xl")}>{"Add a learner"}</span>
+            <input id={"name"} class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type={"text"} placeholder={"Names"} value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
+            <div class={classes!("flex", "justify-between")}>
+                <input id={"gender"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"} value={(*input_state).gender.clone()} onchange={update_state_cb.clone()}/>
+                <input id={"year"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"} value={(*input_state).year.to_string()} onchange={update_state_cb.clone()}/>
+            </div>
+            <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                <label><span>{"Start date"}</span></label>
+                <input id={"start_date"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"} value={(*input_state).start_date.to_string()} onchange={update_state_cb.clone()}/>
             </div>
 
-            <button class={classes!("block", "md:hidden")} onclick={toggle_box_cb} >{"Add a learner"}</button>
-            </>
-        }
-    }
-}
+            <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                <label><span>{"Leave date"}</span></label>
+                <input id={"leave_date"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"} value={(*input_state).leave_date.to_string()} onchange={update_state_cb.clone()}/>
+            </div>
 
-fn reset_form(refs: HashMap<&str, NodeRef>) {
-    for (field, n_ref) in refs {
-        match field {
-            "name" | "gender" | "year" => n_ref
-                .cast::<HtmlInputElement>()
-                .expect("cast input ref")
-                .set_value(""),
-            "start_date" | "leave_date" => n_ref
-                .cast::<HtmlInputElement>()
-                .expect("cast input ref")
-                .set_value(&Utc::now().naive_utc().date().to_string()),
-            "mat" | "aln" | "fsm" | "lac" | "eal" => n_ref
-                .cast::<HtmlInputElement>()
-                .expect("cast input ref")
-                .set_checked(false),
-            "active" => n_ref
-                .cast::<HtmlInputElement>()
-                .expect("cast input ref")
-                .set_checked(true),
-            _ => (),
-        }
-    }
-}
+            <div class={classes!("flex", "flex-col", "space-y-4", "my-4")}>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"active"}><span>{"Active"}</span></label>
+                    <input id={"active"} type={"checkbox"} checked={(*input_state).active} onchange={update_state_cb.clone()} />
+                </div>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"mat"}><span>{"More able and talented"}</span></label>
+                    <input id={"mat"} type={"checkbox"} checked={(*input_state).mat} onchange={update_state_cb.clone()}/>
+                </div>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"lac"}><span>{"Looked after child"}</span></label>
+                    <input id={"lac"} type={"checkbox"} checked={(*input_state).lac} onchange={update_state_cb.clone()}/>
+                </div>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"eal"}><span>{"English as additional language"}</span></label>
+                    <input id={"eal"} type={"checkbox"} checked={(*input_state).eal} onchange={update_state_cb.clone()}/>
+                </div>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"aln"}><span>{"Additional learning needs"}</span></label>
+                    <input id={"aln"} type={"checkbox"} checked={(*input_state).aln} onchange={update_state_cb.clone()}/>
+                </div>
+                <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
+                    <label for={"fsm"}><span>{"Free school meals"}</span></label>
+                    <input id={"fsm"} type={"checkbox"} checked={(*input_state).fsm} onchange={update_state_cb.clone()}/>
+                </div>
 
-fn create_pupil(callback: Callback<()>, refs: HashMap<&str, NodeRef>) -> Result<()> {
-    let refs: HashMap<&str, HtmlInputElement> = refs
-        .into_iter()
-        .map(|(field, n_ref)| {
-            (
-                field,
-                n_ref
-                    .cast::<HtmlInputElement>()
-                    .expect("cast input ref in create_pupil"),
-            )
-        })
-        .collect();
-    let name = refs["name"].value();
-    let name = name.split(" ").collect::<Vec<&str>>();
-    if name.len() < 2 {
-        return Err(ValueError!("must have first name and last name"));
+            </div>
+
+            <div class={classes!("flex")}>
+                <button class={classes!("bg-red-100", "grow", "hover:bg-red-200")} onclick={reset_callback}>{"Reset"}</button>
+                <button class={classes!("bg-green-100", "grow", "hover:bg-green-200")} onclick={create_callback}>{"Add learner"}</button>
+            </div>
+        </div>
+
+        <button class={classes!("block", "md:hidden")} onclick={toggle_box_cb} >{"Add a learner"}</button>
+        </>
     }
-    let (last_name, first_names) = name.split_last().expect("returns if name not 2 parts");
-    let year = refs["year"].value().parse::<i32>()?;
-    let start_date = refs["start_date"].value().parse::<NaiveDate>()?;
-    let leave_date = refs["leave_date"].value().parse::<NaiveDate>()?;
-    let pupil = Pupil::new(
-        first_names.join(" "),
-        last_name.to_string(),
-        year,
-        start_date,
-        leave_date,
-        refs["active"].checked(),
-        refs["mat"].checked(),
-        refs["lac"].checked(),
-        refs["aln"].checked(),
-        refs["fsm"].checked(),
-        refs["eal"].checked(),
-        refs["gender"].value(),
-    );
-    let token = utils::get_current_token();
-    spawn_local(async move {
-        match Request::put(constant::PUPILS_PATH)
-            .json(&pupil)
-            .expect("TODO this should be able to convert into our error")
-            .header("Authorization", &format!("Bearer {}", token))
-            .send()
-            .await
-        {
-            Ok(_res) => callback.emit(()),
-            Err(err) => error!("failed to add pupil", err.to_string()),
-        }
-    });
-    Ok(())
 }
