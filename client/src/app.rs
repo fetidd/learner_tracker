@@ -13,81 +13,50 @@ use yew_router::prelude::*;
 #[function_component(App)]
 pub fn app() -> Html {
     console_error_panic_hook::set_once();
+    let current_user = use_state(|| get_stored_user());
     let login_handler: Callback<(String, String)> = {
-        Callback::from(|(email, pass)| {
-            login(email, pass);
+        let user_handle = current_user.clone();
+        Callback::from(move |(email, pass)| {
+            login(email, pass, user_handle.clone());
         })
     };
     let logout_handler: Callback<()> = {
-        Callback::from(|_| {
-            logout();
+        let user_handle = current_user.clone();
+        Callback::from(move |_| {
+            logout(user_handle.clone());
         })
     };
-    let routing_callback = {
-        let login_handler = login_handler.clone();
-        let logout_handler = logout_handler.clone();
-        Callback::from(move |route: Route| {
-            match route {
-                Route::Menu         => html! { 
-                    <>
-                        <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <div class={classes!("p-2")}>
-                            <menu::Menu />
-                        </div>
-                    </> 
-                },
-                Route::ManagePupils => html! { 
-                    <>
-                        <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <div class={classes!("p-2")}>
-                            <pupils::PupilTable />
-                        </div>
-                    </> 
-                },
-                Route::ManageUsers  => html! { 
-                    <>
-                        <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <div class={classes!("p-2")}>
-                            <pupils::PupilTable />
-                        </div>
-                    </> 
-                },
-                Route::Pupil { id } => html! { 
-                    <>
-                        <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <div class={classes!("p-2")}>
-                            <pupils::PupilDetails {id} />
-                        </div>
-                    </> 
-                },
-                Route::Login        => html! { 
-                    <>
-                        <login::LoginForm login_handler={login_handler.clone()} />
-                    </> 
-                },
-            }
-        })
-    };
-    // check for stored user
-    let stored_user = get_stored_user();
-    if let Some(user) = stored_user {
-        let current_user = Rc::new(user);
-        debug!("CURRENT USER = ", &current_user.as_ref().email_address);
-        html! {
-            <BrowserRouter>
-                <ContextProvider<Rc<User>> context={current_user}>
-                    <Switch<Route> render={routing_callback} />
-                </ContextProvider<Rc<User>>>
-            </BrowserRouter>
-        }
-    } else {
-        html!{
-            <BrowserRouter>
-                <Switch<Route> render={routing_callback} />
-            </BrowserRouter>
-        }
-    }
 
+    html! {
+        <BrowserRouter>
+            <ContextProvider<Rc<Option<User>>> context={Rc::new((*current_user).clone())}>
+                <Switch<Route> render={
+                    let login_handler = login_handler.clone();
+                    let logout_handler = logout_handler.clone();
+                    let current_user = current_user.clone();
+                    Callback::from(move |route: Route| {
+                        if (*current_user).is_some() {
+                            debug!("using switch_route");
+                            html! {
+                                <><navbar::Navbar logout_handler={logout_handler.clone()} />
+                                <div class={classes!("p-2")}>
+                                    {match route {
+                                        Route::Menu | Route::Login => html! { <menu::Menu />},
+                                        Route::ManagePupils => html! { <pupils::PupilTable />},
+                                        Route::ManageUsers => html! { <pupils::PupilTable />},
+                                        Route::Pupil { id } => html! { <pupils::PupilDetails {id} />},
+                                    }}
+                                </div></> 
+                            }
+                        } else {
+                            debug!("redirect to login");
+                            html!(<login::LoginForm login_handler={login_handler.clone()} />)
+                        }
+                    })
+                } />
+            </ContextProvider<Rc<Option<User>>>>
+        </BrowserRouter>
+    }
 }
 
 // ====================================================================================================================================================
@@ -116,7 +85,7 @@ fn get_stored_user() -> Option<User> {
     }
 }
 
-fn login(email: String, password: String) {
+fn login(email: String, password: String, user_handle: UseStateHandle<Option<User>>) {
     // TEST try fantoccini
     debug!("logging in with", &email, ":", &password);
     spawn_local(async move {
@@ -134,14 +103,19 @@ fn login(email: String, password: String) {
                     match login_response.error {
                         None => match login_response.token {
                             Some(token) if !token.is_empty() => {
-                                if let Err(error) = SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, token.clone()) {
-                                    error!(error.to_string());
-                                    return;
+                                match SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, token.clone()) {
+                                    Ok(_) => {
+                                        match utils::decode_auth_token(token) {
+                                            Ok(user) => user_handle.set(Some(user)),
+                                            Err(error) => error!("error decoding auth token:", error.to_string())
+                                        }
+                                    }
+                                    Err(error) => error!("error setting auth token in session storage:", error.to_string())
                                 }
                             }
-                            _ => error!("no or blank token"),
+                            _ => error!("login response had no or blank token"),
                         },
-                        Some(err) => error!(err.to_string()),
+                        Some(err) => error!("error in login response:", err.to_string()),
                     }
                 }
             }
@@ -150,7 +124,7 @@ fn login(email: String, password: String) {
     });
 }
 
-fn logout() {
+fn logout(user_handle: UseStateHandle<Option<User>>) {
     spawn_local(async move {
         match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
             Ok(token) => if let Err(error) = Request::get(constant::LOGOUT_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
@@ -161,6 +135,7 @@ fn logout() {
             }
         }
         SessionStorage::delete(constant::AUTH_TOKEN_STORAGE_KEY);
+        user_handle.set(None);
     });
 }
 

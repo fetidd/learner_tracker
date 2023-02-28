@@ -14,8 +14,6 @@ use yew::prelude::*;
 #[function_component(PupilTable)]
 pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let pupils: UseStateHandle<Vec<Pupil>> = use_state(|| vec![]);
-    let _current_user = use_context::<Rc<User>>().expect("NO USER CONTEXT IN PUPIL TABLE");
-    let _show_inactive = use_state(|| false);
     {
         let pupils = pupils.clone();
         use_effect_with_deps(
