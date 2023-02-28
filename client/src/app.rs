@@ -36,7 +36,6 @@ pub fn app() -> Html {
                     let current_user = current_user.clone();
                     Callback::from(move |route: Route| {
                         if (*current_user).is_some() {
-                            debug!("using switch_route");
                             html! {
                                 <><navbar::Navbar logout_handler={logout_handler.clone()} />
                                 <div class={classes!("p-2")}>
@@ -49,7 +48,6 @@ pub fn app() -> Html {
                                 </div></> 
                             }
                         } else {
-                            debug!("redirect to login");
                             html!(<login::LoginForm login_handler={login_handler.clone()} />)
                         }
                     })
@@ -66,10 +64,6 @@ fn get_stored_user() -> Option<User> {
         Ok(token) => {
             match utils::decode_auth_token(token) {
                 Ok(user) => {
-                    debug!(
-                        "found user in sessionstorage =>",
-                        user.email_address.clone()
-                    );
                     Some(user)
                 }
                 Err(error) => {
