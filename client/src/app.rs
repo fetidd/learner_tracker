@@ -28,33 +28,58 @@ pub fn app() -> Html {
         let logout_handler = logout_handler.clone();
         Callback::from(move |route: Route| {
             match route {
-                Route::Menu         => html! { <><navbar::Navbar logout_handler={logout_handler.clone()} /><menu::Menu /></> },
-                Route::ManagePupils => html! { <><navbar::Navbar logout_handler={logout_handler.clone()} /><pupils::PupilTable /></> },
-                Route::ManageUsers  => html! { <><navbar::Navbar logout_handler={logout_handler.clone()} /><pupils::PupilTable /></> },
-                Route::Pupil { id } => html! { <><navbar::Navbar logout_handler={logout_handler.clone()} /><pupils::PupilDetails {id} /></> },
-                Route::Login        => html! { <><login::LoginForm login_handler={login_handler.clone()} /></> },
+                Route::Menu         => html! { 
+                    <>
+                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                        <menu::Menu />
+                    </> 
+                },
+                Route::ManagePupils => html! { 
+                    <>
+                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                        <pupils::PupilTable />
+                    </> 
+                },
+                Route::ManageUsers  => html! { 
+                    <>
+                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                        <pupils::PupilTable />
+                    </> 
+                },
+                Route::Pupil { id } => html! { 
+                    <>
+                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                        <pupils::PupilDetails {id} />
+                    </> 
+                },
+                Route::Login        => html! { 
+                    <>
+                        <login::LoginForm login_handler={login_handler.clone()} />
+                    </> 
+                },
             }
         })
     };
     // check for stored user
     let stored_user = get_stored_user();
-    let view: Html;
     if let Some(user) = stored_user {
         let current_user = Rc::new(user);
         debug!("CURRENT USER = ", &current_user.as_ref().email_address);
-        view = html! {
+        html! {
+            <BrowserRouter>
             <ContextProvider<Rc<User>> context={current_user}>
                     <Switch<Route> render={routing_callback} />
             </ContextProvider<Rc<User>>>
+            </BrowserRouter>
         }
     } else {
-        view = html!(<Switch<Route> render={routing_callback} />); // Redirect to login page if current user is none
+        html!{
+            <BrowserRouter>
+                <Switch<Route> render={routing_callback} />
+            </BrowserRouter>
+        }
     }
-    html! {
-        <BrowserRouter>
-                {view}
-        </BrowserRouter>
-    }
+
 }
 
 // ====================================================================================================================================================
