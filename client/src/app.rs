@@ -31,25 +31,33 @@ pub fn app() -> Html {
                 Route::Menu         => html! { 
                     <>
                         <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <menu::Menu />
+                        <div class={classes!("p-2")}>
+                            <menu::Menu />
+                        </div>
                     </> 
                 },
                 Route::ManagePupils => html! { 
                     <>
                         <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <pupils::PupilTable />
+                        <div class={classes!("p-2")}>
+                            <pupils::PupilTable />
+                        </div>
                     </> 
                 },
                 Route::ManageUsers  => html! { 
                     <>
                         <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <pupils::PupilTable />
+                        <div class={classes!("p-2")}>
+                            <pupils::PupilTable />
+                        </div>
                     </> 
                 },
                 Route::Pupil { id } => html! { 
                     <>
                         <navbar::Navbar logout_handler={logout_handler.clone()} />
-                        <pupils::PupilDetails {id} />
+                        <div class={classes!("p-2")}>
+                            <pupils::PupilDetails {id} />
+                        </div>
                     </> 
                 },
                 Route::Login        => html! { 
@@ -67,9 +75,9 @@ pub fn app() -> Html {
         debug!("CURRENT USER = ", &current_user.as_ref().email_address);
         html! {
             <BrowserRouter>
-            <ContextProvider<Rc<User>> context={current_user}>
+                <ContextProvider<Rc<User>> context={current_user}>
                     <Switch<Route> render={routing_callback} />
-            </ContextProvider<Rc<User>>>
+                </ContextProvider<Rc<User>>>
             </BrowserRouter>
         }
     } else {

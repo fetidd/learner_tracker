@@ -1,21 +1,21 @@
 #[macro_export]
 macro_rules! log {
     ($($arg:expr),+) => {
-        gloo_console::log!("LEARNER TRACKER| ", $($arg),+)
+        gloo_console::log!(crate::constant::LOG_PREFIX, $($arg),+)
     }
 }
 
 #[macro_export]
 macro_rules! debug {
     ($($arg:expr),+) => {
-        gloo_console::debug!("LEARNER TRACKER| ", $($arg),+)
+        gloo_console::debug!(crate::constant::LOG_PREFIX, $($arg),+)
     }
 }
 
 #[macro_export]
 macro_rules! error {
     ($($arg:expr),+) => {
-        gloo_console::error!("LEARNER TRACKER| ", $($arg),+)
+        gloo_console::error!(crate::constant::LOG_PREFIX, $($arg),+)
     }
 }
 

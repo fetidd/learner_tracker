@@ -1,18 +1,15 @@
 use std::rc::Rc;
-
 use super::types::PupilTableProps;
 use crate::{
     constant, error,
     error::*,
     pupils::pupil::Pupil,
     pupils::{create_box::PupilCreateBox, row::PupilRow},
-    routes::Route,
     utils::get_current_token, models::User,
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use yew_router::prelude::Redirect;
 
 #[function_component(PupilTable)]
 pub fn pupil_table(_props: &PupilTableProps) -> Html {

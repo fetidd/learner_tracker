@@ -1,4 +1,4 @@
-pub static LOG_PREFIX: &str = "LEARNER TRACKER v0.1 | ";
+pub static LOG_PREFIX: &str = "|| LEARNER TRACKER v0.1 ||";
 
 // App Storage keys
 pub static AUTH_TOKEN_STORAGE_KEY: &str = "auth_token";

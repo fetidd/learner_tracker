@@ -7,10 +7,10 @@ use yew_router::prelude::*;
 pub fn pupil_row(p: &PupilRowProps) -> Html {
     html! { if p.pupil.active {
         <Link<Route> to={Route::Pupil {id: p.pupil.id.expect("pupil should always have id here").to_string()}}>
-        <div key={p.pupil.id.expect("pupil should always have id here").to_string()} class={classes!("h-[42px]", "hover:bg-slate-100", "w-full", "flex", "justify-between")}>
+        <div key={p.pupil.id.expect("pupil should always have id here").to_string()} class={classes!("h-[42px]", "hover:bg-slate-100", "w-full", "flex", "justify-between", "flex-no-wrap")}>
             <div class={classes!("w-[250px]")}><span class={classes!()}>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span></div>
-            <div class={classes!("text-center", "hidden", "lg:inline", "w-[45px]")}>{format!("Year {}", p.pupil.year)}</div>
-            <div class={classes!("text-center", "hidden", "lg:inline", "w-[45px]")}>{format!("{}", p.pupil.gender)}</div>
+            // <div class={classes!("text-center", "hidden", "lg:inline", "w-[45px]")}>{format!("{}", p.pupil.year)}</div>
+            // <div class={classes!("text-center", "hidden", "lg:inline", "w-[45px]")}>{format!("{}", p.pupil.gender)}</div>
             <div class={classes!("hidden", "lg:flex", "justify-start", "items-center", "space-x-1", "w-[170px]")}>
                 if p.pupil.more_able_and_talented {
                     <span class={classes!("bg-purple-200", "tag", "text-xs")}>{"MAT"}</span>
