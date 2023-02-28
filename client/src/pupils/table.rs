@@ -1,11 +1,13 @@
+use std::rc::Rc;
+
 use super::types::PupilTableProps;
 use crate::{
     constant, error,
     error::*,
     pupils::pupil::Pupil,
-    pupils::{create_box::PupilCreateBox, row::PupilRow, types::AllPupilsResponse},
+    pupils::{create_box::PupilCreateBox, row::PupilRow},
     routes::Route,
-    utils::get_current_token,
+    utils::get_current_token, models::User,
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
@@ -13,8 +15,9 @@ use yew::prelude::*;
 use yew_router::prelude::Redirect;
 
 #[function_component(PupilTable)]
-pub fn pupil_table(p: &PupilTableProps) -> Html {
+pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let pupils: UseStateHandle<Vec<Pupil>> = use_state(|| vec![]);
+    let _current_user = use_context::<Rc<User>>().expect("NO USER CONTEXT IN PUPIL TABLE");
     let _show_inactive = use_state(|| false);
     {
         let pupils = pupils.clone();
@@ -22,10 +25,15 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
             move |_| {
                 let pupils = pupils.clone();
                 spawn_local(async move {
-                    let token = get_current_token();
-                    if let Err(error) = fetch_pupils(&token, pupils).await {
-                        //  TODO handle error - show an alert on screen?
+                    match get_current_token() {
+                        Ok(token) => {
+                            if let Err(error) = fetch_pupils(&token, pupils).await {
+                                //  TODO handle error - show an alert on screen?
+                            }
+                        },
+                        Err(error) => {}
                     }
+                    
                 });
                 || ()
             },
@@ -38,31 +46,29 @@ pub fn pupil_table(p: &PupilTableProps) -> Html {
         Callback::from(move |_| {
             let pupils = pupils.clone();
             spawn_local(async move {
-                let token = get_current_token();
-                if let Err(error) = fetch_pupils(&token, pupils).await {
-                    //  TODO handle error - show an alert on screen?
+                match get_current_token() {
+                    Ok(token) => {
+                        if let Err(error) = fetch_pupils(&token, pupils).await {
+                            //  TODO handle error - show an alert on screen?
+                        }
+                    },
+                    Err(error) => {}
                 }
             })
         })
     };
 
-    if p.current_user.is_some() {
-        html! {
-            <div class={classes!("flex", "flex-col", "sm:flex-row", "space-x-10")}>
-                <PupilCreateBox {refresh_callback} />
-                <div class={classes!("overflow-y-auto", "pupil-table", "px-5", "grow")}>
-                    <div class={classes!{"w-full"}}>
-                        <div>
-                            {pupils.iter().map(|pupil| {
-                                html!{<PupilRow pupil={pupil.clone()} />}
-                             }).collect::<Html>()}
-                        </div>
-                    </div>
+    html! {
+        <div class={classes!("flex", "flex-col", "sm:flex-row", "space-x-10")}>
+            <PupilCreateBox {refresh_callback} />
+            <div class={classes!("overflow-y-auto", "pupil-table", "px-5", "grow")}>
+                <div class={classes!{"w-full", "2xl:columns-2"}}>
+                    {pupils.iter().map(|pupil| {
+                        html!{<PupilRow pupil={pupil.clone()} />}
+                    }).collect::<Html>()}
                 </div>
             </div>
-        }
-    } else {
-        html! { <Redirect<Route> to={Route::Login} /> }
+        </div>
     }
 }
 

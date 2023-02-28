@@ -7,55 +7,75 @@ use super::{types::PupilDetailsProps, pupil::Pupil};
 
 #[function_component(PupilDetails)]
 pub fn pupil_details(props: &PupilDetailsProps) -> Html {
-    let curr_pupil: UseStateHandle<Option<Pupil>> = use_state(|| None);
+    let pupil: UseStateHandle<Option<Pupil>> = use_state(|| None);
     {
-        let curr_pupil = curr_pupil.clone();
+        let pupil = pupil.clone();
         let id = props.id.clone();
         use_effect_with_deps(move |_| {
             spawn_local(async move {
-                if let Ok(pupil) = fetch_pupil_data(&id).await {
-                    curr_pupil.set(Some(pupil));
+                if let Ok(fetched) = fetch_pupil_data(&id).await {
+                    pupil.set(Some(fetched));
                 }
             });
         },());
     }
-    if let Some(pupil) = curr_pupil.as_ref() {
+    if let Some(pupil) = pupil.as_ref() {
         html!{
-            <div class={classes!("flex", "items-center", "space-x-4")}>
-                <span class={classes!("text-3xl")}>{format!("{} {}", pupil.first_names.clone(), pupil.last_name.clone())}</span>
-                <div class={classes!("flex", "space-x-5" )}>
-                    <span class={classes!("text-xl")}>{format!("Year {}", pupil.year.clone())}</span>
-                    <span class={classes!("text-md", "text-slate-500")}>{format!("{} -> {}", pupil.start_date.clone(), pupil.end_date.clone())}</span>
+            <div class={classes!("container", "mx-auto", "flex", "w-full", "justify-around")}>
+                <div class={classes!()}>
+                    <table>
+                        <tr>
+                            <td>{"Name"}</td>
+                            <td>{format!("{} {}", pupil.first_names, pupil.last_name)}</td>
+                        </tr>
+                        <tr>
+                            <td>{"Year"}</td>
+                            <td>{format!("{}", pupil.year)}</td>
+                        </tr>
+                        <tr>
+                            <td>{"Gender"}</td>
+                            <td>{format!("{}", pupil.gender)}</td>
+                        </tr>
+                        <tr>
+                            <td>{"Start date"}</td>
+                            <td>{format!("{}", pupil.start_date)}</td>
+                        </tr>
+                        <tr>
+                            <td>{"Leave date"}</td>
+                            <td>{format!("{}", pupil.end_date)}</td>
+                        </tr>
+                    </table>
                 </div>
-                <span class={classes!("text-xl")}>{format!("{}", pupil.gender.clone())}</span>
-                <div class={classes!("flex", "space-x-1")}>
+                <div class={classes!("flex", "flex-col", "space-x-1")}>
                     if pupil.more_able_and_talented {
-                        <span class={classes!("bg-purple-200", "tag")}>{"MAT"}</span>
+                        <span class={classes!("bg-purple-200", "tag")}>{"More able and talented"}</span>
                     }
                     if pupil.english_as_additional_language {
-                        <span class={classes!("bg-yellow-200", "tag")}>{"EAL"}</span>
+                        <span class={classes!("bg-yellow-200", "tag")}>{"English as an additional language"}</span>
                     }
                     if pupil.additional_learning_needs {
-                        <span class={classes!("bg-orange-200", "tag")}>{"ALN"}</span>
+                        <span class={classes!("bg-orange-200", "tag")}>{"Additional learning needs"}</span>
                     }
                     if pupil.free_school_meals {
-                        <span class={classes!("bg-green-200", "tag")}>{"FSM"}</span>
+                        <span class={classes!("bg-green-200", "tag")}>{"Free school meals"}</span>
                     }
                     if pupil.looked_after_child {
-                        <span class={classes!("bg-blue-200", "tag")}>{"LAC"}</span>
+                        <span class={classes!("bg-blue-200", "tag")}>{"Looked after child"}</span>
                     }
                 </div>
             </div>
         }
     } else {
-        html! {
-            <span>{"ERROR"}</span>
-        }
+        html! {}
     }
 }
 
 async fn fetch_pupil_data(id: &str) -> Result<Pupil> {
-    match Request::get(&format!("{}/{}", constant::PUPILS_PATH, id)).header("Authorization", &format!("Bearer {}", &utils::get_current_token())).send().await {
+    let token = utils::get_current_token();
+    if token.is_err() {
+        return Err(StorageError!("failed to get token"));
+    }
+    match Request::get(&format!("{}/{}", constant::PUPILS_PATH, id)).header("Authorization", &format!("Bearer {}", &token.unwrap())).send().await {
         Ok(res) => {
             let pupil = res.json::<Pupil>().await?.into();
             Ok(pupil)

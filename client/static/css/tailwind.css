@@ -621,24 +621,24 @@ video {
   width: 24rem;
 }
 
-.w-\[150px\] {
-  width: 150px;
+.w-\[170px\] {
+  width: 170px;
 }
 
 .w-\[181px\] {
   width: 181px;
 }
 
-.w-\[300px\] {
-  width: 300px;
-}
-
-.w-full {
-  width: 100%;
+.w-\[250px\] {
+  width: 250px;
 }
 
 .w-\[45px\] {
   width: 45px;
+}
+
+.w-full {
+  width: 100%;
 }
 
 .grow {
@@ -665,6 +665,10 @@ video {
   justify-content: space-between;
 }
 
+.justify-around {
+  justify-content: space-around;
+}
+
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
@@ -675,12 +679,6 @@ video {
   --tw-space-x-reverse: 0;
   margin-right: calc(2.5rem * var(--tw-space-x-reverse));
   margin-left: calc(2.5rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(1rem * var(--tw-space-x-reverse));
-  margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-x-5 > :not([hidden]) ~ :not([hidden]) {
@@ -791,13 +789,13 @@ video {
   line-height: 1.75rem;
 }
 
-.font-bold {
-  font-weight: 700;
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
-.text-slate-500 {
-  --tw-text-opacity: 1;
-  color: rgb(100 116 139 / var(--tw-text-opacity));
+.font-bold {
+  font-weight: 700;
 }
 
 .filter {
@@ -860,5 +858,12 @@ video {
 
   .lg\:flex {
     display: flex;
+  }
+}
+
+@media (min-width: 1536px) {
+  .\32xl\:columns-2 {
+    -moz-columns: 2;
+         columns: 2;
   }
 }

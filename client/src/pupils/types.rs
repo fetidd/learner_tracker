@@ -1,5 +1,4 @@
 use super::pupil::Pupil;
-use crate::models::User;
 use serde::Deserialize;
 use yew::{Properties, Callback};
 
@@ -10,9 +9,7 @@ pub struct AllPupilsResponse {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct PupilTableProps {
-    pub current_user: Option<User>,
-}
+pub struct PupilTableProps {}
 
 #[derive(Properties, PartialEq)]
 pub struct PupilRowProps {

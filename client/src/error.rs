@@ -1,3 +1,5 @@
+use gloo_storage::errors::StorageError;
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct Error {
     pub kind: ErrorKind,
@@ -12,6 +14,8 @@ pub enum ErrorKind {
     ServerError,
     CastError,
     JsonError,
+    DecodeError,
+    StorageError,
 }
 
 impl std::fmt::Display for Error {
@@ -28,12 +32,13 @@ pub type Result<T> = std::result::Result<T, Error>;
 from_error!(gloo_net::Error > ServerError);
 from_error!(std::num::ParseIntError > ValueError: "failed to parse to int");
 from_error!(chrono::ParseError > ValueError: "failed to parse date or time");
+from_error!(StorageError > StorageError);
+from_error!(base64::DecodeError > DecodeError);
+from_error!(std::string::FromUtf8Error > DecodeError);
+from_error!(serde_json::Error > JsonError);
 
 error_macro!{
-    Unauthorized,
     ResponseParseError,
-    ServerError,
-    ValueError,
-    CastError,
-    JsonError
+    DecodeError,
+    StorageError
 }

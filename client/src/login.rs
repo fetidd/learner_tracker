@@ -15,10 +15,20 @@ pub fn login_form(p: &LoginFormProps) -> Html {
         let entered_email = entered_email.clone();
         let entered_password = entered_password.clone();
         Callback::from(move |_| {
-            let password = entered_password.cast::<HtmlInputElement>().expect("casting noderef").value();
+            let password = entered_password
+                .cast::<HtmlInputElement>()
+                .expect("casting noderef")
+                .value();
             let hashed_password = password;
-            login_callback.emit((entered_email.cast::<HtmlInputElement>().expect("casting noderef").value(), hashed_password));
-            navigator.replace(&Route::Menu);
+            login_callback.emit((
+                entered_email
+                    .cast::<HtmlInputElement>()
+                    .expect("casting noderef")
+                    .value(),
+                hashed_password,
+            ));
+            debug!("navigating to menu");
+            navigator.push(&Route::Menu);
         })
     };
     html! {

@@ -76,19 +76,24 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
                 input_state.lac,
                 input_state.gender.clone(),
             );
-            let token = utils::get_current_token();
-            spawn_local(async move {
-                match Request::put(constant::PUPILS_PATH)
-                    .json(&pupil)
-                    .expect("TODO this should be able to convert into our error")
-                    .header("Authorization", &format!("Bearer {}", token))
-                    .send()
-                    .await
-                {
-                    Ok(_res) => refresh_callback.emit(()),
-                    Err(err) => error!("failed to add pupil", err.to_string()),
+            match utils::get_current_token() {
+                Ok(token) => {
+                    spawn_local(async move {
+                        match Request::put(constant::PUPILS_PATH)
+                            .json(&pupil)
+                            .expect("TODO this should be able to convert into our error")
+                            .header("Authorization", &format!("Bearer {}", token))
+                            .send()
+                            .await
+                        {
+                            Ok(_res) => refresh_callback.emit(()),
+                            Err(err) => error!("failed to add pupil", err.to_string()),
+                        }
+                    });
+                    input_state.set(InputState::default());
                 }
-            });
+                Err(error) => error!(error.to_string())
+            }
         })
     };
 
