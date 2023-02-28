@@ -12,6 +12,7 @@ mod users;
 mod routes;
 mod utils;
 mod search;
+mod context;
 
 fn main() {
     yew::Renderer::<app::App>::new().render();

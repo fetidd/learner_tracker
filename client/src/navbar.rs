@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::users::User;
+use crate::{users::User, context::AppContext};
 use crate::routes::Route;
 use yew::prelude::*;
 use yew_router::{prelude::*};
@@ -16,8 +16,8 @@ pub fn Navbar(p: &NavbarProps) -> Html {
             navigator.clone().replace(&Route::Login);
         })
     };
-    let user = use_context::<Rc<Option<User>>>().expect("NO USER CONTEXT IN NAVBAR");
-    if let Some(user) = user.as_ref() {
+    let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN NAVBAR");
+    if let Some(user) = ctx.current_user.as_ref() {
         html! {
             <nav class={classes!("w-full", "flex", "justify-between", "bg-slate-100", "h-16", "items-center", "px-3")}>
                 <div class={classes!("flex", "items-center", "space-x-10")}>

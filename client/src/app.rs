@@ -1,4 +1,4 @@
-use crate::utils;
+use crate::{utils, context::AppContext};
 use crate::{
     constant, debug, error, login, menu, users::User, navbar, pupils, routes::Route,
 };
@@ -27,9 +27,14 @@ pub fn app() -> Html {
         })
     };
 
+    let context = AppContext {
+        current_user: (*current_user).clone(),
+        auth_token: String::from("auth token")
+    };
+
     html! {
         <BrowserRouter>
-            <ContextProvider<Rc<Option<User>>> context={Rc::new((*current_user).clone())}>
+            <ContextProvider<Rc<AppContext>> context={Rc::new(context)}>
                 <Switch<Route> render={
                     let login_handler = login_handler.clone();
                     let logout_handler = logout_handler.clone();
@@ -52,7 +57,7 @@ pub fn app() -> Html {
                         }
                     })
                 } />
-            </ContextProvider<Rc<Option<User>>>>
+            </ContextProvider<Rc<AppContext>>>
         </BrowserRouter>
     }
 }
