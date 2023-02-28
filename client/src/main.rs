@@ -6,11 +6,12 @@ mod app;
 mod constant;
 mod login;
 mod menu;
-mod models;
 mod navbar;
 mod pupils;
+mod users;
 mod routes;
 mod utils;
+mod search;
 
 fn main() {
     yew::Renderer::<app::App>::new().render();

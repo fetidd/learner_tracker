@@ -1,8 +1,0 @@
-{
-  "User": {
-    "first_names": { "string": {} },
-    "last_names": { "string": {} },
-    "email": { "string": {} },
-    "years": [5,6]
-  }
-}

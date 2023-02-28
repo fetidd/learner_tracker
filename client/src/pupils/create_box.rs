@@ -145,45 +145,45 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
         <>
         <div ref={create_box} class={classes!("hidden", "md:flex", "p-5", "w-96", "h-fit", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
             <span class={classes!("text-3xl")}>{"Add a learner"}</span>
-            <input id={"name"} class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type={"text"} placeholder={"Names"} value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
+            <input id="name" class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type="text" placeholder="Names" value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
             <div class={classes!("flex", "justify-between")}>
-                <input id={"gender"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type={"text"} placeholder={"Gender"} value={(*input_state).gender.clone()} onchange={update_state_cb.clone()}/>
-                <input id={"year"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type={"number"} placeholder={"Year"} value={(*input_state).year.to_string()} onchange={update_state_cb.clone()}/>
+                <input id="gender" class={classes!("hover:bg-slate-100", "focus:outline-none", "w-24", "my-2")} type="text" placeholder="Gender" value={(*input_state).gender.clone()} onchange={update_state_cb.clone()}/>
+                <input id="year" class={classes!("hover:bg-slate-100", "focus:outline-none", "w-16", "my-2")} type="number" placeholder="Year" value={(*input_state).year.to_string()} onchange={update_state_cb.clone()}/>
             </div>
             <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                 <label><span>{"Start date"}</span></label>
-                <input id={"start_date"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Start date"} value={(*input_state).start_date.to_string()} onchange={update_state_cb.clone()}/>
+                <input id="start_date" class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder="Start date" value={(*input_state).start_date.to_string()} onchange={update_state_cb.clone()}/>
             </div>
 
             <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
                 <label><span>{"Leave date"}</span></label>
-                <input id={"leave_date"} class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder={"Leave date"} value={(*input_state).leave_date.to_string()} onchange={update_state_cb.clone()}/>
+                <input id="leave_date" class={classes!("hover:bg-slate-100", "focus:outline-none", "w-36", "my-2")} type={"date"} placeholder="Leave date" value={(*input_state).leave_date.to_string()} onchange={update_state_cb.clone()}/>
             </div>
 
             <div class={classes!("flex", "flex-col", "space-y-4", "my-4")}>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"active"}><span>{"Active"}</span></label>
-                    <input id={"active"} type={"checkbox"} checked={(*input_state).active} onchange={update_state_cb.clone()} />
+                    <label for="active"><span>{"active"}</span></label>
+                    <input id="active" type="checkbox" checked={(*input_state).active} onchange={update_state_cb.clone()} />
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"mat"}><span>{"More able and talented"}</span></label>
-                    <input id={"mat"} type={"checkbox"} checked={(*input_state).mat} onchange={update_state_cb.clone()}/>
+                    <label for="mat"><span>{"More able and talented"}</span></label>
+                    <input id="mat" type="checkbox" checked={(*input_state).mat} onchange={update_state_cb.clone()}/>
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"lac"}><span>{"Looked after child"}</span></label>
-                    <input id={"lac"} type={"checkbox"} checked={(*input_state).lac} onchange={update_state_cb.clone()}/>
+                    <label for="lac"><span>{"Looked after child"}</span></label>
+                    <input id="lac" type="checkbox" checked={(*input_state).lac} onchange={update_state_cb.clone()}/>
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"eal"}><span>{"English as additional language"}</span></label>
-                    <input id={"eal"} type={"checkbox"} checked={(*input_state).eal} onchange={update_state_cb.clone()}/>
+                    <label for="eal"><span>{"English as additional language"}</span></label>
+                    <input id="eal" type="checkbox" checked={(*input_state).eal} onchange={update_state_cb.clone()}/>
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"aln"}><span>{"Additional learning needs"}</span></label>
-                    <input id={"aln"} type={"checkbox"} checked={(*input_state).aln} onchange={update_state_cb.clone()}/>
+                    <label for="aln"><span>{"Additional learning needs"}</span></label>
+                    <input id="aln" type="checkbox" checked={(*input_state).aln} onchange={update_state_cb.clone()}/>
                 </div>
                 <div class={classes!("flex", "justify-between", "items-center", "hover:bg-slate-200")}>
-                    <label for={"fsm"}><span>{"Free school meals"}</span></label>
-                    <input id={"fsm"} type={"checkbox"} checked={(*input_state).fsm} onchange={update_state_cb.clone()}/>
+                    <label for="fsm"><span>{"Free school meals"}</span></label>
+                    <input id="fsm" type="checkbox" checked={(*input_state).fsm} onchange={update_state_cb.clone()}/>
                 </div>
 
             </div>

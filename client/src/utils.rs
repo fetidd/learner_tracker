@@ -2,7 +2,7 @@ use base64::{engine::general_purpose, *};
 use gloo_storage::{SessionStorage, Storage};
 use crate::error::Result;
 
-use crate::{models::User, constant};
+use crate::{users::User, constant};
 
 pub fn decode_auth_token(token: String) -> Result<User> {
     match token.split('.').collect::<Vec<&str>>().get(1) {

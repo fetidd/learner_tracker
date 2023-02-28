@@ -1,6 +1,6 @@
 use crate::utils;
 use crate::{
-    constant, debug, error, login, menu, models::User, navbar, pupils, routes::Route,
+    constant, debug, error, login, menu, users::User, navbar, pupils, routes::Route,
 };
 use gloo_net::http::Request;
 use gloo_storage::{SessionStorage, Storage};

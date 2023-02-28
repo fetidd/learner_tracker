@@ -1,11 +1,10 @@
-use std::rc::Rc;
 use super::types::PupilTableProps;
 use crate::{
     constant, error,
     error::*,
     pupils::pupil::Pupil,
     pupils::{create_box::PupilCreateBox, row::PupilRow},
-    utils::get_current_token, models::User,
+    utils::get_current_token, 
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
