@@ -8,3 +8,4 @@ pub static USER_STORAGE_KEY: &str = "user";
 pub static PUPILS_PATH: &str = "/api/data/pupils";
 pub static LOGIN_PATH: &str = "/api/auth/login";
 pub static LOGOUT_PATH: &str = "/api/auth/logout";
+pub static SEARCH_ENDPOINT: &str = "/api/data/search";
