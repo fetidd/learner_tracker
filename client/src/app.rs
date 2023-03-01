@@ -3,7 +3,7 @@ use crate::{
     constant, debug, error, login, menu, users::User, navbar, pupils, routes::Route,
 };
 use gloo_net::http::Request;
-use gloo_storage::{SessionStorage, Storage};
+use gloo_storage::{SessionStorage, Storage, errors::StorageError};
 use serde::Deserialize;
 use std::{collections::HashMap, rc::Rc};
 use wasm_bindgen_futures::spawn_local;
@@ -13,78 +13,71 @@ use yew_router::prelude::*;
 #[function_component(App)]
 pub fn app() -> Html {
     console_error_panic_hook::set_once();
-    let current_user = use_state(|| get_stored_user());
+
+    let state = use_state_eq(|| {
+        let grab_token: Result<String, StorageError> = SessionStorage::get(constant::AUTH_TOKEN_STORAGE_KEY);
+        let grab_user: Result<User, StorageError> = SessionStorage::get(constant::USER_STORAGE_KEY);
+        if let (Ok(token), Ok(user)) = (grab_token, grab_user) {
+            let decoded = utils::decode_auth_token(token.clone()).expect("failed decoding authtoken when getting stored state, how did it save it when it was invalid?!");
+            if decoded.email_address != user.email_address {
+                error!("user in token did not match stored user");
+                return None;
+            }
+            Some(AppContext {current_user: user, auth_token: token})
+        } else {
+            None
+        }
+    });
+
     let login_handler: Callback<(String, String)> = {
-        let user_handle = current_user.clone();
+        let state_handle = state.clone();
         Callback::from(move |(email, pass)| {
-            login(email, pass, user_handle.clone());
+            login(email, pass, state_handle.clone());
         })
     };
     let logout_handler: Callback<()> = {
-        let user_handle = current_user.clone();
+        let state_handle = state.clone();
         Callback::from(move |_| {
-            logout(user_handle.clone());
+            logout(state_handle.clone());
         })
     };
 
-    let context = AppContext {
-        current_user: (*current_user).clone(),
-        auth_token: String::from("auth token")
-    };
-
     html! {
-        <BrowserRouter>
-            <ContextProvider<Rc<AppContext>> context={Rc::new(context)}>
+        <div id="app">
+            <BrowserRouter>
                 <Switch<Route> render={
                     let login_handler = login_handler.clone();
                     let logout_handler = logout_handler.clone();
-                    let current_user = current_user.clone();
                     Callback::from(move |route: Route| {
-                        if (*current_user).is_some() {
+                        if (*state).is_some() {
+                            let state = (*state).clone().unwrap();
                             html! {
-                                <><navbar::Navbar logout_handler={logout_handler.clone()} />
-                                <div class={classes!("p-2")}>
-                                    {match route {
-                                        Route::Menu | Route::Login => html! { <menu::Menu />},
-                                        Route::ManagePupils => html! { <pupils::PupilTable />},
-                                        Route::ManageUsers => html! { <pupils::PupilTable />},
-                                        Route::Pupil { id } => html! { <pupils::PupilDetails {id} />},
-                                    }}
-                                </div></> 
+                                <ContextProvider<Rc<AppContext>> context={Rc::new(state.clone())}>
+                                    <navbar::Navbar logout_handler={logout_handler.clone()} />
+                                    <menu::Menu />
+                                    <div id="router-area">
+                                        {match route {
+                                            Route::ManagePupils | Route::Login  => html! { <pupils::PupilTable />},
+                                            Route::ManageUsers                  => html! { <pupils::PupilTable />},
+                                            Route::Pupil { id }                 => html! { <pupils::PupilDetails {id} />},
+                                        }}
+                                    </div>
+                                </ContextProvider<Rc<AppContext>>> 
                             }
                         } else {
+                            debug!("no state, going to login...");
                             html!(<login::LoginForm login_handler={login_handler.clone()} />)
                         }
                     })
                 } />
-            </ContextProvider<Rc<AppContext>>>
-        </BrowserRouter>
+            </BrowserRouter>
+        </div>
     }
 }
 
 // ====================================================================================================================================================
 
-fn get_stored_user() -> Option<User> {
-    match utils::get_current_token() {
-        Ok(token) => {
-            match utils::decode_auth_token(token) {
-                Ok(user) => {
-                    Some(user)
-                }
-                Err(error) => {
-                    error!(error.to_string());
-                    None
-                }
-            }
-        }
-        Err(error) => {
-            error!(error.to_string());
-            None
-        }
-    }
-}
-
-fn login(email: String, password: String, user_handle: UseStateHandle<Option<User>>) {
+fn login(email: String, password: String, state_handle: UseStateHandle<Option<AppContext>>) {
     // TEST try fantoccini
     debug!("logging in with", &email, ":", &password);
     spawn_local(async move {
@@ -101,11 +94,17 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
                 if let Ok(login_response) = res.json::<LoginResponseJson>().await {
                     match login_response.error {
                         None => match login_response.token {
-                            Some(token) if !token.is_empty() => {
-                                match SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, token.clone()) {
+                            Some(auth_token) if !auth_token.is_empty() => {
+                                match SessionStorage::set(constant::AUTH_TOKEN_STORAGE_KEY, auth_token.clone()) {
                                     Ok(_) => {
-                                        match utils::decode_auth_token(token) {
-                                            Ok(user) => user_handle.set(Some(user)),
+                                        match utils::decode_auth_token(auth_token.clone()) {
+                                            Ok(current_user) => {
+                                                if let Err(error) = SessionStorage::set(constant::USER_STORAGE_KEY, current_user.clone()) {
+                                                    error!("storing user in sessionstorage failed:", error.to_string());
+                                                }
+                                                let new_ctx = AppContext {current_user, auth_token};
+                                                state_handle.set(Some(new_ctx));
+                                            }
                                             Err(error) => error!("error decoding auth token:", error.to_string())
                                         }
                                     }
@@ -123,7 +122,7 @@ fn login(email: String, password: String, user_handle: UseStateHandle<Option<Use
     });
 }
 
-fn logout(user_handle: UseStateHandle<Option<User>>) {
+fn logout(state_handle: UseStateHandle<Option<AppContext>>) {
     spawn_local(async move {
         match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
             Ok(token) => if let Err(error) = Request::get(constant::LOGOUT_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
@@ -134,7 +133,7 @@ fn logout(user_handle: UseStateHandle<Option<User>>) {
             }
         }
         SessionStorage::delete(constant::AUTH_TOKEN_STORAGE_KEY);
-        user_handle.set(None);
+        state_handle.set(None);
     });
 }
 

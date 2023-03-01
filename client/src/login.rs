@@ -27,8 +27,8 @@ pub fn login_form(p: &LoginFormProps) -> Html {
                     .value(),
                 hashed_password,
             ));
-            debug!("navigating to menu");
-            navigator.push(&Route::Menu);
+            debug!("navigating to pupils");
+            navigator.push(&Route::ManagePupils);
         })
     };
     html! {

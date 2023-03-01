@@ -13,3 +13,14 @@ button {
     max-height: 90vh;
 }
 
+#app {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    grid-column-gap: 3px;
+    grid-row-gap: 3px;
+}
+
+#navbar { grid-area: 1 / 1 / 2 / 21; }
+#menu { grid-area: 2 / 1 / 21 / 3; }
+#router-area { grid-area: 2 / 3 / 21 / 21; }

@@ -1,48 +1,15 @@
 use super::{pupil::Pupil, types::PupilCreateBoxProps};
-use crate::{constant, error, error::*, utils};
+use crate::{constant, error, error::*, utils, context::AppContext};
 use chrono::{NaiveDate, Utc};
 use gloo_net::http::Request;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{rc::Rc};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{HtmlElement, HtmlInputElement};
 use yew::prelude::*;
 
-#[derive(Clone)]
-struct InputState {
-    name: String,
-    gender: String,
-    start_date: NaiveDate,
-    leave_date: NaiveDate,
-    active: bool,
-    mat: bool,
-    lac: bool,
-    fsm: bool,
-    eal: bool,
-    aln: bool,
-    year: i32,
-}
-
-impl Default for InputState {
-    fn default() -> Self {
-        let today = Utc::now().date_naive();
-        Self {
-            name: Default::default(),
-            gender: Default::default(),
-            start_date: today,
-            leave_date: today,
-            active: true,
-            mat: Default::default(),
-            lac: Default::default(),
-            fsm: Default::default(),
-            eal: Default::default(),
-            aln: Default::default(),
-            year: Default::default(),
-        }
-    }
-}
-
 #[function_component(PupilCreateBox)]
 pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
+    let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN CREATE BOX");
     let create_box = use_node_ref();
     let input_state = use_state(|| InputState::default());
     let is_expanded = use_state(|| false);
@@ -58,7 +25,9 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
     let create_callback = {
         let refresh_callback = props.refresh_callback.clone();
         let input_state = input_state.clone();
+        let ctx = ctx.clone();
         Callback::from(move |_| {
+            let ctx = ctx.clone();
             let refresh_callback = refresh_callback.clone();
             let name = input_state.name.split(" ").collect::<Vec<&str>>();
             let (last_name, first_names) = name.split_last().expect("returns if name not 2 parts");
@@ -76,24 +45,19 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
                 input_state.lac,
                 input_state.gender.clone(),
             );
-            match utils::get_current_token() {
-                Ok(token) => {
-                    spawn_local(async move {
-                        match Request::put(constant::PUPILS_PATH)
-                            .json(&pupil)
-                            .expect("TODO this should be able to convert into our error")
-                            .header("Authorization", &format!("Bearer {}", token))
-                            .send()
-                            .await
-                        {
-                            Ok(_res) => refresh_callback.emit(()),
-                            Err(err) => error!("failed to add pupil", err.to_string()),
-                        }
-                    });
-                    input_state.set(InputState::default());
+            spawn_local(async move {
+                match Request::put(constant::PUPILS_PATH)
+                    .json(&pupil)
+                    .expect("TODO this should be able to convert into our error")
+                    .header("Authorization", &format!("Bearer {}", ctx.auth_token))
+                    .send()
+                    .await
+                {
+                    Ok(_res) => refresh_callback.emit(()),
+                    Err(err) => error!("failed to add pupil", err.to_string()),
                 }
-                Err(error) => error!(error.to_string())
-            }
+            });
+            input_state.set(InputState::default());
         })
     };
 
@@ -143,7 +107,7 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
 
     html! {
         <>
-        <div ref={create_box} class={classes!("hidden", "md:flex", "p-5", "w-96", "h-fit", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
+        <div ref={create_box} class={classes!("hidden", "p-5", "w-full", "h-fit", "justify-start", "flex-col", "space-y-4", "bg-slate-100", "rounded-md")}>
             <span class={classes!("text-3xl")}>{"Add a learner"}</span>
             <input id="name" class={classes!("hover:bg-slate-100", "focus:outline-none", "input")} type="text" placeholder="Names" value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
             <div class={classes!("flex", "justify-between")}>
@@ -194,7 +158,41 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
             </div>
         </div>
 
-        <button class={classes!("block", "md:hidden")} onclick={toggle_box_cb} >{"Add a learner"}</button>
+        <button class={classes!("block")} onclick={toggle_box_cb} >{"Add a learner"}</button>
         </>
+    }
+}
+
+#[derive(Clone)]
+struct InputState {
+    name: String,
+    gender: String,
+    start_date: NaiveDate,
+    leave_date: NaiveDate,
+    active: bool,
+    mat: bool,
+    lac: bool,
+    fsm: bool,
+    eal: bool,
+    aln: bool,
+    year: i32,
+}
+
+impl Default for InputState {
+    fn default() -> Self {
+        let today = Utc::now().date_naive();
+        Self {
+            name: Default::default(),
+            gender: Default::default(),
+            start_date: today,
+            leave_date: today,
+            active: true,
+            mat: Default::default(),
+            lac: Default::default(),
+            fsm: Default::default(),
+            eal: Default::default(),
+            aln: Default::default(),
+            year: Default::default(),
+        }
     }
 }
