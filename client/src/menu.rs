@@ -1,17 +1,16 @@
 use crate::routes::Route;
-use yew::{classes, prelude::*};
+use yew::prelude::*;
 use yew_router::prelude::*;
 
 #[function_component(Menu)]
 pub fn menu() -> Html {
     html! {
-      <div id="menu" class={classes!("container", "mx-auto", "space-y-3", "my-10")}>
-        <div class={classes!("bg-green-100", "hover:bg-green-200", "p-2")}>
-          <MenuTile route={Route::ManagePupils} title={"Manage pupils"} subtitle={"Add, edit and delete pupils in your year groups"}/>
-        </div>
-        <div class={classes!("bg-green-100", "hover:bg-green-200", "p-2")}>
-          <MenuTile route={Route::ManageUsers} title={"Manage users"} subtitle={"Add, edit and delete users of the tracker"}/>
-        </div>
+      <div id="menu" class="space-y-3 p-2 bg-slate-100">
+          <MenuTile route={Route::ManagePupils} color="green" title="Manage pupils"/>
+          <MenuTile route={Route::ManagePupils} color="green" title="General comments"/>
+          <MenuTile route={Route::ManagePupils} color="green" title="Test results"/>
+          <MenuTile route={Route::ManagePupils} color="green" title="My concern"/>
+          <MenuTile route={Route::ManageUsers} color="red" title="Manage users"/>
       </div>
     }
 }
@@ -19,12 +18,11 @@ pub fn menu() -> Html {
 #[function_component(MenuTile)]
 fn menu_tile(p: &MenuTileProps) -> Html {
     html! {
-      <Link<Route> to={p.route.clone()} classes={classes!()}>
-        <div>
-        <h1 class={classes!("text-xl")}>{p.title.to_owned()}</h1>
-        <p class={classes!()}>{p.subtitle.to_owned()}</p>
+        <div class={format!("bg-{}-100 hover:bg-{}-200 p-2 rounded", &p.color, &p.color)}>
+            <Link<Route> to={p.route.clone()}>
+                <p class="text-md text-center">{p.title.to_owned()}</p>
+            </Link<Route>>
         </div>
-      </Link<Route>>
     }
 }
 
@@ -32,5 +30,5 @@ fn menu_tile(p: &MenuTileProps) -> Html {
 pub struct MenuTileProps {
     route: Route,
     title: String,
-    subtitle: String,
+    color: String
 }

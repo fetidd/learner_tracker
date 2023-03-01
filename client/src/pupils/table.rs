@@ -53,10 +53,10 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     };
 
     html! {
-        <div class={classes!("flex", "flex-col", "space-x-10")}>
+        <div class="flex flex-col">
             <PupilCreateBox {refresh_callback} />
-            <div class={classes!("overflow-y-auto", "pupil-table", "px-5", "grow")}>
-                <div class={classes!{"w-full", "2xl:columns-2"}}>
+            <div class="overflow-y-auto pupil-table px-5">
+                <div class="sm:columns-2">
                     {pupils.iter().map(|pupil| {
                         html!{<PupilRow pupil={pupil.clone()} />}
                     }).collect::<Html>()}

@@ -1,7 +1,7 @@
 use web_sys::HtmlInputElement;
 use yew::function_component;
 
-use crate::routes::Route;
+use crate::{routes::Route, elements::Button};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -32,15 +32,15 @@ pub fn login_form(p: &LoginFormProps) -> Html {
         })
     };
     html! {
-        <div class={classes!("w-full", "my-auto")}>
-            <div class={classes!("flex", "justify-center")}>
-                <input class={classes!()} type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
+        <div class="w-full my-auto">
+            <div class="flex justify-center">
+                <input type={"text"} placeholder={"Email address"} autocomplete={"username"} ref={entered_email}/>
             </div>
-            <div class={classes!("flex", "justify-center")}>
-                <input class={classes!()} type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
+            <div class="flex justify-center">
+                <input type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
             </div>
-            <div class={classes!("flex", "justify-center")}>
-                <button class={classes!("bg-green-100", "hover:bg-green-200", "w-[181px]")} onclick={login_callback}>{"Submit"}</button>
+            <div class="flex justify-center">
+                <Button color="green" onclick={login_callback} text="Log in"/>
             </div>
         </div>
     }

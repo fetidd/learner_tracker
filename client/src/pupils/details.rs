@@ -21,8 +21,8 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
     }
     if let Some(pupil) = pupil.as_ref() {
         html!{
-            <div class={classes!("container", "mx-auto", "flex", "w-full", "justify-around")}>
-                <div class={classes!()}>
+            <div class="container mx-auto flex w-full justify-around">
+                <div>
                     <table>
                         <tr>
                             <td>{"Name"}</td>
@@ -46,21 +46,21 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                         </tr>
                     </table>
                 </div>
-                <div class={classes!("flex", "flex-col", "space-x-1")}>
+                <div class="flex flex-col space-x-1">
                     if pupil.more_able_and_talented {
-                        <span class={classes!("bg-purple-200", "tag")}>{"More able and talented"}</span>
+                        <span class="bg-purple-200 tag">{"More able and talented"}</span>
                     }
                     if pupil.english_as_additional_language {
-                        <span class={classes!("bg-yellow-200", "tag")}>{"English as an additional language"}</span>
+                        <span class="bg-yellow-200 tag">{"English as an additional language"}</span>
                     }
                     if pupil.additional_learning_needs {
-                        <span class={classes!("bg-orange-200", "tag")}>{"Additional learning needs"}</span>
+                        <span class="bg-orange-200 tag">{"Additional learning needs"}</span>
                     }
                     if pupil.free_school_meals {
-                        <span class={classes!("bg-green-200", "tag")}>{"Free school meals"}</span>
+                        <span class="bg-green-200 tag">{"Free school meals"}</span>
                     }
                     if pupil.looked_after_child {
-                        <span class={classes!("bg-blue-200", "tag")}>{"Looked after child"}</span>
+                        <span class="bg-blue-200 tag">{"Looked after child"}</span>
                     }
                 </div>
             </div>

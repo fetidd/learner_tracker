@@ -67,3 +67,9 @@ macro_rules! error_macro {
     };
 }
 
+#[macro_export]
+macro_rules! clone {
+    ($($arg:ident),+) => {
+        $(let $arg = $arg.clone();)+
+    }
+}

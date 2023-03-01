@@ -24,8 +24,7 @@ pub fn search_bar() -> Html {
     };
     html! {
         <div>
-            <input id="search-input" class="w-96 h-[30px] rounded focus:outline-none" id="search-bar" type="text"  onchange={search_callback}/>
-            // <button id="search-btn" class="bg-blue-200 hover:bg-blue-400">{"Search"}</button>
+            <input id="search-input" class="w-96 h-[30px] p-1 rounded border-2 border-neutral-200 focus:outline-none" id="search-bar" type="text"  onchange={search_callback}/>
 
             if !results.is_empty() {
                 <div id="result-dropdown">

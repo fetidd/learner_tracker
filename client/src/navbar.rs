@@ -1,7 +1,9 @@
 use std::rc::Rc;
-
-use crate::context::AppContext;
-use crate::routes::Route;
+use crate::{
+    context::AppContext,
+    routes::Route,
+    search::SearchBar, elements::Button,
+};
 use yew::prelude::*;
 use yew_router::{prelude::*};
 
@@ -18,14 +20,12 @@ pub fn Navbar(p: &NavbarProps) -> Html {
     };
     let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN NAVBAR");
     html! {
-        <nav id="navbar" class={classes!("w-full", "flex", "justify-between", "bg-slate-100", "h-16", "items-center", "px-3")}>
-            <div class={classes!("flex", "items-center", "space-x-10")}>
-                <div><input class={classes!("md:w-96")} type="text" /></div>
-            </div>
-            <div class={classes!("hidden", "md:block")}>
-                <div class={classes!("flex", "items-center", "space-x-5")}>
+        <nav id="navbar" class="w-full flex justify-between bg-slate-100 h-full items-center px-3">
+            <SearchBar />
+            <div class="hidden md:block">
+                <div class="flex items-center space-x-5">
                     <span>{&format!("Hi, {}!", ctx.current_user.first_names)}</span>
-                    <button class={classes!("bg-red-100", "hover:bg-red-200")} onclick={logout}>{"Log out"}</button>
+                    <Button color="red" onclick={logout} text="Log out"/>
                 </div>
             </div>
         </nav>
