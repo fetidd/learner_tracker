@@ -1,7 +1,7 @@
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use crate::{constant, utils, error::*};
+use crate::{constant, utils, error::*, elements::Tag};
 
 use super::{types::PupilDetailsProps, pupil::Pupil};
 
@@ -22,45 +22,43 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
     if let Some(pupil) = pupil.as_ref() {
         html!{
             <div class="container mx-auto flex w-full justify-around">
-                <div>
-                    <table>
-                        <tr>
-                            <td>{"Name"}</td>
-                            <td>{format!("{} {}", pupil.first_names, pupil.last_name)}</td>
-                        </tr>
-                        <tr>
-                            <td>{"Year"}</td>
-                            <td>{format!("{}", pupil.year)}</td>
-                        </tr>
-                        <tr>
-                            <td>{"Gender"}</td>
-                            <td>{format!("{}", pupil.gender)}</td>
-                        </tr>
-                        <tr>
-                            <td>{"Start date"}</td>
-                            <td>{format!("{}", pupil.start_date)}</td>
-                        </tr>
-                        <tr>
-                            <td>{"Leave date"}</td>
-                            <td>{format!("{}", pupil.end_date)}</td>
-                        </tr>
-                    </table>
-                </div>
+                <table>
+                    <tr>
+                        <td>{"Name"}</td>
+                        <td>{format!("{} {}", pupil.first_names, pupil.last_name)}</td>
+                    </tr>
+                    <tr>
+                        <td>{"Year"}</td>
+                        <td>{format!("{}", pupil.year)}</td>
+                    </tr>
+                    <tr>
+                        <td>{"Gender"}</td>
+                        <td>{format!("{}", pupil.gender)}</td>
+                    </tr>
+                    <tr>
+                        <td>{"Start date"}</td>
+                        <td>{format!("{}", pupil.start_date)}</td>
+                    </tr>
+                    <tr>
+                        <td>{"Leave date"}</td>
+                        <td>{format!("{}", pupil.end_date)}</td>
+                    </tr>
+                </table>
                 <div class="flex flex-col space-x-1">
                     if pupil.more_able_and_talented {
-                        <span class="bg-purple-200 tag">{"More able and talented"}</span>
+                        <Tag color="purple" text="MAT" />
                     }
                     if pupil.english_as_additional_language {
-                        <span class="bg-yellow-200 tag">{"English as an additional language"}</span>
+                        <Tag color="yellow" text="EAL" />
                     }
                     if pupil.additional_learning_needs {
-                        <span class="bg-orange-200 tag">{"Additional learning needs"}</span>
+                        <Tag color="orange" text="ALN" />
                     }
                     if pupil.free_school_meals {
-                        <span class="bg-green-200 tag">{"Free school meals"}</span>
+                        <Tag color="green" text="FSM" />
                     }
                     if pupil.looked_after_child {
-                        <span class="bg-blue-200 tag">{"Looked after child"}</span>
+                        <Tag color="blue" text="LAC" />
                     }
                 </div>
             </div>

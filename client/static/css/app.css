@@ -2,25 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-button {
-    padding: 3px;
-    margin: 2px;
-    border-radius: 5px;
-}
-
-.tag {
-    border-radius: 5px;
-    padding: 2px 5px;
-}
-
-.pupil-table {
-    max-height: 91vh;
-}
-
 #app {
     display: grid;
     grid-template-columns: 200px repeat(19, 1fr);
-    grid-template-rows: repeat(20, 1fr);
+    grid-template-rows: 60px repeat(19, 1fr);
+    height: 100vh;
     max-height: 100vh;
     overflow: hidden;
 }
@@ -29,7 +15,6 @@ button {
 #menu { grid-area: 2 / 1 / 21 / 2; }
 #router-area { 
     grid-area: 2 / 2 / 21 / 21;
-    padding: 10px; 
 }
 
 .modal-backdrop {

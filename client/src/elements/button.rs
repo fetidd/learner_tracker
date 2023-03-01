@@ -3,9 +3,20 @@ use crate::{
     clone
 };
 
+static GREEN: &str = "hover:bg-green-100 bg-green-200 border-green-200";
+static RED: &str = "hover:bg-red-100 bg-red-200 border-red-200";
+static BLUE: &str = "hover:bg-blue-100 bg-blue-200 border-blue-200";
+static YELLOW: &str = "hover:bg-yellow-100 bg-yellow-200 border-yellow-200";
+
 #[function_component(Button)]
 pub fn button(props: &ButtonProps) -> Html {
-    let class = format!("bg-{}-100 hover:bg-{}-200 w-[150px] border-solid border-2 border-{}-200", &props.color, &props.color, &props.color);
+    let class = format!("p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {}", match props.color.as_str() {
+        "green" => GREEN,
+        "red" => RED,
+        "blue" => BLUE,
+        "yellow" => YELLOW,
+        _ => GREEN
+    });
 
     html!(<button class={class} onclick={props.onclick.clone()} >{&props.text}</button>)
 }

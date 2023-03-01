@@ -1,34 +1,36 @@
 use super::types::PupilRowProps;
-use crate::routes::Route;
+use crate::{routes::Route, elements::Tag};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
 #[function_component(PupilRow)]
 pub fn pupil_row(p: &PupilRowProps) -> Html {
     html! { if p.pupil.active {
+        <li key={p.pupil.id.expect("pupil should always have id here").to_string()} class="snap-start">
         <Link<Route> to={Route::Pupil {id: p.pupil.id.expect("pupil should always have id here").to_string()}}>
-        <div key={p.pupil.id.expect("pupil should always have id here").to_string()} class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap">
-            <div class="w-[250px]"><span>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span></div>
+        <div class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap rounded items-center px-2">
+            <span>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span>
             // <div class="text-center hidden lg:inline w-[45px]">{format!("{}", p.pupil.year)}</div>
             // <div class="text-center hidden lg:inline w-[45px]">{format!("{}", p.pupil.gender)}</div>
             <div class="hidden lg:flex justify-start items-center space-x-1 w-[170px]">
                 if p.pupil.more_able_and_talented {
-                    <span class="bg-purple-200 tag text-xs">{"MAT"}</span>
+                    <Tag color="purple" text="MAT" />
                 }
                 if p.pupil.english_as_additional_language {
-                    <span class="bg-yellow-200 tag text-xs">{"EAL"}</span>
+                    <Tag color="yellow" text="EAL" />
                 }
                 if p.pupil.additional_learning_needs {
-                    <span class="bg-orange-200 tag text-xs">{"ALN"}</span>
+                    <Tag color="orange" text="ALN" />
                 }
                 if p.pupil.free_school_meals {
-                    <span class="bg-green-200 tag text-xs">{"FSM"}</span>
+                    <Tag color="green" text="FSM" />
                 }
                 if p.pupil.looked_after_child {
-                    <span class="bg-blue-200 tag text-xs">{"LAC"}</span>
+                    <Tag color="blue" text="LAC" />
                 }
             </div>
         </div>
         </Link<Route>>
+        </li>
     }}
 }
