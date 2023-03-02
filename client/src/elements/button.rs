@@ -4,6 +4,7 @@ static GREEN: &str = "hover:bg-green-100 bg-green-200 border-green-200";
 static RED: &str = "hover:bg-red-100 bg-red-200 border-red-200";
 static BLUE: &str = "hover:bg-blue-100 bg-blue-200 border-blue-200";
 static YELLOW: &str = "hover:bg-yellow-100 bg-yellow-200 border-yellow-200";
+static PURPLE: &str = "hover:bg-purple-100 bg-purple-200 border-purple-200";
 
 #[function_component(Button)]
 pub fn button(props: &ButtonProps) -> Html {
@@ -12,6 +13,7 @@ pub fn button(props: &ButtonProps) -> Html {
         "red" => RED,
         "blue" => BLUE,
         "yellow" => YELLOW,
+        "purple" => PURPLE,
         _ => GREEN
     });
 

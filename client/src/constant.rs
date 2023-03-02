@@ -6,6 +6,7 @@ pub static USER_STORAGE_KEY: &str = "user";
 
 // API Paths
 pub static PUPILS_PATH: &str = "/api/data/pupils";
+pub static USERS_PATH: &str = "/api/data/users";
 pub static LOGIN_PATH: &str = "/api/auth/login";
 pub static LOGOUT_PATH: &str = "/api/auth/logout";
 pub static SEARCH_ENDPOINT: &str = "/api/data/search";

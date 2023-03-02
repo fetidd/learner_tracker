@@ -8,17 +8,17 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
     let pupil = p.pupil.clone();
     let open_pupil_details = {
         clone!(pupil);
-        Callback::from(move |_ev: MouseEvent| {
-            open_pupil_details_callback.emit(pupil.id.expect("pupil should have an id here").to_string());
+        Callback::from(move |ev: MouseEvent| {
+            open_pupil_details_callback.emit((pupil.id.expect("pupil should have an id here").to_string(), (ev.x(), ev.y())));
         })
     };
 
     let id = pupil.id.expect("pupil should always have id here").to_string();
     html! { if pupil.active {
-        <li key={id.clone()} class="snap-start cursor-pointer" onclick={open_pupil_details}>
+        <li key={id.clone()} class="snap-start cursor-pointer break-inside-avoid-column" onclick={open_pupil_details}>
             <div class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap rounded items-center px-2">
                 <span>{format!("{} {}", pupil.first_names, pupil.last_name)}</span>
-                <div class="hidden lg:flex justify-start items-center space-x-1 w-[170px]">
+                <div class="hidden lg:flex justify-start items-center space-x-1 w-[200px]">
                     if pupil.more_able_and_talented {
                         <Tag color="purple" text="MAT" />
                     }
@@ -43,5 +43,5 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
 #[derive(Properties, PartialEq)]
 pub struct PupilRowProps {
     pub pupil: Pupil,
-    pub open_pupil_details_callback: Callback<String>
+    pub open_pupil_details_callback: Callback<(String, (i32, i32))>
 }

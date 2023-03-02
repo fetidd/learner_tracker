@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, PartialOrd, Ord, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Eq, PartialOrd)]
 pub struct Pupil {
     #[serde(skip_serializing_if="Option::is_none")]
     pub id: Option<Uuid>,
@@ -49,6 +49,24 @@ impl Pupil {
             additional_learning_needs,
             looked_after_child,
             gender,
+        }
+    }
+}
+
+impl Ord for Pupil {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if self.last_name < other.last_name {
+            std::cmp::Ordering::Less
+        } else if self.last_name > other.last_name {
+            std::cmp::Ordering::Greater
+        } else {
+            if self.first_names < other.first_names {
+                std::cmp::Ordering::Less
+            } else if self.first_names > other.first_names {
+                std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Equal
+            }
         }
     }
 }

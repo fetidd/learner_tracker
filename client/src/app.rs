@@ -43,7 +43,7 @@ pub fn app() -> Html {
     };
 
     html! {
-        <div id="app">
+        <div id="app" class="bg-slate-100">
             <BrowserRouter>
                 <Switch<Route> render={
                     let login_handler = login_handler.clone();

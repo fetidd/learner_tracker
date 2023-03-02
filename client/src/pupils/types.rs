@@ -13,7 +13,4 @@ pub struct PupilTableProps {}
 
 
 
-#[derive(PartialEq, Properties)]
-pub struct PupilCreateBoxProps {
-    pub refresh_callback: Callback<()>
-}
+

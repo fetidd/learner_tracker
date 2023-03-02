@@ -2,39 +2,27 @@ use crate::routes::Route;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-static GREEN: &str =    "bg-green-100 hover:bg-green-200";
-static RED: &str =      "bg-red-100 hover:bg-red-200";
-static BLUE: &str =     "bg-blue-100 hover:bg-blue-200";
-static YELLOW: &str =   "bg-yellow-100 hover:bg-yellow-200";
-static PURPLE: &str =   "bg-purple-100 hover:bg-purple-200";
-static ORANGE: &str =   "bg-orange-100 hover:bg-orange-200";
-
 #[function_component(Menu)]
 pub fn menu() -> Html {
     html! {
-      <div id="menu" class="space-y-3 p-2 bg-slate-100">
-          <MenuTile route={Route::ManagePupils} color="green" title="Manage pupils"/>
-          <MenuTile route={Route::ManagePupils} color="green" title="General comments"/>
-          <MenuTile route={Route::ManagePupils} color="green" title="Test results"/>
-          <MenuTile route={Route::ManagePupils} color="green" title="My concern"/>
-          <MenuTile route={Route::ManageUsers} color="red" title="Manage users"/>
-      </div>
+        <div id="menu" class="flex flex-col justify-between bg-slate-100 h-full">
+            <div class="flex flex-col gap-2 m-2">
+                <MenuItem route={Route::ManagePupils} title="Manage pupils"/>
+                <MenuItem route={Route::ManagePupils} title="General comments"/>
+                <MenuItem route={Route::ManagePupils} title="Test results"/>
+                <MenuItem route={Route::ManagePupils} title="My concern"/>
+                <MenuItem route={Route::ManageUsers} title="Manage users"/>
+            </div>
+
+            <span class="text-xs justify-self-end m-2">{"Contact: fetiddius@gmail.com"}</span>
+        </div>
     }
 }
 
-#[function_component(MenuTile)]
-fn menu_tile(p: &MenuTileProps) -> Html {
-    let color = match p.color.as_str() {
-        "green" => GREEN,
-        "red" => RED,
-        "blue" => BLUE,
-        "yellow" => YELLOW,
-        "purple" => PURPLE,
-        "orange" => ORANGE,
-        _ => "bg-white"
-    };
+#[function_component(MenuItem)]
+fn menu_item(p: &MenuItemProps) -> Html {
     html! {
-        <div class={format!("{color} p-2 rounded")}>
+        <div class={format!("bg-slate-300 hover:bg-slate-200 border-2 border-slate-300 rounded-md")}>
             <Link<Route> to={p.route.clone()}>
                 <p class="text-md text-center">{p.title.to_owned()}</p>
             </Link<Route>>
@@ -43,8 +31,7 @@ fn menu_tile(p: &MenuTileProps) -> Html {
 }
 
 #[derive(PartialEq, Properties)]
-pub struct MenuTileProps {
+pub struct MenuItemProps {
     route: Route,
     title: String,
-    color: String
 }
