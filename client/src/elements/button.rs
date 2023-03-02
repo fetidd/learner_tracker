@@ -1,7 +1,4 @@
 use yew::prelude::*;
-use crate::{
-    clone
-};
 
 static GREEN: &str = "hover:bg-green-100 bg-green-200 border-green-200";
 static RED: &str = "hover:bg-red-100 bg-red-200 border-red-200";
