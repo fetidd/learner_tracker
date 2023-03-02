@@ -7,8 +7,6 @@ pub enum Route {
     Login,
     #[at("/pupils")]
     ManagePupils,
-    #[at("/pupils/:id")]
-    Pupil { id: String },
     #[at("/users")]
     ManageUsers,
 }

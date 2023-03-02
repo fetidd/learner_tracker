@@ -59,7 +59,6 @@ pub fn app() -> Html {
                                         {match route {
                                             Route::ManagePupils | Route::Login  => html! { <pupils::PupilTable />},
                                             Route::ManageUsers                  => html! { <pupils::PupilTable />},
-                                            Route::Pupil { id }                 => html! { <pupils::PupilDetails {id} />},
                                         }}
                                     </div>
                                 </ContextProvider<Rc<AppContext>>> 

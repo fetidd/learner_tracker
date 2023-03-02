@@ -1,5 +1,5 @@
 use super::{pupil::Pupil, types::PupilCreateBoxProps};
-use crate::{clone, constant, error, error::*, utils, context::AppContext, elements::Button};
+use crate::{clone, constant, error, context::AppContext, elements::Button};
 use chrono::{NaiveDate, Utc};
 use gloo_net::http::Request;
 use std::{rc::Rc};
@@ -10,9 +10,9 @@ use yew::prelude::*;
 #[function_component(PupilCreateBox)]
 pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
     let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN CREATE BOX");
-    let create_box = use_node_ref();
-    let modal_backdrop = use_node_ref();
     let input_state = use_state(|| InputState::default());
+    let modal_dialog = use_node_ref();
+    let modal_backdrop = use_node_ref();
     let is_displayed = use_state(|| false);
 
     let reset_callback = {
@@ -61,9 +61,9 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
     };
 
     let toggle_box_cb = {
-        clone!(create_box, is_displayed, modal_backdrop);
+        clone!(modal_dialog, is_displayed, modal_backdrop);
         Callback::from(move |_ev: MouseEvent| {
-            let create_box: HtmlElement = create_box.cast().expect("cast create_box to htmlelement");
+            let create_box: HtmlElement = modal_dialog.cast().expect("cast create_box to htmlelement");
             let mut box_classes = Classes::from(create_box.class_name());
             let backdrop = modal_backdrop.cast::<HtmlElement>().expect("cast modal_backdrop to htmlelement");
             let mut backdrop_classes = Classes::from(backdrop.class_name());
@@ -111,7 +111,7 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
         </div>
 
         <div ref={modal_backdrop} class="hidden modal-backdrop">
-            <div ref={create_box} class="hidden modal-dialog w-96 h-fit justify-start flex-col space-y-4 bg-slate-100 rounded-md">
+            <div ref={modal_dialog} class="hidden modal-dialog w-96 h-fit justify-start flex-col space-y-4 bg-slate-100 rounded-md">
                 <div class="flex justify-between">
                     <span class="text-3xl">{"Add a learner"}</span>
                     <Button color="yellow" onclick={toggle_box_cb} text="Close" />

@@ -1,36 +1,47 @@
-use super::types::PupilRowProps;
-use crate::{routes::Route, elements::Tag};
+use crate::elements::Tag;
 use yew::prelude::*;
-use yew_router::prelude::*;
+use super::pupil::Pupil;
 
 #[function_component(PupilRow)]
 pub fn pupil_row(p: &PupilRowProps) -> Html {
-    html! { if p.pupil.active {
-        <li key={p.pupil.id.expect("pupil should always have id here").to_string()} class="snap-start">
-        <Link<Route> to={Route::Pupil {id: p.pupil.id.expect("pupil should always have id here").to_string()}}>
-        <div class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap rounded items-center px-2">
-            <span>{format!("{} {}", p.pupil.first_names, p.pupil.last_name)}</span>
-            // <div class="text-center hidden lg:inline w-[45px]">{format!("{}", p.pupil.year)}</div>
-            // <div class="text-center hidden lg:inline w-[45px]">{format!("{}", p.pupil.gender)}</div>
-            <div class="hidden lg:flex justify-start items-center space-x-1 w-[170px]">
-                if p.pupil.more_able_and_talented {
-                    <Tag color="purple" text="MAT" />
-                }
-                if p.pupil.english_as_additional_language {
-                    <Tag color="yellow" text="EAL" />
-                }
-                if p.pupil.additional_learning_needs {
-                    <Tag color="orange" text="ALN" />
-                }
-                if p.pupil.free_school_meals {
-                    <Tag color="green" text="FSM" />
-                }
-                if p.pupil.looked_after_child {
-                    <Tag color="blue" text="LAC" />
-                }
+    let open_pupil_details_callback = p.open_pupil_details_callback.clone();
+    let pupil = p.pupil.clone();
+    let open_pupil_details = {
+        clone!(pupil);
+        Callback::from(move |_ev: MouseEvent| {
+            open_pupil_details_callback.emit(pupil.id.expect("pupil should have an id here").to_string());
+        })
+    };
+
+    let id = pupil.id.expect("pupil should always have id here").to_string();
+    html! { if pupil.active {
+        <li key={id.clone()} class="snap-start cursor-pointer" onclick={open_pupil_details}>
+            <div class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap rounded items-center px-2">
+                <span>{format!("{} {}", pupil.first_names, pupil.last_name)}</span>
+                <div class="hidden lg:flex justify-start items-center space-x-1 w-[170px]">
+                    if pupil.more_able_and_talented {
+                        <Tag color="purple" text="MAT" />
+                    }
+                    if pupil.english_as_additional_language {
+                        <Tag color="yellow" text="EAL" />
+                    }
+                    if pupil.additional_learning_needs {
+                        <Tag color="orange" text="ALN" />
+                    }
+                    if pupil.free_school_meals {
+                        <Tag color="green" text="FSM" />
+                    }
+                    if pupil.looked_after_child {
+                        <Tag color="blue" text="LAC" />
+                    }
+                </div>
             </div>
-        </div>
-        </Link<Route>>
         </li>
     }}
+}
+
+#[derive(Properties, PartialEq)]
+pub struct PupilRowProps {
+    pub pupil: Pupil,
+    pub open_pupil_details_callback: Callback<String>
 }

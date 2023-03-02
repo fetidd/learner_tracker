@@ -11,15 +11,7 @@ pub struct AllPupilsResponse {
 #[derive(Properties, PartialEq)]
 pub struct PupilTableProps {}
 
-#[derive(Properties, PartialEq)]
-pub struct PupilRowProps {
-    pub pupil: Pupil,
-}
 
-#[derive(PartialEq, Properties)]
-pub struct PupilDetailsProps {
-    pub id: String
-}
 
 #[derive(PartialEq, Properties)]
 pub struct PupilCreateBoxProps {
