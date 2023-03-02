@@ -6,9 +6,9 @@ use super::pupil::Pupil;
 
 #[function_component(PupilDetails)]
 pub fn pupil_details(props: &PupilDetailsProps) -> Html {
-    let ctx = use_context::<Rc<AppContext>>().expect("NO CTX IN PUPIL DETAILS");
+    let _ctx = use_context::<Rc<AppContext>>().expect("NO CTX IN PUPIL DETAILS");
     html!{
-        <div class="w-[600px] h-[240px] flex flex-col rounded">
+        <div class="w-[600px] h-[240px] flex flex-col">
             if let Some(pupil) = &props.pupil {
                 <div class="flex justify-between mb-3">
                     <span class="text-2xl">{format!("{} {}", pupil.first_names, pupil.last_name)}</span>

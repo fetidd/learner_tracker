@@ -54,7 +54,7 @@ pub fn app() -> Html {
                             let state = (*state).clone().unwrap();
                             html! {
                                 <ContextProvider<Rc<AppContext>> context={Rc::new(state.clone())}>
-                                    // <ModalProvider>
+                                    <ModalProvider>
                                     // ACTUAL UI ====================================================================
 
                                         <navbar::Navbar logout_handler={logout_handler.clone()} />
@@ -67,7 +67,7 @@ pub fn app() -> Html {
                                         </div>
                                         
                                         // ACTUAL UI ====================================================================
-                                    // </ModalProvider>
+                                    </ModalProvider>
                                 </ContextProvider<Rc<AppContext>>> 
                             }
                         } else {

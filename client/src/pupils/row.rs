@@ -9,7 +9,7 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
     let open_pupil_details = {
         clone!(pupil);
         Callback::from(move |ev: MouseEvent| {
-            open_pupil_details_callback.emit((pupil.id.expect("pupil should have an id here").to_string(), (ev.x(), ev.y())));
+            open_pupil_details_callback.emit((ev, pupil.clone()));
         })
     };
 
@@ -43,5 +43,5 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
 #[derive(Properties, PartialEq)]
 pub struct PupilRowProps {
     pub pupil: Pupil,
-    pub open_pupil_details_callback: Callback<(String, (i32, i32))>
+    pub open_pupil_details_callback: Callback<(MouseEvent, Pupil)>
 }
