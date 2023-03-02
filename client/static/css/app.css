@@ -23,6 +23,29 @@
   .scrollbar::-webkit-scrollbar-thumb:hover {
     background: #b1b1b1;
   }
+
+  .modal-backdrop {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.1);
+}
+  
+  .modal-dialog {
+      background-color: #fefefe;
+      padding: 20px;
+      height: fit-content;
+      width: fit-content;
+      max-height: 1000px;
+      max-width: 1000px;
+      min-height: 100px;
+      min-width: 100px;
+  }
 }
 
 #app {
@@ -40,20 +63,5 @@
     grid-area: 2 / 2 / 21 / 21;
 }
 
-.modal-backdrop {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.1);
-}
-  
-.modal-dialog {
-    background-color: #fefefe;
-    padding: 20px;
-}
+
 

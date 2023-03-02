@@ -1,3 +1,4 @@
+use crate::elements::ModalProvider;
 use crate::{utils, context::AppContext};
 use crate::{
     constant, debug, error, login, menu, users::User, navbar, pupils, routes::Route,
@@ -53,14 +54,20 @@ pub fn app() -> Html {
                             let state = (*state).clone().unwrap();
                             html! {
                                 <ContextProvider<Rc<AppContext>> context={Rc::new(state.clone())}>
-                                    <navbar::Navbar logout_handler={logout_handler.clone()} />
-                                    <menu::Menu />
-                                    <div id="router-area">
-                                        {match route {
-                                            Route::ManagePupils | Route::Login  => html! { <pupils::PupilTable />},
-                                            Route::ManageUsers                  => html! { <pupils::PupilTable />},
-                                        }}
-                                    </div>
+                                    // <ModalProvider>
+                                    // ACTUAL UI ====================================================================
+
+                                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                                        <menu::Menu />
+                                        <div id="router-area">
+                                            {match route {
+                                                Route::ManagePupils | Route::Login  => html! { <pupils::PupilTable />},
+                                                Route::ManageUsers                  => html! { <pupils::PupilTable />},
+                                            }}
+                                        </div>
+                                        
+                                        // ACTUAL UI ====================================================================
+                                    // </ModalProvider>
                                 </ContextProvider<Rc<AppContext>>> 
                             }
                         } else {
