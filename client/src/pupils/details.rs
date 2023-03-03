@@ -33,54 +33,10 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
             Callback::from(move |ev: Event| {
                 let mut state = (*input_state).clone();
                 let target: HtmlInputElement = ev.target_unchecked_into();
-                match target.id().as_str() { // TODO can this be a method of the InputState struct?
-                    "name" => state.name = target.value(),
-                    "gender" => state.gender = target.value(),
-                    "year" => state.year = target.value().parse::<i32>().expect("TODO HANDLE"),
-                    "start_date" => state.start_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE"),
-                    "leave_date" => state.leave_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE"),
-                    "active" => state.active = target.checked(),
-                    "mat" => {
-                        let is_active = target.get_attribute("active").expect("tag has no active attribute");
-                        state.mat = match is_active.as_str() {
-                            "true" => false,
-                            _ => true
-                        }
-                    },
-                    "lac" => {
-                        let is_active = target.get_attribute("active").expect("tag has no active attribute");
-                        state.lac = match is_active.as_str() {
-                            "true" => false,
-                            _ => true
-                        }
-                    },
-                    "aln" => {
-                        let is_active = target.get_attribute("active").expect("tag has no active attribute");
-                        state.aln = match is_active.as_str() {
-                            "true" => false,
-                            _ => true
-                        }
-                    },
-                    "fsm" => {
-                        let is_active = target.get_attribute("active").expect("tag has no active attribute");
-                        state.fsm = match is_active.as_str() {
-                            "true" => false,
-                            _ => true
-                        }
-                    },
-                    "eal" => {
-                        let is_active = target.get_attribute("active").expect("tag has no active attribute");
-                        state.eal = match is_active.as_str() {
-                            "true" => false,
-                            _ => true
-                        }
-                    },
-                    _ => panic!("input trying to change non-existent state")
-                }
+                state.update(target);
                 input_state.set(state);
             })
         };
-
     
         html! {
             <div class="w-[600px] h-[240px] flex flex-col">
