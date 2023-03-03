@@ -5,30 +5,13 @@ use crate::{
     elements::{Button, ModalCallbacks},
     error,
     error::*,
-    pupils::{create_box::PupilCreateBox, row::PupilRow},
-    pupils::{pupil::Pupil, PupilDetails},
 };
+use super::*;
+
 use gloo_net::http::Request;
 use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-
-#[derive(Clone)]
-enum Filter {
-    None,
-    Active,
-    Inactive
-}
-
-impl Filter {
-    fn apply(&self) -> &dyn Fn(&Pupil) -> bool {
-        match self {
-            Self::None => &|_: &Pupil| true,
-            Self::Active => &|p: &Pupil| p.active,
-            Self::Inactive => &|p: &Pupil| !p.active,
-        }
-    }
-}
 
 #[function_component(PupilTable)]
 pub fn pupil_table(_props: &PupilTableProps) -> Html {
@@ -73,13 +56,12 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     };
 
     // FILTER ===================================================================================
-    let filter = use_state(|| Filter::None);
-    pupils.set((*pupils).clone().into_iter().filter((*filter).apply()).collect());
-
+    let filters = use_state(|| Vec::<PupilFilter>::new());
+    pupils.set((*pupils).clone().into_iter().filter(|p| filter::filter(p, (*filters).clone())).collect());
     let select_filter_callback = {
-        clone!(filter);
-        Callback::from(move |_: ()| {
-
+        clone!(filters);
+        Callback::from(move |selected_filters: Vec<PupilFilter>| {
+            filters.set(selected_filters);
         })
     };
 
@@ -98,6 +80,12 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
         })
     };
+    let open_filter = {
+        clone!(invoke_modal, dismiss_modal, refresh_callback);
+        Callback::from(move |ev: MouseEvent| {
+            invoke_modal.emit((ev, html!(<PupilTableFilter refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
+        })
+    };
     // RENDER ===================================================================================
 
     html! {
@@ -110,8 +98,8 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
                 </ul>
             </div>
             <div class="flex p-3 gap-2">
-                <Button text="+ Add learner" color="green" onclick={open_create_box.clone()} />
-                <Button text="Filter" color="purple" onclick={Callback::from(|_ev| {})} />
+                <Button text="+ Add learner" color="green" onclick={&open_create_box} />
+                <Button text="Filter" color="purple" onclick={&open_filter} />
             </div>
         </div>
     }
