@@ -15,14 +15,13 @@ async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
             "last_name": "last",
             "year": 6,
             "start_date": "2022-01-01",
-            "end_date": "2024-01-01",
             "gender": "male",
             "more_able_and_talented": false,
             "english_as_additional_language": false,
             "free_school_meals": false,
             "additional_learning_needs": false,
             "looked_after_child": false,
-            "active": false
+            "active": true
     });
     let res = ctx
         .client()
@@ -39,6 +38,15 @@ async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
     let pupil = pupil.as_object().unwrap();
     assert_eq!(inserted.first_names, pupil["first_names"]);
     assert_eq!(inserted.last_name, pupil["last_name"]);
+    assert_eq!(inserted.year, pupil["year"]);
+    assert_eq!(inserted.start_date, "2022-01-01".parse().unwrap());
+    assert_eq!(inserted.gender, pupil["gender"]);
+    assert_eq!(inserted.more_able_and_talented, pupil["more_able_and_talented"]);
+    assert_eq!(inserted.english_as_additional_language, pupil["english_as_additional_language"]);
+    assert_eq!(inserted.additional_learning_needs, pupil["additional_learning_needs"]);
+    assert_eq!(inserted.looked_after_child, pupil["looked_after_child"]);
+    assert_eq!(inserted.active, pupil["active"]);
+    assert_eq!(inserted.end_date, None);
 }
 
 #[rstest]
@@ -53,7 +61,7 @@ async fn login_and_get_pupils(#[future] mock_ctx: MockCtx) {
         .await;
     assert_eq!(res.status(), StatusCode::OK);
     let mut res_body: serde_json::Value = res.json().await;
-    let pupils = res_body["pupils"].as_array_mut().expect("array of pupils");
+    let pupils = res_body.as_array_mut().expect("array of pupils");
     let ids: Vec<String> = pupils
         .iter_mut()
         .map(|p| {
@@ -73,7 +81,6 @@ async fn login_and_get_pupils(#[future] mock_ctx: MockCtx) {
             "last_name": "student",
             "year": 6,
             "start_date": "2021-01-01",
-            "end_date": "2027-01-01",
             "gender": "gender",
             "more_able_and_talented": false,
             "english_as_additional_language": false,
@@ -87,7 +94,6 @@ async fn login_and_get_pupils(#[future] mock_ctx: MockCtx) {
             "last_name": "student",
             "year": 6,
             "start_date": "2021-01-01",
-            "end_date": "2027-01-01",
             "gender": "gender",
             "more_able_and_talented": false,
             "english_as_additional_language": false,
@@ -109,7 +115,7 @@ async fn login_and_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
         first_names: "first".into(),
         last_name: "student".into(),
         start_date: "2021-01-01".parse().unwrap(),
-        end_date: "2027-01-01".parse().unwrap(),
+        end_date: Some("2027-01-01".parse().unwrap()),
         gender: "gender".into(),
         year: 6,
         ..Default::default()
@@ -130,11 +136,9 @@ async fn login_and_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
         .send()
         .await;
     assert_eq!(res.status(), StatusCode::OK);
-    let res = res.json::<Value>().await;
-    let res = res.as_object().unwrap();
-    let act_pupils = res["pupils"].as_array().unwrap();
+    let act_pupil = res.json::<Value>().await;
     assert_eq!(
-        act_pupils[0],
+        act_pupil,
         json!({
             "id": request_uuid,
             "first_names": "first",
@@ -182,7 +186,7 @@ async fn login_and_update_pupil(#[future] mock_ctx: MockCtx) {
             first_names: "first".into(),
             last_name: "newname".into(),
             start_date: "2021-01-01".parse().unwrap(),
-            end_date: "2027-01-01".parse().unwrap(),
+            end_date: None,
             gender: "gender".into(),
             year: 6,
             active: true,

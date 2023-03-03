@@ -59,9 +59,19 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                 <EditableField id="start_date" input_type="date" edit_mode={*edit_mode} value={(*input_state).start_date.to_string()} onchange={&update_state_cb}/>
                             </li>
                             <li class="flex justify-between">
-                                <span class="text-bold w-[120px]">{"Leave date"}</span>
-                                <EditableField id="leave_date" input_type="date" edit_mode={*edit_mode} value={(*input_state).leave_date.to_string()} onchange={&update_state_cb}/>
+                                <label for="active"><span>{"Active?"}</span></label>
+                                <input type="checkbox" id="active" checked={(*input_state).active} onchange={&update_state_cb} disabled={!(*edit_mode)}/>
                             </li>
+                            {if !(*input_state).active {
+                                html!{
+                                    <li class="flex justify-between">
+                                        <span class="text-bold w-[120px]">{"Leave date"}</span>
+                                        <EditableField id="leave_date" input_type="date" edit_mode={*edit_mode} value={(*input_state).leave_date.expect("inactive pupil should have leave date").to_string()} onchange={&update_state_cb}/>
+                                    </li>
+                                }
+                            } else {
+                                html!()
+                            }}
                             <li class="flex justify-between">
                                 <span class="text-bold w-[120px]">{"Tags"}</span>
                                 <PupilTags state={(*input_state).clone()} edit_mode={*edit_mode} onchange={&update_state_cb}/>

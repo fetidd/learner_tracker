@@ -86,8 +86,8 @@ mod tests {
                 last_name: "E".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -96,7 +96,6 @@ mod tests {
                 last_name: "C".into(),
                 year: 2,
                 start_date: "2025-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 active: true,
                 ..Default::default()
@@ -107,8 +106,8 @@ mod tests {
                 last_name: "B".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -117,8 +116,8 @@ mod tests {
                 last_name: "A".into(),
                 year: 5,
                 start_date: "2020-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -127,8 +126,8 @@ mod tests {
                 last_name: "D".into(),
                 year: 2,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
         ];
@@ -139,8 +138,8 @@ mod tests {
                 last_name: "A".into(),
                 year: 5,
                 start_date: "2020-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -149,8 +148,8 @@ mod tests {
                 last_name: "B".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -159,7 +158,6 @@ mod tests {
                 last_name: "C".into(),
                 year: 2,
                 start_date: "2025-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 active: true,
                 ..Default::default()
@@ -170,8 +168,8 @@ mod tests {
                 last_name: "D".into(),
                 year: 2,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
             Pupil {
@@ -180,8 +178,8 @@ mod tests {
                 last_name: "E".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
+                active: true,
                 ..Default::default()
             },
         ];

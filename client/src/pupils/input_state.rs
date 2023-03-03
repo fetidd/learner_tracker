@@ -20,6 +20,7 @@ pub struct InputState {
 impl InputState {
     /// Update the InputState from a HtmlInputElement
     pub fn update(&mut self, target: HtmlInputElement) {
+        debug!("changing state");
         match target.id().as_str() {
             "name" => self.name = target.value(),
             "gender" => self.gender = target.value(),
@@ -28,9 +29,12 @@ impl InputState {
                 self.start_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE")
             }
             "leave_date" => {
-                self.leave_date = target.value().parse::<NaiveDate>().expect("TODO HANDLE")
+                self.leave_date = Some(target.value().parse::<NaiveDate>().expect("TODO HANDLE"))
             }
-            "active" => self.active = target.checked(),
+            "active" => {
+                self.active = target.checked();
+                self.leave_date = Some(Utc::now().date_naive());
+            },
             "mat" => {
                 let is_active = target
                     .get_attribute("active")
@@ -88,7 +92,7 @@ impl Default for InputState {
             name: Default::default(),
             gender: Default::default(),
             start_date: today,
-            leave_date: today,
+            leave_date: None,
             active: true,
             mat: Default::default(),
             lac: Default::default(),

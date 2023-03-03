@@ -18,7 +18,8 @@ pub fn generate_pupils(n: i32) -> Vec<Pupil> {
 
 pub fn generate_pupil(rng: &mut ThreadRng) -> Pupil {
     let year = [0i32, 1, 2, 3, 4, 5, 6].choose(rng).unwrap().to_owned();
-    let (start_date, end_date) = get_dates_from_year(year);
+    let active = [(true, 10), (false, 1)].choose_weighted(rng, |ch| ch.1).unwrap().0;
+    let (start_date, end_date) = get_dates_from_year(year, active);
     let mat = [(true, 1), (false, 10)].choose_weighted(rng, |ch| ch.1).unwrap().0;
     let aln = if mat {
         false
@@ -33,7 +34,7 @@ pub fn generate_pupil(rng: &mut ThreadRng) -> Pupil {
         year: Set(year),
         start_date: Set(start_date),
         end_date: Set(end_date),
-        active: Set([(true, 15), (false, 1)].choose_weighted(rng, |ch| ch.1).unwrap().0),
+        active: Set(active),
         more_able_and_talented: Set(mat),
         english_as_additional_language: Set([(true, 1), (false, 7)].choose_weighted(rng, |ch| ch.1).unwrap().0),
         free_school_meals: Set([(true, 1), (false, 5)].choose_weighted(rng, |ch| ch.1).unwrap().0),
@@ -53,10 +54,14 @@ fn get_last_name(rng: &mut ThreadRng) -> String {
     first_names.choose(rng).expect("no last_names").to_string()
 }
 
-fn get_dates_from_year(year: i32) -> (NaiveDate, NaiveDate) {
+fn get_dates_from_year(year: i32, is_active: bool) -> (NaiveDate, Option<NaiveDate>) {
     let curr_year = chrono::Utc::now().year();
     (
         NaiveDate::from_ymd_opt(curr_year - year, 9, 1).unwrap(),
-        NaiveDate::from_ymd_opt(curr_year + (6 - year), 7, 20).unwrap(),
+        if is_active {
+            None
+        } else {
+            Some(NaiveDate::from_ymd_opt(curr_year - year, 7, 21).unwrap())
+        }
     )
 }

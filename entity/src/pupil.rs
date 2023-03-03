@@ -10,7 +10,7 @@ pub struct Model {
     pub last_name: String,
     pub year: i32,
     pub start_date: Date,
-    pub end_date: Date,
+    pub end_date: Option<Date>,
     pub active: bool,
     pub more_able_and_talented: bool,
     pub english_as_additional_language: bool,

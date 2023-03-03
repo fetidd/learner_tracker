@@ -16,7 +16,8 @@ pub struct Pupil {
     last_name: String,
     year: i32,
     start_date: NaiveDate,
-    end_date: NaiveDate,
+    #[serde(skip_serializing_if="Option::is_none")]
+    end_date: Option<NaiveDate>,
     active: bool,
     more_able_and_talented: bool,
     english_as_additional_language: bool,
@@ -119,7 +120,7 @@ impl Pupil {
             self.start_date = update.start_date.unwrap();
         }
         if update.end_date.is_some() {
-            self.end_date = update.end_date.unwrap();
+            self.end_date = Some(update.end_date.unwrap());
         }
         if update.active.is_some() {
             self.active = update.active.unwrap();
@@ -180,7 +181,7 @@ mod tests {
             last_name: "pupil".into(),
             year: 6,
             start_date: "2021-01-01".parse().unwrap(),
-            end_date: "2021-01-01".parse().unwrap(),
+            end_date: None,
             active: true,
             more_able_and_talented: false,
             english_as_additional_language: false,
@@ -199,7 +200,6 @@ mod tests {
             last_name: "pupil".into(),
             year: 1,
             start_date: "2022-01-01".parse().unwrap(),
-            end_date: "2028-01-01".parse().unwrap(),
             active: true,
             gender: "female".into(),
             ..Default::default()
@@ -230,7 +230,6 @@ mod tests {
                 last_name: "pupil".into(),
                 year: 1,
                 start_date: "2022-01-01".parse().unwrap(),
-                end_date: "2028-01-01".parse().unwrap(),
                 active: true,
                 gender: "female".into(),
                 ..Default::default()
@@ -241,7 +240,6 @@ mod tests {
                 last_name: "pupil".into(),
                 year: 1,
                 start_date: "2022-01-01".parse().unwrap(),
-                end_date: "2028-01-01".parse().unwrap(),
                 active: true,
                 gender: "female".into(),
                 ..Default::default()
@@ -347,7 +345,7 @@ mod tests {
         last_name: "newname".into(),
         year: 6,
         start_date: "2021-01-01".parse().unwrap(),
-        end_date: "2021-01-01".parse().unwrap(),
+        end_date: None,
         active: true,
         more_able_and_talented: false,
         english_as_additional_language: false,

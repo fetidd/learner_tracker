@@ -2,7 +2,7 @@ use super::pupil::Pupil;
 use crate::{
     app::AppContext,
     clone, constant,
-    elements::{Button, IconButton, PupilTags},
+    elements::{Button, IconButton, PupilTags, EditableField},
     error,
     error::Result,
     pupils::PupilInputState,
@@ -63,20 +63,29 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
                 <span class="text-3xl">{"Add a learner"}</span>
                 <IconButton icon="close" onclick={props.close_callback.clone()}/>
             </div>
-            <input id="name" class="hover:bg-slate-100 focus:outline-none input" type="text" placeholder="Names" value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
+            <EditableField class="hover:bg-slate-100 focus:outline-none w-36 my-2" id="name" input_type="text" edit_mode={true} value={(*input_state).name.to_string()} onchange={&update_state_cb}/>
             <div class="flex justify-between">
-                <input id="gender" class="hover:bg-slate-100 focus:outline-none w-24 my-2" type="text" placeholder="Gender" value={(*input_state).gender.clone()} onchange={update_state_cb.clone()}/>
-                <input id="year" class="hover:bg-slate-100 focus:outline-none w-16 my-2" type="number" placeholder="Year" value={(*input_state).year.to_string()} onchange={update_state_cb.clone()}/>
+                <EditableField class="hover:bg-slate-100 focus:outline-none w-36 my-2" id="gender" input_type="text" edit_mode={true} value={(*input_state).gender.to_string()} onchange={&update_state_cb}/>
+                <EditableField class="hover:bg-slate-100 focus:outline-none w-36 my-2" id="year" input_type="number" edit_mode={true} value={(*input_state).year.to_string()} onchange={&update_state_cb}/>
             </div>
             <div class="flex justify-between items-center hover:bg-slate-200">
                 <label><span>{"Start date"}</span></label>
-                <input id="start_date" class="hover:bg-slate-100 focus:outline-none w-36 my-2" type={"date"} placeholder="Start date" value={(*input_state).start_date.to_string()} onchange={update_state_cb.clone()}/>
+                <EditableField class="hover:bg-slate-100 focus:outline-none w-36 my-2" id="start_date" input_type="date" edit_mode={true} value={(*input_state).start_date.to_string()} onchange={&update_state_cb}/>
             </div>
-
             <div class="flex justify-between items-center hover:bg-slate-200">
-                <label><span>{"Leave date"}</span></label>
-                <input id="leave_date" class="hover:bg-slate-100 focus:outline-none w-36 my-2" type={"date"} placeholder="Leave date" value={(*input_state).leave_date.to_string()} onchange={update_state_cb.clone()}/>
+                <label for="active"><span>{"Active?"}</span></label>
+                <input type="checkbox" id="active" checked={(*input_state).active} onchange={&update_state_cb}/>
             </div>
+            {if !(*input_state).active {
+                html!{
+                    <div class="flex justify-between items-center hover:bg-slate-200">
+                        <label><span>{"Leave date"}</span></label>
+                        <EditableField class="hover:bg-slate-100 focus:outline-none w-36 my-2" id="leave_date" input_type="date" edit_mode={true} value={(*input_state).leave_date.expect("inactive pupil should have leave date").to_string()} onchange={&update_state_cb}/>
+                    </div>
+                }
+            } else {
+                html!()
+            }}
             <div class="my-3">
                 <PupilTags state={(*input_state).clone()} edit_mode=true onchange={&update_state_cb}/>
             </div>

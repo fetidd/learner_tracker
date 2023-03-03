@@ -19,7 +19,7 @@ pub async fn build_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr>
                 .col(ColumnDef::new(Pupil::LastName).string().not_null())
                 .col(ColumnDef::new(Pupil::Year).integer().not_null())
                 .col(ColumnDef::new(Pupil::StartDate).date().not_null())
-                .col(ColumnDef::new(Pupil::EndDate).date().not_null())
+                .col(ColumnDef::new(Pupil::EndDate).date())
                 .col(ColumnDef::new(Pupil::Active).boolean().not_null().default(true))
                 .col(ColumnDef::new(Pupil::MoreAbleAndTalented).boolean().not_null().default(false))
                 .col(ColumnDef::new(Pupil::EnglishAsAdditionalLanguage).boolean().not_null().default(false))
