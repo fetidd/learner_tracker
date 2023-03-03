@@ -1,8 +1,15 @@
+use crate::{pupil::seed_pupils, sea_orm::DatabaseConnection, user::seed_users};
 use chrono::{Datelike, NaiveDate};
 use entity::pupil::ActiveModel as Pupil;
 use rand::prelude::*;
 use sea_orm_migration::sea_orm::Set;
 use uuid::Uuid;
+
+#[allow(dead_code)] // actually used by the server
+pub async fn seed_database(db: &DatabaseConnection) {
+    seed_pupils(db).await.expect("seeding pupils");
+    seed_users(db).await.expect("seeding users");
+}
 
 pub fn generate_pupils(n: i32) -> Vec<Pupil> {
     let mut rng = thread_rng();
