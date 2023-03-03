@@ -2,7 +2,7 @@ mod pupil;
 mod user;
 mod utils;
 
-pub use crate::{pupil::*, user::*, utils::seed_database};
+pub use crate::{pupil::*, user::*};
 pub use sea_orm_migration::prelude::*;
 
 mod m20220101_000001_create_table;
