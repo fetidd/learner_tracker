@@ -13,11 +13,29 @@ use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
+#[derive(Clone)]
+enum Filter {
+    None,
+    Active,
+    Inactive
+}
+
+impl Filter {
+    fn apply(&self) -> &dyn Fn(&Pupil) -> bool {
+        match self {
+            Self::None => &|_: &Pupil| true,
+            Self::Active => &|p: &Pupil| p.active,
+            Self::Inactive => &|p: &Pupil| !p.active,
+        }
+    }
+}
+
 #[function_component(PupilTable)]
 pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let ctx = use_context::<Rc<AppContext>>().expect("NO CTX IN PUPIL TABLE");
-    let pupils: UseStateHandle<Vec<Pupil>> = use_state(|| vec![]);
-    // get pupils
+
+    // PUPILS ===================================================================================
+    let pupils: UseStateHandle<Vec<Pupil>> = use_state_eq(|| vec![]);
     {
         clone!(ctx, pupils);
         use_effect_with_deps(
@@ -54,7 +72,18 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
         })
     };
 
-    // MODAL SETUP ========================================================================
+    // FILTER ===================================================================================
+    let filter = use_state(|| Filter::None);
+    pupils.set((*pupils).clone().into_iter().filter((*filter).apply()).collect());
+
+    let select_filter_callback = {
+        clone!(filter);
+        Callback::from(move |_: ()| {
+
+        })
+    };
+
+    // MODALS ===================================================================================
     let (invoke_modal, dismiss_modal) =
         use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
     let open_create_box = {
@@ -69,7 +98,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
         })
     };
-    // ====================================================================================
+    // RENDER ===================================================================================
 
     html! {
         <div class="flex flex-col m-3">
@@ -95,13 +124,13 @@ async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result
         .await
     {
         Ok(response) => match response.status() {
-            401 => Err(Unauthorized!()),
             200 => {
                 let mut fetched = response.json::<Vec<Pupil>>().await?;
                 fetched.sort();
                 pupils.set(fetched);
                 Ok(())
             }
+            401 => Err(Unauthorized!()),
             unknown => Err(ServerError!(format!("unknown status code {unknown}"))),
         },
         Err(err) => Err(ResponseParseError!(err.to_string())),
