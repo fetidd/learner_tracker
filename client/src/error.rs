@@ -12,7 +12,6 @@ pub enum ErrorKind {
     ValueError,
     ResponseParseError,
     ServerError,
-    CastError,
     JsonError,
     DecodeError,
     StorageError,
@@ -40,7 +39,6 @@ from_error!(serde_json::Error > JsonError);
 error_macro!{
     ResponseParseError,
     DecodeError,
-    StorageError,
     ServerError,
     Unauthorized
 }

@@ -1,4 +1,3 @@
-use web_sys::HtmlElement;
 use yew::prelude::*;
 
 use crate::{

@@ -1,8 +1,7 @@
 use base64::{engine::general_purpose, *};
-use gloo_storage::{SessionStorage, Storage};
 use crate::error::Result;
 
-use crate::{users::User, constant};
+use crate::users::User;
 
 pub fn decode_auth_token(token: String) -> Result<User> {
     match token.split('.').collect::<Vec<&str>>().get(1) {
@@ -14,8 +13,4 @@ pub fn decode_auth_token(token: String) -> Result<User> {
         }
         None => Err(DecodeError!()),
     }
-}
-
-pub fn get_current_token() -> Result<String> {
-    Ok(SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY)?)
 }

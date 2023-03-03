@@ -1,6 +1,6 @@
 use super::pupil::Pupil;
 use serde::Deserialize;
-use yew::{Properties, Callback};
+use yew::Properties;
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct AllPupilsResponse {

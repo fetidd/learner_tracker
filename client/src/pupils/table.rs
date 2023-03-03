@@ -7,7 +7,7 @@ use crate::{
     error::*,
     pupils::{create_box::PupilCreateBox, row::PupilRow},
     pupils::{pupil::Pupil, PupilDetails},
-    elements::{Button, ModalCallbacks}, routes::Route,
+    elements::{Button, ModalCallbacks}
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;

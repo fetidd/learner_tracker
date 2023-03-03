@@ -5,7 +5,6 @@ use crate::{
     elements::{Button, IconButton, EditableField, PupilTags},
     pupils::PupilInputState,
 };
-use chrono::{NaiveDate};
 use gloo_net::http::Request;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;

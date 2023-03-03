@@ -39,9 +39,9 @@ pub fn search_bar() -> Html {
     }
 }
 
-async fn search_request(request_string: &str, result_handle: UseStateHandle<Vec<String>>) {
+async fn search_request(request_string: &str, _result_handle: UseStateHandle<Vec<String>>) {
     let token = "akljosdhfilshdfikjh";
-    let result = Request::post(constant::SEARCH_ENDPOINT).json(&json!({
+    let _result = Request::post(constant::SEARCH_ENDPOINT).json(&json!({
         "entities": ["pupil"],
         "term": request_string
     })).expect("bad json in search request").header("Authorization", &format!("Bearer {token}")).send().await;
