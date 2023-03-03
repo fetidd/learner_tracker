@@ -97,7 +97,8 @@ async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result
         Ok(response) => match response.status() {
             401 => Err(Unauthorized!()),
             200 => {
-                let fetched = response.json::<Vec<Pupil>>().await?;
+                let mut fetched = response.json::<Vec<Pupil>>().await?;
+                fetched.sort();
                 pupils.set(fetched);
                 Ok(())
             }
