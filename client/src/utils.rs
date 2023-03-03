@@ -1,5 +1,5 @@
-use base64::{engine::general_purpose, *};
 use crate::error::Result;
+use base64::{engine::general_purpose, *};
 
 use crate::users::User;
 

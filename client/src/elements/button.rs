@@ -20,14 +20,18 @@ pub fn button(props: &ButtonProps) -> Html {
         }
     };
 
-    let class = format!("p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {} {}", match props.color.as_str() {
-        "green" => GREEN,
-        "red" => RED,
-        "blue" => BLUE,
-        "yellow" => YELLOW,
-        "purple" => PURPLE,
-        _ => GREEN
-    }, visible);
+    let class = format!(
+        "p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {} {}",
+        match props.color.as_str() {
+            "green" => GREEN,
+            "red" => RED,
+            "blue" => BLUE,
+            "yellow" => YELLOW,
+            "purple" => PURPLE,
+            _ => GREEN,
+        },
+        visible
+    );
 
     html!(<button class={class} onclick={props.onclick.clone()} >{&props.text}</button>)
 }
@@ -37,5 +41,5 @@ pub struct ButtonProps {
     pub onclick: Callback<MouseEvent>,
     pub text: String,
     pub color: String,
-    pub visible: Option<bool>
+    pub visible: Option<bool>,
 }

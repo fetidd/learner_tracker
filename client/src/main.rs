@@ -4,15 +4,15 @@ mod macros;
 mod error;
 mod app;
 mod constant;
+mod elements;
 mod login;
 mod menu;
 mod navbar;
 mod pupils;
-mod users;
 mod routes;
-mod utils;
 mod search;
-mod elements;
+mod users;
+mod utils;
 
 fn main() {
     yew::Renderer::<app::App>::new().render();

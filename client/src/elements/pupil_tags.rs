@@ -1,8 +1,6 @@
 use yew::prelude::*;
 
-use crate::{
-    elements::Tag, pupils::PupilInputState
-};
+use crate::{elements::Tag, pupils::PupilInputState};
 
 #[function_component(PupilTags)]
 pub fn pupil_tags(props: &PupilTagsProps) -> Html {

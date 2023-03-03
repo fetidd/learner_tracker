@@ -3,7 +3,7 @@ use gloo_storage::errors::StorageError;
 #[derive(Clone, PartialEq, Debug)]
 pub struct Error {
     pub kind: ErrorKind,
-    pub details: Option<String>
+    pub details: Option<String>,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -36,7 +36,7 @@ from_error!(base64::DecodeError > DecodeError);
 from_error!(std::string::FromUtf8Error > DecodeError);
 from_error!(serde_json::Error > JsonError);
 
-error_macro!{
+error_macro! {
     ResponseParseError,
     DecodeError,
     ServerError,

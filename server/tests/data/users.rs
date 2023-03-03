@@ -29,8 +29,15 @@ async fn login_and_get_users(#[future] mock_ctx: MockCtx) {
             last_refresh: Utc::now().naive_utc(),
         },
     ];
-    let to_insert: Vec<entity::user::ActiveModel> = users.clone().into_iter().map(entity::user::ActiveModel::from).collect();
-    entity::user::Entity::insert_many(to_insert).exec(ctx.check_db()).await.expect("inserting user");
+    let to_insert: Vec<entity::user::ActiveModel> = users
+        .clone()
+        .into_iter()
+        .map(entity::user::ActiveModel::from)
+        .collect();
+    entity::user::Entity::insert_many(to_insert)
+        .exec(ctx.check_db())
+        .await
+        .expect("inserting user");
     let res = ctx
         .client()
         .get(constant::USERS_ENDPOINT)
@@ -83,7 +90,11 @@ async fn login_and_create_user(#[future] mock_ctx: MockCtx) {
         .send()
         .await;
     assert_eq!(res.status(), StatusCode::CREATED);
-    let inserted = entity::user::Entity::find_by_id("test@test.com").one(ctx.check_db()).await.unwrap().unwrap();
+    let inserted = entity::user::Entity::find_by_id("test@test.com")
+        .one(ctx.check_db())
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(inserted.email_address, "test@test.com");
     assert_eq!(inserted.years, "2,3");
 }

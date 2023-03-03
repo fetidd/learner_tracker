@@ -4,7 +4,7 @@ use yew::prelude::*;
 pub fn icon_button(props: &IconButtonProps) -> Html {
     let icon = match props.icon.as_str() {
         "close" => "X", // TODO make this an actual icon
-        _ => "?"
+        _ => "?",
     };
 
     html!(<button class="" onclick={props.onclick.clone()}><i>{icon}</i></button>)

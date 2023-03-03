@@ -20,7 +20,9 @@ use serde::{Deserialize, Serialize};
 
 pub fn generate_auth_token(user: &User) -> Result<String> {
     let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::minutes(constant::AUTH_TOKEN_EXPIRY_MINUTES))
+        .checked_add_signed(chrono::Duration::minutes(
+            constant::AUTH_TOKEN_EXPIRY_MINUTES,
+        ))
         .expect("valid timestamp")
         .timestamp();
     let claims = AuthToken {
@@ -31,11 +33,17 @@ pub fn generate_auth_token(user: &User) -> Result<String> {
         years: user.years.to_owned(),
     };
     let header = Header::new(Algorithm::HS512);
-    encode(&header, &claims, &EncodingKey::from_secret(&user.secret)).map_err(|e| JWTTokenCreationError!(e.to_string()))
+    encode(&header, &claims, &EncodingKey::from_secret(&user.secret))
+        .map_err(|e| JWTTokenCreationError!(e.to_string()))
 }
 
 pub fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
-    Ok(decode::<AuthToken>(&token, &DecodingKey::from_secret(secret), &Validation::new(Algorithm::HS512))?.claims)
+    Ok(decode::<AuthToken>(
+        &token,
+        &DecodingKey::from_secret(secret),
+        &Validation::new(Algorithm::HS512),
+    )?
+    .claims)
 }
 
 pub fn decode_token(token: &str) -> Result<AuthToken> {
@@ -85,11 +93,24 @@ mod tests {
     #[rstest]
     fn test_generate_auth_token() {
         let secret: [u8; 64] = [127; 64];
-        let mut user = User::new("test", "user", "test@test.com", "hashedpassword", vec![3, 4]);
+        let mut user = User::new(
+            "test",
+            "user",
+            "test@test.com",
+            "hashedpassword",
+            vec![3, 4],
+        );
         user.secret = secret.into();
         let token = generate_auth_token(&user).expect("encoded token");
-        let claims: AuthToken =
-            serde_json::from_str(&String::from_utf8(general_purpose::STANDARD_NO_PAD.decode(token.split('.').collect::<Vec<&str>>()[1]).unwrap()).unwrap()).unwrap();
+        let claims: AuthToken = serde_json::from_str(
+            &String::from_utf8(
+                general_purpose::STANDARD_NO_PAD
+                    .decode(token.split('.').collect::<Vec<&str>>()[1])
+                    .unwrap(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
         assert_eq!(claims.email_address, user.email_address);
     }
 }

@@ -1,15 +1,15 @@
-use std::rc::Rc;
 use super::types::PupilTableProps;
 use crate::{
-    constant,
     app::AppContext,
+    constant,
+    elements::{Button, ModalCallbacks},
     error,
     error::*,
     pupils::{create_box::PupilCreateBox, row::PupilRow},
     pupils::{pupil::Pupil, PupilDetails},
-    elements::{Button, ModalCallbacks}
 };
 use gloo_net::http::Request;
+use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -55,12 +55,12 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     };
 
     // MODAL SETUP ========================================================================
-    let (invoke_modal, dismiss_modal) = use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
+    let (invoke_modal, dismiss_modal) =
+        use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
     let open_create_box = {
         clone!(invoke_modal, dismiss_modal, refresh_callback);
         Callback::from(move |ev: MouseEvent| {
             invoke_modal.emit((ev, html!(<PupilCreateBox refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
-
         })
     };
     let open_pupil_details = {
@@ -94,19 +94,15 @@ async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result
         .send()
         .await
     {
-        Ok(response) => {
-            match response.status() {
-                401 => {
-                    Err(Unauthorized!())
-                },
-                200 => {
-                    let fetched = response.json::<Vec<Pupil>>().await?;
-                    pupils.set(fetched);
-                    Ok(())
-                },
-                unknown => Err(ServerError!(format!("unknown status code {unknown}")))
+        Ok(response) => match response.status() {
+            401 => Err(Unauthorized!()),
+            200 => {
+                let fetched = response.json::<Vec<Pupil>>().await?;
+                pupils.set(fetched);
+                Ok(())
             }
-        }
+            unknown => Err(ServerError!(format!("unknown status code {unknown}"))),
+        },
         Err(err) => Err(ResponseParseError!(err.to_string())),
     }
 }

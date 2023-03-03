@@ -24,5 +24,5 @@ pub struct EditableFieldProps {
     pub onchange: Callback<Event>,
     pub id: String,
     pub input_type: String,
-    pub class: Option<String>
+    pub class: Option<String>,
 }

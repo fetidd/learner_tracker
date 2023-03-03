@@ -32,7 +32,10 @@ async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
         .send()
         .await;
     assert_eq!(res.status(), StatusCode::CREATED);
-    let inserted = &entity::pupil::Entity::find().all(ctx.check_db()).await.unwrap()[0];
+    let inserted = &entity::pupil::Entity::find()
+        .all(ctx.check_db())
+        .await
+        .unwrap()[0];
     let pupil = pupil.as_object().unwrap();
     assert_eq!(inserted.first_names, pupil["first_names"]);
     assert_eq!(inserted.last_name, pupil["last_name"]);
@@ -51,7 +54,17 @@ async fn login_and_get_pupils(#[future] mock_ctx: MockCtx) {
     assert_eq!(res.status(), StatusCode::OK);
     let mut res_body: serde_json::Value = res.json().await;
     let pupils = res_body["pupils"].as_array_mut().expect("array of pupils");
-    let ids: Vec<String> = pupils.iter_mut().map(|p| p.as_object_mut().unwrap().remove_entry("id").unwrap().1.to_string()).collect();
+    let ids: Vec<String> = pupils
+        .iter_mut()
+        .map(|p| {
+            p.as_object_mut()
+                .unwrap()
+                .remove_entry("id")
+                .unwrap()
+                .1
+                .to_string()
+        })
+        .collect();
     assert_eq!(ids.len(), 2);
     assert_eq!(pupils.len(), 2);
     let exp_pupils = vec![
@@ -101,8 +114,15 @@ async fn login_and_get_pupil_by_id(#[future] mock_ctx: MockCtx) {
         year: 6,
         ..Default::default()
     }];
-    let to_insert: Vec<entity::pupil::ActiveModel> = pupils.clone().into_iter().map(entity::pupil::ActiveModel::from).collect();
-    entity::pupil::Entity::insert_many(to_insert).exec(ctx.check_db()).await.expect("adding pupils");
+    let to_insert: Vec<entity::pupil::ActiveModel> = pupils
+        .clone()
+        .into_iter()
+        .map(entity::pupil::ActiveModel::from)
+        .collect();
+    entity::pupil::Entity::insert_many(to_insert)
+        .exec(ctx.check_db())
+        .await
+        .expect("adding pupils");
     let res = ctx
         .client()
         .get(&format!("{}/{request_uuid}", constant::PUPILS_ENDPOINT))
@@ -149,11 +169,12 @@ async fn login_and_update_pupil(#[future] mock_ctx: MockCtx) {
         .send()
         .await;
     assert_eq!(res.status(), StatusCode::OK);
-    let updated_pupil = entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
-        .one(ctx.check_db())
-        .await
-        .expect("successful query")
-        .expect("found updated pupil");
+    let updated_pupil =
+        entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
+            .one(ctx.check_db())
+            .await
+            .expect("successful query")
+            .expect("found updated pupil");
     assert_eq!(
         updated_pupil,
         Pupil {
@@ -183,9 +204,10 @@ async fn login_and_delete_pupil(#[future] mock_ctx: MockCtx) {
         .send()
         .await;
     assert_eq!(res.status(), StatusCode::OK);
-    let updated_pupil = entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
-        .one(ctx.check_db())
-        .await
-        .expect("successful query");
+    let updated_pupil =
+        entity::pupil::Entity::find_by_id(ids[0].parse::<Uuid>().expect("parsed uuid"))
+            .one(ctx.check_db())
+            .await
+            .expect("successful query");
     assert_eq!(updated_pupil, None);
 }

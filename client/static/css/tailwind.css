@@ -547,6 +547,11 @@ video {
   margin-bottom: 0.5rem;
 }
 
+.my-3 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .my-\[calc\(50vh-120px\)\] {
   margin-top: calc(50vh - 120px);
   margin-bottom: calc(50vh - 120px);
@@ -560,11 +565,6 @@ video {
 .my-auto {
   margin-top: auto;
   margin-bottom: auto;
-}
-
-.my-3 {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
 .mb-3 {

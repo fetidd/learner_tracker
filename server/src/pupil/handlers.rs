@@ -1,21 +1,18 @@
 use std::str::FromStr;
 
-use crate::{
-    core::error::*,
-    pupil::{model::*},
-    user::{model::*},
-    app::state::AppState,
-};
+use crate::{app::state::AppState, core::error::*, pupil::model::*, user::model::*};
 use axum::{
     extract::{Json, Path, State},
     http::StatusCode,
     Extension,
 };
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
-pub async fn create_pupil(State(state): State<AppState>, Json(pupil): Json<Pupil>) -> Result<StatusCode> {
+pub async fn create_pupil(
+    State(state): State<AppState>,
+    Json(pupil): Json<Pupil>,
+) -> Result<StatusCode> {
     match pupil.insert(state.database().as_ref()).await {
         Ok(_) => Ok(StatusCode::CREATED),
         Err(error) => match error.kind {
@@ -25,7 +22,10 @@ pub async fn create_pupil(State(state): State<AppState>, Json(pupil): Json<Pupil
     }
 }
 
-pub async fn get_pupils(State(state): State<AppState>, Extension(user): Extension<User>) -> Result<Json<serde_json::Value>> {
+pub async fn get_pupils(
+    State(state): State<AppState>,
+    Extension(user): Extension<User>,
+) -> Result<Json<serde_json::Value>> {
     tracing::debug!("requested all pupils");
     match Pupil::all_from_db(&user, state.database().as_ref()).await {
         Ok(pupils) => Ok(Json(json!(pupils))),
@@ -36,7 +36,11 @@ pub async fn get_pupils(State(state): State<AppState>, Extension(user): Extensio
     }
 }
 
-pub async fn get_pupil_by_id(State(state): State<AppState>, Path(id): Path<String>, Extension(user): Extension<User>) -> Result<Json<serde_json::Value>> {
+pub async fn get_pupil_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Extension(user): Extension<User>,
+) -> Result<Json<serde_json::Value>> {
     tracing::debug!("requested pupil {id}");
     let id = Uuid::from_str(&id)?;
     match Pupil::one_from_db(&user, id, state.database().as_ref()).await {
@@ -49,7 +53,12 @@ pub async fn get_pupil_by_id(State(state): State<AppState>, Path(id): Path<Strin
     }
 }
 
-pub async fn update_pupil(State(state): State<AppState>, Path(id): Path<String>, Extension(user): Extension<User>, Json(update): Json<PupilUpdate>) -> Result<Json<serde_json::Value>> {
+pub async fn update_pupil(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Extension(user): Extension<User>,
+    Json(update): Json<PupilUpdate>,
+) -> Result<Json<serde_json::Value>> {
     tracing::debug!("updating pupil {id}");
     let id = Uuid::from_str(&id)?;
     let mut pupil = Pupil::one_from_db(&user, id, state.database()).await?;
@@ -64,7 +73,11 @@ pub async fn update_pupil(State(state): State<AppState>, Path(id): Path<String>,
     }
 }
 
-pub async fn delete_pupil(State(state): State<AppState>, Path(id): Path<String>, Extension(user): Extension<User>) -> Result<StatusCode> {
+pub async fn delete_pupil(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Extension(user): Extension<User>,
+) -> Result<StatusCode> {
     tracing::debug!("deleting pupil {id}");
     let id = Uuid::from_str(&id)?;
     let pupil = Pupil::one_from_db(&user, id, state.database()).await?;

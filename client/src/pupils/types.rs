@@ -10,7 +10,3 @@ pub struct AllPupilsResponse {
 
 #[derive(Properties, PartialEq)]
 pub struct PupilTableProps {}
-
-
-
-

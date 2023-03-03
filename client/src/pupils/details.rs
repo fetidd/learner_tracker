@@ -1,15 +1,15 @@
 use super::pupil::Pupil;
 use crate::{
-    constant,
     app::AppContext,
-    elements::{Button, IconButton, EditableField, PupilTags},
+    constant,
+    elements::{Button, EditableField, IconButton, PupilTags},
     pupils::PupilInputState,
 };
 use gloo_net::http::Request;
-use uuid::Uuid;
-use web_sys::HtmlInputElement;
 use std::{rc::Rc, str::FromStr};
+use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 #[function_component(PupilDetails)]
@@ -23,7 +23,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
             PupilInputState::from(pupil)
         } else {
             PupilInputState::default()
-        }   
+        }
     });
 
     if let Some(pupil) = &props.pupil {
@@ -36,7 +36,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                 input_state.set(state);
             })
         };
-    
+
         html! {
             <div class="w-[600px] h-[240px] flex flex-col">
                 <div class="flex justify-between mb-3">
@@ -111,7 +111,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
             </div>
         }
     } else {
-        html!({"NO PUPIL"})
+        html!({ "NO PUPIL" })
     }
 }
 
@@ -127,10 +127,10 @@ async fn delete_pupil(id: &str, token: &str) {
     match Request::delete(&format!("{}/{}", constant::PUPILS_PATH, id))
         .header("Authorization", &format!("Bearer {}", token))
         .send()
-        .await 
+        .await
     {
         Ok(_res) => {}
-        Err(error) => error!("error deleting pupil:", error.to_string())
+        Err(error) => error!("error deleting pupil:", error.to_string()),
     }
 }
 
@@ -152,18 +152,15 @@ async fn update_pupil(id: &str, is: &PupilInputState, token: &str) {
         additional_learning_needs: is.aln,
         looked_after_child: is.lac,
         gender: is.gender.clone(),
-
     };
     match Request::post(&format!("{}/{}", constant::PUPILS_PATH, id))
         .json(&pupil)
         .expect("pupil json")
         .header("Authorization", &format!("Bearer {}", token))
         .send()
-        .await 
+        .await
     {
         Ok(_res) => {}
-        Err(error) => error!("error updating pupil:", error.to_string())
+        Err(error) => error!("error updating pupil:", error.to_string()),
     }
 }
-
-

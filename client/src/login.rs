@@ -1,7 +1,7 @@
 use web_sys::HtmlInputElement;
 use yew::function_component;
 
-use crate::{routes::Route, elements::Button};
+use crate::{elements::Button, routes::Route};
 use yew::prelude::*;
 use yew_router::prelude::*;
 

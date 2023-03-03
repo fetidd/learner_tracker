@@ -1,11 +1,7 @@
+use crate::{app::AppContext, elements::Button, routes::Route, search::SearchBar};
 use std::rc::Rc;
-use crate::{
-    app::AppContext,
-    routes::Route,
-    search::SearchBar, elements::Button,
-};
 use yew::prelude::*;
-use yew_router::{prelude::*};
+use yew_router::prelude::*;
 
 #[function_component]
 pub fn Navbar(_: &NavbarProps) -> Html {

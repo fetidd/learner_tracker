@@ -1,9 +1,9 @@
+use crate::constant;
 use gloo_net::http::Request;
 use serde_json::json;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use crate::constant;
 
 #[function_component(SearchBar)]
 pub fn search_bar() -> Html {
@@ -41,8 +41,13 @@ pub fn search_bar() -> Html {
 
 async fn search_request(request_string: &str, _result_handle: UseStateHandle<Vec<String>>) {
     let token = "akljosdhfilshdfikjh";
-    let _result = Request::post(constant::SEARCH_ENDPOINT).json(&json!({
-        "entities": ["pupil"],
-        "term": request_string
-    })).expect("bad json in search request").header("Authorization", &format!("Bearer {token}")).send().await;
-} 
+    let _result = Request::post(constant::SEARCH_ENDPOINT)
+        .json(&json!({
+            "entities": ["pupil"],
+            "term": request_string
+        }))
+        .expect("bad json in search request")
+        .header("Authorization", &format!("Bearer {token}"))
+        .send()
+        .await;
+}

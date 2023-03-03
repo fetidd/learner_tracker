@@ -1,6 +1,6 @@
+use super::pupil::Pupil;
 use crate::elements::Tag;
 use yew::prelude::*;
-use super::pupil::Pupil;
 
 #[function_component(PupilRow)]
 pub fn pupil_row(p: &PupilRowProps) -> Html {
@@ -13,7 +13,10 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
         })
     };
 
-    let id = pupil.id.expect("pupil should always have id here").to_string();
+    let id = pupil
+        .id
+        .expect("pupil should always have id here")
+        .to_string();
     html! { if pupil.active {
         <li key={id.clone()} class="snap-start cursor-pointer break-inside-avoid-column" onclick={open_pupil_details}>
             <div class="h-[42px] hover:bg-slate-100 w-full flex justify-between flex-no-wrap rounded items-center px-2">
@@ -43,5 +46,5 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
 #[derive(Properties, PartialEq)]
 pub struct PupilRowProps {
     pub pupil: Pupil,
-    pub open_pupil_details_callback: Callback<(MouseEvent, Pupil)>
+    pub open_pupil_details_callback: Callback<(MouseEvent, Pupil)>,
 }

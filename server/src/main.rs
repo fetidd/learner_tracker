@@ -1,8 +1,11 @@
 use axum::Server;
 use lt_server::{
+    app::{
+        router::router,
+        state::{AppState, AppStateObj},
+    },
     core::error::Result,
-    utils::{log::start_log},
-    app::{state::{AppState, AppStateObj},router::router},
+    utils::log::start_log,
 };
 use migration::{seed_database, Migrator, MigratorTrait};
 use std::{net::SocketAddr, sync::Arc};
@@ -26,7 +29,12 @@ async fn main() -> Result<()> {
     let address: SocketAddr = std::env::var("SERVER_ADDR")?.parse()?;
     tracing::debug!("listening on {address}");
     Server::bind(&address)
-        .serve(router(Arc::clone(&app_state)).layer(TraceLayer::new_for_http()).with_state(app_state).into_make_service())
+        .serve(
+            router(Arc::clone(&app_state))
+                .layer(TraceLayer::new_for_http())
+                .with_state(app_state)
+                .into_make_service(),
+        )
         .await?;
     Ok(())
 }

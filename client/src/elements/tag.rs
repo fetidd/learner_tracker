@@ -1,12 +1,12 @@
 use yew::prelude::*;
 
-static GREEN: &str =    "bg-green-200";
-static RED: &str =      "bg-red-200";
-static BLUE: &str =     "bg-blue-200";
-static YELLOW: &str =   "bg-yellow-200";
-static PURPLE: &str =   "bg-purple-200";
-static ORANGE: &str =   "bg-orange-200";
-static GRAY: &str =     "bg-slate-100 text-slate-400";
+static GREEN: &str = "bg-green-200";
+static RED: &str = "bg-red-200";
+static BLUE: &str = "bg-blue-200";
+static YELLOW: &str = "bg-yellow-200";
+static PURPLE: &str = "bg-purple-200";
+static ORANGE: &str = "bg-orange-200";
+static GRAY: &str = "bg-slate-100 text-slate-400";
 
 #[function_component(Tag)]
 pub fn tag(props: &TagProps) -> Html {
@@ -17,7 +17,7 @@ pub fn tag(props: &TagProps) -> Html {
         "yellow" => YELLOW,
         "purple" => PURPLE,
         "orange" => ORANGE,
-        _ => "bg-white"
+        _ => "bg-white",
     };
     let mut active = "true";
 
@@ -31,19 +31,18 @@ pub fn tag(props: &TagProps) -> Html {
     let class = format!("px-1 py-0.5 rounded text-xs {color}");
 
     if let Some(onclick) = &props.onclick {
-        html!{
+        html! {
             <span id={props.id.to_owned()} class={class} {onclick} {active}>
                 {&props.text}
             </span>
         }
     } else {
-        html!{
+        html! {
             <span id={props.id.to_owned()} class={class}>
                 {&props.text}
             </span>
         }
     }
-    
 }
 
 #[derive(PartialEq, Properties)]
@@ -53,5 +52,5 @@ pub struct TagProps {
     pub active: Option<bool>,
     pub id: String,
     pub edit_mode: Option<bool>,
-    pub onclick: Option<Callback<MouseEvent>>
+    pub onclick: Option<Callback<MouseEvent>>,
 }

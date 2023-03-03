@@ -6,5 +6,8 @@ pub fn start_log() {
         .without_time()
         .with_target(true)
         .with_thread_names(false);
-    fmt().event_format(log_fmt).with_env_filter(EnvFilter::from_default_env()).init();
+    fmt()
+        .event_format(log_fmt)
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
 }

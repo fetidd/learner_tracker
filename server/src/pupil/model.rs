@@ -1,11 +1,10 @@
-use crate::{
-    core::error::{Error, ErrorKind, Result},
-    user::model::*,
-};
+use crate::{core::error::Result, user::model::*};
 use chrono::NaiveDate;
 use entity::pupil::{ActiveModel, Column, Entity, Model};
 use migration::Condition;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -38,7 +37,10 @@ impl Pupil {
                 if user.years.contains(&(pupil.year as u32)) {
                     Ok(pupil.into())
                 } else {
-                    Err(Unauthorised!(format!("you don't have permission to view year {}", pupil.year)))
+                    Err(Unauthorised!(format!(
+                        "you don't have permission to view year {}",
+                        pupil.year
+                    )))
                 }
             }
             None => Err(PupilDoesNotExist!()),
@@ -50,7 +52,13 @@ impl Pupil {
         for year in &user.years {
             cond = cond.add(Column::Year.eq(*year));
         }
-        Ok(Entity::find().filter(cond).all(db).await?.into_iter().map(Into::into).collect())
+        Ok(Entity::find()
+            .filter(cond)
+            .all(db)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect())
     }
 
     pub async fn insert(&self, db: &DatabaseConnection) -> Result<Self> {
@@ -197,7 +205,9 @@ mod tests {
             ..Default::default()
         }];
         let user = User::new("test", "user", "test@test.com", "pass", vec![1]);
-        let db = MockDatabase::new(DatabaseBackend::Postgres).append_query_results(vec![results.clone()]).into_connection();
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_query_results(vec![results.clone()])
+            .into_connection();
         let query_res = Pupil::one_from_db(&user, results[0].id, &db).await; // TEST user restrictions
         assert!(query_res.is_ok());
         let pupil = query_res.unwrap();
@@ -238,11 +248,20 @@ mod tests {
             },
         ];
         let user = User::new("test", "user", "test@test.com", "pass", vec![1]); // TEST user restrictions
-        let db = MockDatabase::new(DatabaseBackend::Postgres).append_query_results(vec![results.clone()]).into_connection();
+        let db = MockDatabase::new(DatabaseBackend::Postgres)
+            .append_query_results(vec![results.clone()])
+            .into_connection();
         let query_res = Pupil::all_from_db(&user, &db).await;
         assert!(query_res.is_ok());
         let pupils = query_res.unwrap();
-        assert_eq!(pupils, results.clone().into_iter().map(Pupil::from).collect::<Vec<Pupil>>());
+        assert_eq!(
+            pupils,
+            results
+                .clone()
+                .into_iter()
+                .map(Pupil::from)
+                .collect::<Vec<Pupil>>()
+        );
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
@@ -312,7 +331,10 @@ mod tests {
                 false.into(),
                 false.into(),
                 "gender".into(),
-                "1164ce28-8915-4126-924d-fa580f1e9f01".parse::<Uuid>().unwrap().into(),
+                "1164ce28-8915-4126-924d-fa580f1e9f01"
+                    .parse::<Uuid>()
+                    .unwrap()
+                    .into(),
             ],
         );
         assert_eq!(t_log[0], exp_query);
@@ -334,7 +356,11 @@ mod tests {
         looked_after_child: false,
         gender: "gender".into(),
     })]
-    async fn test_set_from_update(mut test_pupil: Pupil, #[case] update: PupilUpdate, #[case] expected: Pupil) {
+    async fn test_set_from_update(
+        mut test_pupil: Pupil,
+        #[case] update: PupilUpdate,
+        #[case] expected: Pupil,
+    ) {
         test_pupil.set_from_update(update);
         assert_eq!(expected, test_pupil);
     }
@@ -353,7 +379,10 @@ mod tests {
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
             r#"DELETE FROM "pupil" WHERE "pupil"."id" = $1"#,
-            ["1164ce28-8915-4126-924d-fa580f1e9f01".parse::<Uuid>().unwrap().into()],
+            ["1164ce28-8915-4126-924d-fa580f1e9f01"
+                .parse::<Uuid>()
+                .unwrap()
+                .into()],
         );
         assert_eq!(t_log[0], exp_query);
     }

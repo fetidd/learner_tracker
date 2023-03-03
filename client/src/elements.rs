@@ -1,13 +1,13 @@
 mod button;
-mod icon_button;
-mod tag;
-mod modal;
 mod editable_field;
+mod icon_button;
+mod modal;
 mod pupil_tags;
+mod tag;
 
 pub use button::*;
-pub use tag::*;
+pub use editable_field::*;
 pub use icon_button::*;
 pub use modal::*;
-pub use editable_field::*;
 pub use pupil_tags::*;
+pub use tag::*;

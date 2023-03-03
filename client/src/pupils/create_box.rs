@@ -1,9 +1,16 @@
-use super::{pupil::Pupil};
-use crate::{clone, constant, error, app::AppContext, elements::{Button, IconButton, PupilTags}, pupils::PupilInputState, error::Result};
+use super::pupil::Pupil;
+use crate::{
+    app::AppContext,
+    clone, constant,
+    elements::{Button, IconButton, PupilTags},
+    error,
+    error::Result,
+    pupils::PupilInputState,
+};
 use gloo_net::http::Request;
-use std::{rc::Rc};
+use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{HtmlInputElement};
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
@@ -82,7 +89,11 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
     }
 }
 
-async fn create_pupil(pupil: &Pupil, ctx: &AppContext, refresh_callback: Callback<()>) -> Result<()> {
+async fn create_pupil(
+    pupil: &Pupil,
+    ctx: &AppContext,
+    refresh_callback: Callback<()>,
+) -> Result<()> {
     Request::put(constant::PUPILS_PATH)
         .json(&pupil)
         .expect("TODO this should be able to convert into our error")
