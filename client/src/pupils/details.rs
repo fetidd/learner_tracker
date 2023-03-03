@@ -38,12 +38,12 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
         };
 
         html! {
-            <div class="w-[600px] h-[240px] flex flex-col">
+            <div class="w-[450px] h-[240px] flex flex-col">
                 <div class="flex justify-between mb-3">
                     <EditableField id="name" class={Some("text-2xl")} input_type="text" edit_mode={*edit_mode} value={(*input_state).name.to_string()} onchange={&update_state_cb}/>
                     <IconButton onclick={&props.close_callback} icon="close" />
                 </div>
-                <div class="flex justify-between h-full">
+                <div class="flex flex-col justify-between h-full">
                     <div class="flex flex-col h-full">
                         <ul class="flex flex-col justify-between h-full">
                             <li class="flex justify-between">
@@ -78,7 +78,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                             </li>
                         </ul>
                     </div>
-                    <div class="flex flex-col justify-center mb-3">
+                    <div class="flex justify-around my-3">
                         <Button visible={Some(*edit_mode)} color="yellow" text="Cancel" onclick={
                             clone!(edit_mode, pupil, input_state);
                             Callback::from(move |_ev| {

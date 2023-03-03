@@ -18,9 +18,9 @@ pub fn Navbar(_: &NavbarProps) -> Html {
     html! {
         <nav id="navbar" class="w-full flex justify-between bg-slate-100 h-full items-center px-3">
             <SearchBar />
-            <div class="hidden md:block">
+            <div class="">
                 <div class="flex items-center space-x-5">
-                    <span>{&format!("Hi, {}!", ctx.current_user.first_names)}</span>
+                    <span class="hidden md:block">{&format!("Hi, {}!", ctx.current_user.first_names)}</span>
                     <Button color="red" onclick={logout} text="Log out"/>
                 </div>
             </div>

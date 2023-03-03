@@ -39,7 +39,7 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
 
 pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
-    for pupil in generate_pupils(300) {
+    for pupil in generate_pupils(60) {
         pupil.insert(&trx).await?;
     }
     trx.commit().await?;
@@ -47,7 +47,7 @@ pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
 }
 
 pub async fn seed_pupils_many(db: &DatabaseConnection) -> Result<(), DbErr> {
-    let pupils = generate_pupils(300);
+    let pupils = generate_pupils(60);
     entity::pupil::Entity::insert_many(pupils).exec(db).await?;
     Ok(())
 }
