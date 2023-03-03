@@ -10,7 +10,7 @@ pub struct Pupil {
     pub last_name: String,
     pub year: i32,
     pub start_date: NaiveDate,
-    pub end_date: NaiveDate,
+    pub end_date: Option<NaiveDate>,
     pub active: bool,
     pub more_able_and_talented: bool,
     pub english_as_additional_language: bool,
@@ -26,7 +26,7 @@ impl Pupil {
         last_name: String,
         year: i32,
         start_date: NaiveDate,
-        end_date: NaiveDate,
+        end_date: Option<NaiveDate>,
         active: bool,
         more_able_and_talented: bool,
         english_as_additional_language: bool,
@@ -86,7 +86,7 @@ mod tests {
                 last_name: "E".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -96,7 +96,7 @@ mod tests {
                 last_name: "C".into(),
                 year: 2,
                 start_date: "2025-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 active: true,
                 ..Default::default()
@@ -107,7 +107,7 @@ mod tests {
                 last_name: "B".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -117,7 +117,7 @@ mod tests {
                 last_name: "A".into(),
                 year: 5,
                 start_date: "2020-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -127,7 +127,7 @@ mod tests {
                 last_name: "D".into(),
                 year: 2,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -139,7 +139,7 @@ mod tests {
                 last_name: "A".into(),
                 year: 5,
                 start_date: "2020-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -149,7 +149,7 @@ mod tests {
                 last_name: "B".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -159,7 +159,7 @@ mod tests {
                 last_name: "C".into(),
                 year: 2,
                 start_date: "2025-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 active: true,
                 ..Default::default()
@@ -170,7 +170,7 @@ mod tests {
                 last_name: "D".into(),
                 year: 2,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },
@@ -180,7 +180,7 @@ mod tests {
                 last_name: "E".into(),
                 year: 1,
                 start_date: "2021-01-01".parse().unwrap(),
-                end_date: "2021-01-01".parse().unwrap(),
+                end_date: Some("2021-01-01".parse().unwrap()),
                 gender: "male".into(),
                 ..Default::default()
             },

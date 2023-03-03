@@ -7,7 +7,7 @@ pub struct InputState {
     pub name: String,
     pub gender: String,
     pub start_date: NaiveDate,
-    pub leave_date: NaiveDate,
+    pub leave_date: Option<NaiveDate>,
     pub active: bool,
     pub mat: bool,
     pub lac: bool,
