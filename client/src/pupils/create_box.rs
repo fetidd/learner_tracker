@@ -70,8 +70,9 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
                 <label><span>{"Leave date"}</span></label>
                 <input id="leave_date" class="hover:bg-slate-100 focus:outline-none w-36 my-2" type={"date"} placeholder="Leave date" value={(*input_state).leave_date.to_string()} onchange={update_state_cb.clone()}/>
             </div>
-
-            <PupilTags state={(*input_state).clone()} edit_mode=true onchange={&update_state_cb}/>
+            <div class="my-3">
+                <PupilTags state={(*input_state).clone()} edit_mode=true onchange={&update_state_cb}/>
+            </div>
 
             <div class="flex justify-between">
                 <Button color="red" onclick={reset_callback} text="Reset"/>
