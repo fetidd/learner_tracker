@@ -547,11 +547,6 @@ video {
   margin-bottom: 0.5rem;
 }
 
-.my-4 {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
 .my-\[calc\(50vh-120px\)\] {
   margin-top: calc(50vh - 120px);
   margin-bottom: calc(50vh - 120px);
@@ -686,12 +681,6 @@ video {
   --tw-space-x-reverse: 0;
   margin-right: calc(1.25rem * var(--tw-space-x-reverse));
   margin-left: calc(1.25rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
 }
 
 .justify-self-end {
@@ -1009,18 +998,6 @@ video {
 @media (min-width: 1024px) {
   .lg\:flex {
     display: flex;
-  }
-
-  .lg\:columns-3 {
-    -moz-columns: 3;
-         columns: 3;
-  }
-}
-
-@media (min-width: 1280px) {
-  .xl\:columns-3 {
-    -moz-columns: 3;
-         columns: 3;
   }
 }
 
