@@ -1,5 +1,5 @@
 use crate::elements::ModalProvider;
-use crate::{utils, context::AppContext};
+use crate::{utils};
 use crate::{
     constant, debug, error, login, menu, users::User, navbar, pupils, routes::Route,
 };
@@ -10,6 +10,14 @@ use std::{collections::HashMap, rc::Rc};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AppContext {
+    pub current_user: User,
+    pub auth_token: String,
+    pub login_callback: Callback<(String, String)>,
+    pub logout_callback: Callback<()>,
+}
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -24,7 +32,7 @@ pub fn app() -> Html {
                 error!("user in token did not match stored user");
                 return None;
             }
-            Some(AppContext {current_user: user, auth_token: token})
+            Some((user, token))
         } else {
             None
         }
@@ -43,6 +51,8 @@ pub fn app() -> Html {
         })
     };
 
+
+
     html! {
         <div id="app" class="bg-slate-100">
             <BrowserRouter>
@@ -50,19 +60,27 @@ pub fn app() -> Html {
                     let login_handler = login_handler.clone();
                     let logout_handler = logout_handler.clone();
                     Callback::from(move |route: Route| {
+                        clone!(login_handler, logout_handler);
                         if (*state).is_some() {
                             let state = (*state).clone().unwrap();
+                            let context = AppContext {
+                                current_user: (state).0,
+                                auth_token: (state).1,
+                                login_callback: login_handler.clone(),
+                                logout_callback: logout_handler.clone()
+                            };
                             html! {
-                                <ContextProvider<Rc<AppContext>> context={Rc::new(state.clone())}>
+                                <ContextProvider<Rc<AppContext>> context={Rc::new(context)}>
                                     <ModalProvider>
                                     // ACTUAL UI ====================================================================
 
-                                        <navbar::Navbar logout_handler={logout_handler.clone()} />
+                                        <navbar::Navbar />
                                         <menu::Menu />
                                         <div id="router-area">
                                             {match route {
-                                                Route::ManagePupils | Route::Login  => html! { <pupils::PupilTable />},
-                                                Route::ManageUsers                  => html! { <pupils::PupilTable />},
+                                                Route::Login | 
+                                                Route::ManagePupils  => html! { <pupils::PupilTable />},
+                                                Route::ManageUsers   => html! { <pupils::PupilTable />},
                                             }}
                                         </div>
                                         
@@ -83,7 +101,7 @@ pub fn app() -> Html {
 
 // ====================================================================================================================================================
 
-fn login(email: String, password: String, state_handle: UseStateHandle<Option<AppContext>>) {
+fn login(email: String, password: String, state_handle: UseStateHandle<Option<(User, String)>>) {
     // TEST try fantoccini
     debug!("logging in with", &email, ":", &password);
     spawn_local(async move {
@@ -108,7 +126,7 @@ fn login(email: String, password: String, state_handle: UseStateHandle<Option<Ap
                                                 if let Err(error) = SessionStorage::set(constant::USER_STORAGE_KEY, current_user.clone()) {
                                                     error!("storing user in sessionstorage failed:", error.to_string());
                                                 }
-                                                let new_ctx = AppContext {current_user, auth_token};
+                                                let new_ctx = (current_user, auth_token);
                                                 state_handle.set(Some(new_ctx));
                                             }
                                             Err(error) => error!("error decoding auth token:", error.to_string())
@@ -128,7 +146,7 @@ fn login(email: String, password: String, state_handle: UseStateHandle<Option<Ap
     });
 }
 
-fn logout(state_handle: UseStateHandle<Option<AppContext>>) {
+fn logout(state_handle: UseStateHandle<Option<(User, String)>>) {
     spawn_local(async move {
         match SessionStorage::get::<String>(constant::AUTH_TOKEN_STORAGE_KEY) {
             Ok(token) => if let Err(error) = Request::get(constant::LOGOUT_PATH).header("Authorization", &format!("Bearer {token}")).send().await {
@@ -139,6 +157,7 @@ fn logout(state_handle: UseStateHandle<Option<AppContext>>) {
             }
         }
         SessionStorage::delete(constant::AUTH_TOKEN_STORAGE_KEY);
+        SessionStorage::delete(constant::USER_STORAGE_KEY);
         state_handle.set(None);
     });
 }

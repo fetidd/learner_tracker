@@ -8,14 +8,26 @@ static PURPLE: &str = "hover:bg-purple-100 bg-purple-200 border-purple-200";
 
 #[function_component(Button)]
 pub fn button(props: &ButtonProps) -> Html {
-    let class = format!("p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {}", match props.color.as_str() {
+    let visible = {
+        if let Some(vis) = props.visible {
+            if vis {
+                ""
+            } else {
+                "hidden"
+            }
+        } else {
+            ""
+        }
+    };
+
+    let class = format!("p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {} {}", match props.color.as_str() {
         "green" => GREEN,
         "red" => RED,
         "blue" => BLUE,
         "yellow" => YELLOW,
         "purple" => PURPLE,
         _ => GREEN
-    });
+    }, visible);
 
     html!(<button class={class} onclick={props.onclick.clone()} >{&props.text}</button>)
 }
@@ -24,5 +36,6 @@ pub fn button(props: &ButtonProps) -> Html {
 pub struct ButtonProps {
     pub onclick: Callback<MouseEvent>,
     pub text: String,
-    pub color: String
+    pub color: String,
+    pub visible: Option<bool>
 }

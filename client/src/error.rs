@@ -40,5 +40,7 @@ from_error!(serde_json::Error > JsonError);
 error_macro!{
     ResponseParseError,
     DecodeError,
-    StorageError
+    StorageError,
+    ServerError,
+    Unauthorized
 }

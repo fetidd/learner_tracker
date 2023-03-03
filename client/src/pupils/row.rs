@@ -20,19 +20,19 @@ pub fn pupil_row(p: &PupilRowProps) -> Html {
                 <span>{format!("{} {}", pupil.first_names, pupil.last_name)}</span>
                 <div class="hidden lg:flex justify-start items-center space-x-1 w-[200px]">
                     if pupil.more_able_and_talented {
-                        <Tag color="purple" text="MAT" />
+                        <Tag id="mat" color="purple" text="MAT" />
                     }
                     if pupil.english_as_additional_language {
-                        <Tag color="yellow" text="EAL" />
+                        <Tag id="eal" color="yellow" text="EAL" />
                     }
                     if pupil.additional_learning_needs {
-                        <Tag color="orange" text="ALN" />
+                        <Tag id="aln" color="orange" text="ALN" />
                     }
                     if pupil.free_school_meals {
-                        <Tag color="green" text="FSM" />
+                        <Tag id="fsm" color="green" text="FSM" />
                     }
                     if pupil.looked_after_child {
-                        <Tag color="blue" text="LAC" />
+                        <Tag id="lac" color="blue" text="LAC" />
                     }
                 </div>
             </div>

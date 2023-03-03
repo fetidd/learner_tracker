@@ -12,7 +12,6 @@ mod users;
 mod routes;
 mod utils;
 mod search;
-mod context;
 mod elements;
 
 fn main() {

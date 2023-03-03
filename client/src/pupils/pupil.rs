@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Eq, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug, Eq, Default, Ord)]
 pub struct Pupil {
     #[serde(skip_serializing_if="Option::is_none")]
     pub id: Option<Uuid>,
@@ -53,20 +53,47 @@ impl Pupil {
     }
 }
 
-impl Ord for Pupil {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+impl PartialOrd for Pupil {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         if self.last_name < other.last_name {
-            std::cmp::Ordering::Less
+            Some(std::cmp::Ordering::Less)
         } else if self.last_name > other.last_name {
-            std::cmp::Ordering::Greater
+            Some(std::cmp::Ordering::Greater)
         } else {
             if self.first_names < other.first_names {
-                std::cmp::Ordering::Less
+                Some(std::cmp::Ordering::Less)
             } else if self.first_names > other.first_names {
-                std::cmp::Ordering::Greater
+                Some(std::cmp::Ordering::Greater)
             } else {
-                std::cmp::Ordering::Equal
+                Some(std::cmp::Ordering::Equal)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn test_sort_pupils() {
+        let mut pupils = vec![
+            Pupil { id: Some(Uuid::from_str("a3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "E".into(), last_name: "E".into(), year: 1, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("e3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "C".into(), last_name: "C".into(), year: 2, start_date: "2025-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), active: true, ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("f3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "B".into(), last_name: "B".into(), year: 1, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("b3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "A".into(), last_name: "A".into(), year: 5, start_date: "2020-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("c3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "D".into(), last_name: "D".into(), year: 2, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+        ];
+        let expected =  vec![
+            Pupil { id: Some(Uuid::from_str("b3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "A".into(), last_name: "A".into(), year: 5, start_date: "2020-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("f3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "B".into(), last_name: "B".into(), year: 1, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("e3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "C".into(), last_name: "C".into(), year: 2, start_date: "2025-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), active: true, ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("c3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "D".into(), last_name: "D".into(), year: 2, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+            Pupil { id: Some(Uuid::from_str("a3aff180-4209-46ca-a409-15b53a96ec24").unwrap()), first_names: "E".into(), last_name: "E".into(), year: 1, start_date: "2021-01-01".parse().unwrap(), end_date: "2021-01-01".parse().unwrap(), gender: "male".into(), ..Default::default() },
+        ];
+        pupils.sort();
+        assert_eq!(pupils, expected);
     }
 }

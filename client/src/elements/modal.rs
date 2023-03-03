@@ -12,18 +12,27 @@ pub fn modal_provider(props: &ModalProviderProps) -> Html {
 
     let invoke_callback: Callback<(MouseEvent, Html, Classes)> = {
         clone!(html_handle, modal_dialog, modal_backdrop, is_displayed);
-        Callback::from(move |(ev, html, extra_classes): (MouseEvent, Html, Classes)| {
-            clone!(html_handle, modal_dialog, modal_backdrop, is_displayed);
-            html_handle.set(html);
-            open_modal(modal_dialog, modal_backdrop, is_displayed, extra_classes, ev);
-        })
+        Callback::from(
+            move |(ev, html, extra_classes): (MouseEvent, Html, Classes)| {
+                clone!(html_handle, modal_dialog, modal_backdrop, is_displayed);
+                html_handle.set(html);
+                open_modal(
+                    modal_dialog,
+                    modal_backdrop,
+                    is_displayed,
+                    extra_classes,
+                    ev,
+                );
+            },
+        )
     };
 
     let dismiss_callback: Callback<MouseEvent> = {
-        clone!(modal_dialog, modal_backdrop, is_displayed);
+        clone!(modal_dialog, modal_backdrop, is_displayed, html_handle);
         Callback::from(move |ev| {
-            clone!(modal_dialog, modal_backdrop, is_displayed);
+            clone!(modal_dialog, modal_backdrop, is_displayed, html_handle);
             close_modal(modal_dialog, modal_backdrop, is_displayed, ev);
+            html_handle.set(html!());
         })
     };
 
@@ -54,7 +63,7 @@ fn open_modal(
     modal_backdrop: NodeRef,
     is_displayed: UseStateHandle<bool>,
     extra_classes: Classes,
-    _event: MouseEvent
+    _event: MouseEvent,
 ) {
     let modal_dialog: HtmlElement = modal_dialog.cast().expect("cast modal to htmlelement");
     let mut dialog_classes = Classes::from(modal_dialog.class_name());
@@ -82,7 +91,7 @@ fn close_modal(
     modal_dialog: NodeRef,
     modal_backdrop: NodeRef,
     is_displayed: UseStateHandle<bool>,
-    _event: MouseEvent
+    _event: MouseEvent,
 ) {
     let modal_dialog: HtmlElement = modal_dialog.cast().expect("cast modal to htmlelement");
     let mut box_classes = Classes::from(modal_dialog.class_name());

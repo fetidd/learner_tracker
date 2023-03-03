@@ -2,12 +2,12 @@ use std::rc::Rc;
 use super::types::PupilTableProps;
 use crate::{
     constant,
-    context::AppContext,
+    app::AppContext,
     error,
     error::*,
     pupils::{create_box::PupilCreateBox, row::PupilRow},
     pupils::{pupil::Pupil, PupilDetails},
-    utils::get_current_token, elements::{Button, ModalCallbacks},
+    elements::{Button, ModalCallbacks}, routes::Route,
 };
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
@@ -19,18 +19,19 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let pupils: UseStateHandle<Vec<Pupil>> = use_state(|| vec![]);
     // get pupils
     {
-        let pupils = pupils.clone();
+        clone!(ctx, pupils);
         use_effect_with_deps(
             move |_| {
-                let pupils = pupils.clone();
+                clone!(ctx, pupils);
                 spawn_local(async move {
-                    match get_current_token() {
-                        Ok(token) => {
-                            if let Err(_error) = fetch_pupils(&token, pupils).await {
-                                //  TODO handle error - show an alert on screen?
-                            }
+                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils).await {
+                        error!(
+                            "failed to get pupils in pupil table on load:",
+                            error.to_string()
+                        );
+                        if error.kind == ErrorKind::Unauthorized {
+                            ctx.logout_callback.emit(());
                         }
-                        Err(_error) => {}
                     }
                 });
                 || ()
@@ -53,7 +54,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
         })
     };
 
-    // MODAL SETUP ==================
+    // MODAL SETUP ========================================================================
     let (invoke_modal, dismiss_modal) = use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
     let open_create_box = {
         clone!(invoke_modal, dismiss_modal, refresh_callback);
@@ -68,12 +69,12 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
         })
     };
-    // ==============================
+    // ====================================================================================
 
     html! {
         <div class="flex flex-col m-3">
             <div class="overflow-y-auto [max-height:calc(90vh-60px)] px-5 pt-5 scrollbar shadow-lg rounded-md bg-white">
-                <ul class="sm:columns-2 lg:columns-3 snap-y">
+                <ul class="sm:columns-2 2xl:columns-3 snap-y">
                     {pupils.iter().map(|pupil| {
                         html!{<PupilRow pupil={pupil.clone()} open_pupil_details_callback={&open_pupil_details}/>}
                     }).collect::<Html>()}
@@ -94,9 +95,17 @@ async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result
         .await
     {
         Ok(response) => {
-            let fetched = response.json::<Vec<Pupil>>().await?;
-            pupils.set(fetched);
-            Ok(())
+            match response.status() {
+                401 => {
+                    Err(Unauthorized!())
+                },
+                200 => {
+                    let fetched = response.json::<Vec<Pupil>>().await?;
+                    pupils.set(fetched);
+                    Ok(())
+                },
+                unknown => Err(ServerError!(format!("unknown status code {unknown}")))
+            }
         }
         Err(err) => Err(ResponseParseError!(err.to_string())),
     }

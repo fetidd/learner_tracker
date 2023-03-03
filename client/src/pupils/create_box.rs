@@ -1,5 +1,5 @@
 use super::{pupil::Pupil};
-use crate::{clone, constant, error, context::AppContext, elements::{Button, IconButton}};
+use crate::{clone, constant, error, app::AppContext, elements::{Button, IconButton}};
 use chrono::{NaiveDate, Utc};
 use gloo_net::http::Request;
 use std::{rc::Rc};
@@ -90,7 +90,7 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
         <div class="">
             <div class="flex justify-between">
                 <span class="text-3xl">{"Add a learner"}</span>
-                <IconButton icon="" onclick={props.close_callback.clone()}/>
+                <IconButton icon="close" onclick={props.close_callback.clone()}/>
             </div>
             <input id="name" class="hover:bg-slate-100 focus:outline-none input" type="text" placeholder="Names" value={(*input_state).name.clone()} onchange={update_state_cb.clone()}/>
             <div class="flex justify-between">
@@ -143,7 +143,7 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 struct InputState {
     name: String,
     gender: String,

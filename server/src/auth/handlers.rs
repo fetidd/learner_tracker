@@ -20,9 +20,11 @@ pub async fn login_handler(State(state): State<AppState>, Json(login_req): Json<
 
 pub async fn logout_handler(State(state): State<AppState>, TypedHeader(auth_token): TypedHeader<Authorization<Bearer>>) -> Result<StatusCode> {
     let decoded = decode_token(auth_token.token())?;
+    debug!("logout request for {}", decoded.email_address);
     let user: User = User::one_from_db(&decoded.email_address, state.database()).await?;
+    user.refresh_secret(state.database()).await?;
+    debug!("refreshed secret for {}", decoded.email_address);
     if let Ok(_) = authorize_token(auth_token.token(), &user.secret) {
-        user.refresh_secret(state.database()).await?;
         Ok(StatusCode::OK)
     } else {
         Err(InvalidJwt!())

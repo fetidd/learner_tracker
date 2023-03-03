@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use crate::{
-    context::AppContext,
+    app::AppContext,
     routes::Route,
     search::SearchBar, elements::Button,
 };
@@ -8,17 +8,17 @@ use yew::prelude::*;
 use yew_router::{prelude::*};
 
 #[function_component]
-pub fn Navbar(p: &NavbarProps) -> Html {
+pub fn Navbar(_: &NavbarProps) -> Html {
     let navigator = use_navigator().expect("didn't get a navigator");
-    let logout_handler = p.logout_handler.clone();
+    let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN NAVBAR");
+    let logout_callback = ctx.logout_callback.clone();
     let logout = {
         let navigator = navigator.clone();
         Callback::from(move |_| {
-            logout_handler.emit(());
+            logout_callback.emit(());
             navigator.clone().replace(&Route::Login);
         })
     };
-    let ctx = use_context::<Rc<AppContext>>().expect("NO CONTEXT IN NAVBAR");
     html! {
         <nav id="navbar" class="w-full flex justify-between bg-slate-100 h-full items-center px-3">
             <SearchBar />
@@ -33,6 +33,4 @@ pub fn Navbar(p: &NavbarProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct NavbarProps {
-    pub logout_handler: Callback<()>,
-}
+pub struct NavbarProps {}
