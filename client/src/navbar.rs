@@ -21,7 +21,7 @@ pub fn Navbar(_: &NavbarProps) -> Html {
             <div class="">
                 <div class="flex items-center space-x-5">
                     <span class="hidden md:block">{&format!("Hi, {}!", ctx.current_user.first_names)}</span>
-                    <Button color="red" onclick={logout} text="Log out"/>
+                    <Button color="red" onclick={logout} text="Log out" icon={html!(<yew_feather::LogOut size="16" />)} />
                 </div>
             </div>
         </nav>

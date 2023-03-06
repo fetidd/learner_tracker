@@ -40,7 +40,7 @@ pub fn login_form(p: &LoginFormProps) -> Html {
                 <input type={"password"} placeholder={"Password"} autocomplete={"current-password"} ref={entered_password}/>
             </div>
             <div class="flex justify-center">
-                <Button color="green" onclick={login_callback} text="Log in"/>
+                <Button icon={html!(<yew_feather::LogIn size="16" />)} color="green" onclick={login_callback} text="Log in"/>
             </div>
         </div>
     }

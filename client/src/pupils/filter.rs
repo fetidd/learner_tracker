@@ -22,7 +22,8 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
         clone!(state);
         let update_selected_filters = props.update_selected_filters.clone();
         let refresh = props.refresh_callback.clone();
-        Callback::from(move |_ev| {
+        let close = props.close_callback.clone();
+        Callback::from(move |ev| {
             refresh.emit(false);
             let mut filters = vec![];
             for (filter, should_apply) in &(*state).flags {
@@ -48,6 +49,7 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
                 filters.push(Filter::Year(year));
             }
             update_selected_filters.emit(filters);
+            close.emit(ev);
         })
     };
 
@@ -106,10 +108,12 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
                 clone!(state);
                 let refresh = props.refresh_callback.clone();
                 let update = props.update_selected_filters.clone();
-                Callback::from(move |_ev| {
+                let close = props.close_callback.clone();
+                Callback::from(move |ev| {
                     state.set(TableFilterState::default());
                     update.emit(vec![]);
                     refresh.emit(false);
+                    close.emit(ev);
                 })
             } />
         </div>

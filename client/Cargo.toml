@@ -22,3 +22,4 @@ yew = { version = "0.20.0", features = ["csr"] }
 yew-router = "0.17.0"
 base64 = "0.21.0"
 console_error_panic_hook = "0.1.7"
+yew-feather = "1.0.0"

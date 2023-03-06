@@ -102,8 +102,8 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     html! {
         <div class="flex flex-col m-3">
             <div class="flex p-3 gap-2">
-                <Button text="+ Add learner" color="green" onclick={&open_create_box} />
-                <Button text="Refresh" color="green" onclick={
+                <Button icon={html!(<yew_feather::Plus />)} text="Add" color="green" onclick={&open_create_box} />
+                <Button icon={html!(<yew_feather::RefreshCcw size="16" />)} text="Refresh" color="green" onclick={
                     clone!(ctx, pupils, pupils_cache);
                     Callback::from(move |_ev| {
                         clone!(ctx, pupils, pupils_cache);
@@ -117,7 +117,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
                                 }
                             })
                     })} />
-                <Button text="Filter" color="purple" onclick={&open_filter} />
+                <Button icon={html!(<yew_feather::Filter size="16" />)} text="Filter" color="purple" onclick={&open_filter} />
             </div>
             <div class="overflow-y-auto [max-height:calc(90vh-60px)] px-5 pt-5 scrollbar shadow-lg rounded-md bg-white">
                 <ul class="sm:columns-2 2xl:columns-3 snap-y">

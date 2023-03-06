@@ -79,7 +79,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                         </ul>
                     </div>
                     <div class="flex justify-around my-3">
-                        <Button visible={Some(*edit_mode)} color="yellow" text="Cancel" onclick={
+                        <Button visible={Some(*edit_mode)} icon={html!(<yew_feather::X size="16" />)} color="yellow" text="Cancel" onclick={
                             clone!(edit_mode, pupil, input_state);
                             Callback::from(move |_ev| {
                                 clone!(edit_mode, pupil, input_state);
@@ -88,7 +88,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                     input_state.set(PupilInputState::from(&pupil.clone()));
                                 })
                         })} />
-                        <Button visible={Some(*edit_mode)} color="green" text="Save" onclick={
+                        <Button visible={Some(*edit_mode)} icon={html!(<yew_feather::Save size="16" />)} color="green" text="Save" onclick={
                             clone!(edit_mode, pupil, input_state, refresh_callback, ctx);
                             Callback::from(move |_ev| {
                                 clone!(edit_mode, pupil, input_state, refresh_callback, ctx);
@@ -98,7 +98,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                     edit_mode.set(!*edit_mode);
                                 })
                         })} />
-                        <Button visible={Some(!*edit_mode)} color="yellow" text="Edit" onclick={
+                        <Button visible={Some(!*edit_mode)} icon={html!(<yew_feather::Edit size="16" />)} color="yellow" text="Edit" onclick={
                             clone!(edit_mode);
                             Callback::from(move |_ev| {
                                 clone!(edit_mode);
@@ -106,7 +106,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                     edit_mode.set(!*edit_mode);
                                 })
                         })} />
-                        <Button visible={Some(!*edit_mode)} color="red" text="Delete" onclick={
+                        <Button visible={Some(!*edit_mode)} icon={html!(<yew_feather::Trash size="16" />)} color="red" text="Delete" onclick={
                             clone!(pupil, refresh_callback, close_callback, ctx);
                             Callback::from(move |ev| {
                                 clone!(pupil, refresh_callback, close_callback, ctx);

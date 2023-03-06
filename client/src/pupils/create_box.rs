@@ -91,8 +91,8 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
             </div>
 
             <div class="flex justify-between">
-                <Button color="red" onclick={reset_callback} text="Reset"/>
-                <Button color="green" onclick={create_callback} text="Add learner"/>
+                <Button icon={html!(<yew_feather::RefreshCcw size="16" />)} color="yellow" onclick={reset_callback} text="Reset"/>
+                <Button icon={html!(<yew_feather::Plus size="16" />)} color="green" onclick={create_callback} text="Add"/>
             </div>
         </div>
     }

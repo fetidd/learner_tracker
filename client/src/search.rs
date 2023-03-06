@@ -1,4 +1,4 @@
-use crate::constant;
+use crate::{constant, elements::IconButton};
 use gloo_net::http::Request;
 use serde_json::json;
 use wasm_bindgen_futures::spawn_local;
@@ -23,8 +23,9 @@ pub fn search_bar() -> Html {
         })
     };
     html! {
-        <div>
+        <div class="flex gap-3 items-center">
             <input id="search-input" class="w-96 h-[30px] p-1 rounded border-2 border-neutral-200 focus:outline-none" id="search-bar" type="text"  onchange={search_callback}/>
+            <IconButton icon="search" onclick={Callback::from(move |_| {})} />
 
             if !results.is_empty() {
                 <div id="result-dropdown">

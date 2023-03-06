@@ -21,7 +21,7 @@ pub fn button(props: &ButtonProps) -> Html {
     };
 
     let class = format!(
-        "p-0.5 m-0.5 rounded w-[150px] border-solid border-2 {} {}",
+        "p-0.5 m-0.5 rounded w-[120px] border-solid border-2 flex items-center justify-center gap-6 {} {}",
         match props.color.as_str() {
             "green" => GREEN,
             "red" => RED,
@@ -32,8 +32,12 @@ pub fn button(props: &ButtonProps) -> Html {
         },
         visible
     );
+    let icon = match &props.icon {
+        Some(icon_html) => icon_html.clone(),
+        None => html!()
+    };
 
-    html!(<button class={class} onclick={props.onclick.clone()} >{&props.text}</button>)
+    html!(<button class={class} onclick={props.onclick.clone()} >{icon}<span>{&props.text}</span></button>)
 }
 
 #[derive(PartialEq, Properties)]
@@ -42,4 +46,5 @@ pub struct ButtonProps {
     pub text: String,
     pub color: String,
     pub visible: Option<bool>,
+    pub icon: Option<Html>
 }
