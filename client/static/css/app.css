@@ -51,7 +51,7 @@
 #app {
     display: grid;
     grid-template-columns: 200px repeat(19, 1fr);
-    grid-template-rows: 60px repeat(19, 1fr);
+    grid-template-rows: 50px repeat(19, 1fr);
     height: 100vh;
     max-height: 100vh;
     overflow: hidden;

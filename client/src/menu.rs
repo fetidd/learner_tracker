@@ -5,8 +5,8 @@ use yew_router::prelude::*;
 #[function_component(Menu)]
 pub fn menu() -> Html {
     html! {
-        <div id="menu" class="flex flex-col justify-between bg-slate-100 h-full">
-            <div class="flex flex-col gap-2 m-2">
+        <div id="menu" class="flex flex-col justify-between bg-slate-100 h-full my-3">
+            <div class="flex flex-col gap-2 p-2 mt-1">
                 <MenuItem route={Route::ManagePupils} title="Manage pupils"/>
                 <MenuItem route={Route::ManagePupils} title="General comments"/>
                 <MenuItem route={Route::ManagePupils} title="Test results"/>

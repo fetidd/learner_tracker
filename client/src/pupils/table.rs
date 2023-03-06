@@ -100,24 +100,26 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     // RENDER ===================================================================================
 
     html! {
-        <div class="flex flex-col m-3">
-            <div class="flex p-3 gap-2">
+        <div class="flex flex-col m-3 gap-3">
+            <div class="flex p-3 gap-2 justify-between shadow-lg rounded-md bg-white">
                 <Button icon={html!(<yew_feather::Plus />)} text="Add" color="green" onclick={&open_create_box} />
-                <Button icon={html!(<yew_feather::RefreshCcw size="16" />)} text="Refresh" color="green" onclick={
-                    clone!(ctx, pupils, pupils_cache);
-                    Callback::from(move |_ev| {
+                <div class="flex">
+                    <Button icon={html!(<yew_feather::Filter size="16" />)} text="Filter" color="purple" onclick={&open_filter} />
+                    <Button icon={html!(<yew_feather::RefreshCcw size="16" />)} text="Refresh" color="green" onclick={
                         clone!(ctx, pupils, pupils_cache);
-                            spawn_local(async move {
-                                clone!(pupils);
-                                if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
-                                    error!(
-                                        "failed to refresh pupils in pupil table:",
-                                        error.to_string()
-                                    );
-                                }
-                            })
-                    })} />
-                <Button icon={html!(<yew_feather::Filter size="16" />)} text="Filter" color="purple" onclick={&open_filter} />
+                        Callback::from(move |_ev| {
+                            clone!(ctx, pupils, pupils_cache);
+                                spawn_local(async move {
+                                    clone!(pupils);
+                                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
+                                        error!(
+                                            "failed to refresh pupils in pupil table:",
+                                            error.to_string()
+                                        );
+                                    }
+                                })
+                        })} />
+                </div>
             </div>
             <div class="overflow-y-auto [max-height:calc(90vh-60px)] px-5 pt-5 scrollbar shadow-lg rounded-md bg-white">
                 <ul class="sm:columns-2 2xl:columns-3 snap-y">

@@ -571,6 +571,10 @@ video {
   margin-bottom: 0.75rem;
 }
 
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
 .flex {
   display: flex;
 }
@@ -581,10 +585,6 @@ video {
 
 .hidden {
   display: none;
-}
-
-.h-96 {
-  height: 24rem;
 }
 
 .h-\[240px\] {
@@ -599,16 +599,12 @@ video {
   height: 42px;
 }
 
-.h-full {
-  height: 100%;
-}
-
-.h-\[200px\] {
-  height: 200px;
-}
-
 .h-\[600px\] {
   height: 600px;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .w-36 {
@@ -621,10 +617,6 @@ video {
 
 .w-\[120px\] {
   width: 120px;
-}
-
-.w-\[150px\] {
-  width: 150px;
 }
 
 .w-\[200px\] {
@@ -668,6 +660,10 @@ video {
   justify-content: flex-start;
 }
 
+.justify-end {
+  justify-content: flex-end;
+}
+
 .justify-center {
   justify-content: center;
 }
@@ -688,16 +684,8 @@ video {
   gap: 0.75rem;
 }
 
-.gap-4 {
-  gap: 1rem;
-}
-
 .gap-6 {
   gap: 1.5rem;
-}
-
-.gap-5 {
-  gap: 1.25rem;
 }
 
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
@@ -831,6 +819,10 @@ video {
 
 .p-1 {
   padding: 0.25rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .p-3 {
@@ -967,7 +959,7 @@ video {
 #app {
   display: grid;
   grid-template-columns: 200px repeat(19, 1fr);
-  grid-template-rows: 60px repeat(19, 1fr);
+  grid-template-rows: 50px repeat(19, 1fr);
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
