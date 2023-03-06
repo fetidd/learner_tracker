@@ -94,7 +94,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                 clone!(edit_mode, pupil, input_state, refresh_callback, ctx);
                                 spawn_local(async move {
                                     update_pupil(&pupil.id.unwrap().to_string(), &(*input_state), &ctx.auth_token).await;
-                                    refresh_callback.emit(());
+                                    refresh_callback.emit(true);
                                     edit_mode.set(!*edit_mode);
                                 })
                         })} />
@@ -112,7 +112,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
                                 clone!(pupil, refresh_callback, close_callback, ctx);
                                 spawn_local(async move {
                                     delete_pupil(&pupil.id.unwrap().to_string(), &ctx.auth_token).await;
-                                    refresh_callback.emit(());
+                                    refresh_callback.emit(true);
                                     close_callback.emit(ev);
                                 })
                         })} />
@@ -129,7 +129,7 @@ pub fn pupil_details(props: &PupilDetailsProps) -> Html {
 pub struct PupilDetailsProps {
     pub pupil: Option<Pupil>,
     pub close_callback: Callback<MouseEvent>,
-    pub refresh_callback: Callback<()>,
+    pub refresh_callback: Callback<bool>,
 }
 
 async fn delete_pupil(id: &str, token: &str) {

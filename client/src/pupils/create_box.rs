@@ -15,7 +15,7 @@ use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
 pub struct PupilCreateBoxProps {
-    pub refresh_callback: Callback<()>,
+    pub refresh_callback: Callback<bool>,
     pub close_callback: Callback<MouseEvent>,
 }
 
@@ -101,7 +101,7 @@ pub fn pupil_create_box(props: &PupilCreateBoxProps) -> Html {
 async fn create_pupil(
     pupil: &Pupil,
     ctx: &AppContext,
-    refresh_callback: Callback<()>,
+    refresh_callback: Callback<bool>,
 ) -> Result<()> {
     Request::put(constant::PUPILS_PATH)
         .json(&pupil)
@@ -109,6 +109,6 @@ async fn create_pupil(
         .header("Authorization", &format!("Bearer {}", ctx.auth_token))
         .send()
         .await?;
-    refresh_callback.emit(());
+    refresh_callback.emit(true);
     Ok(())
 }

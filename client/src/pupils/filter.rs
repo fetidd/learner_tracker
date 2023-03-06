@@ -23,7 +23,7 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
         let update_selected_filters = props.update_selected_filters.clone();
         let refresh = props.refresh_callback.clone();
         Callback::from(move |_ev| {
-            refresh.emit(());
+            refresh.emit(false);
             let mut filters = vec![];
             for (filter, should_apply) in &(*state).flags {
                 if *should_apply {
@@ -109,7 +109,7 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
                 Callback::from(move |_ev| {
                     state.set(TableFilterState::default());
                     update.emit(vec![]);
-                    refresh.emit(());
+                    refresh.emit(false);
                 })
             } />
         </div>
@@ -119,7 +119,7 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
 #[derive(PartialEq, Properties)]
 pub struct TableFilterProps {
     pub currently_applied: Vec<Filter>,
-    pub refresh_callback: Callback<()>,
+    pub refresh_callback: Callback<bool>,
     pub close_callback: Callback<MouseEvent>,
     pub update_selected_filters: Callback<Vec<Filter>>,
 }

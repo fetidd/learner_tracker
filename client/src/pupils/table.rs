@@ -39,31 +39,26 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             (),
         );
     }
-    let server_refresh_callback = {
+    let refresh_callback = {
         clone!(ctx, pupils, pupils_cache);
-        Callback::from(move |_| {
+        Callback::from(move |use_server: bool| {
             clone!(ctx, pupils, pupils_cache);
             spawn_local(async move {
                 clone!(pupils);
-                if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
-                    error!(
-                        "failed to refresh pupils in pupil table:",
-                        error.to_string()
-                    );
+                if use_server {
+                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
+                        error!(
+                            "failed to refresh pupils in pupil table:",
+                            error.to_string()
+                        );
+                    }
+                } else {
+                    pupils.set((*pupils_cache).clone());
                 }
             })
         })
     };
-    let cache_refresh_callback = {
-        clone!(pupils, pupils_cache);
-        Callback::from(move |_| {
-            clone!(pupils, pupils_cache);
-            spawn_local(async move {
-                clone!(pupils);
-                pupils.set((*pupils_cache).clone());
-            })
-        })
-    };
+
 
     // FILTER ===================================================================================
     let filters = use_state(|| Vec::<PupilFilter>::new());
@@ -85,21 +80,21 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let (invoke_modal, dismiss_modal) =
         use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
     let open_create_box = {
-        clone!(invoke_modal, dismiss_modal, server_refresh_callback);
+        clone!(invoke_modal, dismiss_modal, refresh_callback);
         Callback::from(move |ev: MouseEvent| {
-            invoke_modal.emit((ev, html!(<PupilCreateBox refresh_callback={&server_refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
+            invoke_modal.emit((ev, html!(<PupilCreateBox refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
         })
     };
     let open_pupil_details = {
-        clone!(invoke_modal, dismiss_modal, server_refresh_callback);
+        clone!(invoke_modal, dismiss_modal, refresh_callback);
         Callback::from(move |(ev, pupil): (MouseEvent, Pupil)| {
-            invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&server_refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
+            invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
         })
     };
     let open_filter = {
-        clone!(invoke_modal, dismiss_modal, cache_refresh_callback);
+        clone!(invoke_modal, dismiss_modal, refresh_callback);
         Callback::from(move |ev: MouseEvent| {
-            invoke_modal.emit((ev, html!(<PupilTableFilter update_selected_filters={&select_filter_callback} refresh_callback={&cache_refresh_callback} close_callback={&dismiss_modal} currently_applied={(*filters).clone()} />), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
+            invoke_modal.emit((ev, html!(<PupilTableFilter update_selected_filters={&select_filter_callback} refresh_callback={&refresh_callback} close_callback={&dismiss_modal} currently_applied={(*filters).clone()} />), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
         })
     };
     // RENDER ===================================================================================
