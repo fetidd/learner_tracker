@@ -18,13 +18,14 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
 
     // PUPILS ===================================================================================
     let pupils: UseStateHandle<Vec<Pupil>> = use_state_eq(|| vec![]);
+    let pupils_cache: UseStateHandle<Vec<Pupil>> = use_state_eq(|| vec![]);
     {
-        clone!(ctx, pupils);
+        clone!(ctx, pupils, pupils_cache);
         use_effect_with_deps(
             move |_| {
-                clone!(ctx, pupils);
+                clone!(ctx, pupils, pupils_cache);
                 spawn_local(async move {
-                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils).await {
+                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils, pupils_cache).await {
                         error!(
                             "failed to get pupils in pupil table on load:",
                             error.to_string()
@@ -34,29 +35,19 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
                         }
                     }
                 });
-                || ()
             },
             (),
         );
     }
     let refresh_callback = {
-        clone!(ctx, pupils);
+        clone!(pupils, pupils_cache);
         Callback::from(move |_| {
-            clone!(ctx, pupils);
-            spawn_local(async move {
-                if let Err(error) = fetch_pupils(&ctx.auth_token, pupils).await {
-                    error!(
-                        "failed to refresh pupils in pupil table:",
-                        error.to_string()
-                    );
-                }
-            })
+            
         })
     };
 
     // FILTER ===================================================================================
     let filters = use_state(|| Vec::<PupilFilter>::new());
-    debug!(format!("{:?}", *filters));
     pupils.set(
         (*pupils)
             .clone()
@@ -105,13 +96,24 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             </div>
             <div class="flex p-3 gap-2">
                 <Button text="+ Add learner" color="green" onclick={&open_create_box} />
+                <Button text="Refresh" color="green" onclick={Callback::from(move |_ev| {
+                    clone!(ctx, pupils, pupils_cache);
+                        spawn_local(async move {
+                            if let Err(error) = fetch_pupils(&ctx.auth_token, pupils, pupils_cache).await {
+                                error!(
+                                    "failed to refresh pupils in pupil table:",
+                                    error.to_string()
+                                );
+                            }
+                        })
+                })} />
                 <Button text="Filter" color="purple" onclick={&open_filter} />
             </div>
         </div>
     }
 }
 
-async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result<()> {
+async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>, cache: UseStateHandle<Vec<Pupil>>) -> Result<()> {
     match Request::get(constant::PUPILS_PATH)
         .header("Authorization", &format!("Bearer {token}"))
         .send()
@@ -121,7 +123,8 @@ async fn fetch_pupils(token: &str, pupils: UseStateHandle<Vec<Pupil>>) -> Result
             200 => {
                 let mut fetched = response.json::<Vec<Pupil>>().await?;
                 fetched.sort();
-                pupils.set(fetched);
+                pupils.set(fetched.clone());
+                cache.set(fetched);
                 Ok(())
             }
             401 => Err(Unauthorized!()),
