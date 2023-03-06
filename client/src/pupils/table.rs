@@ -56,6 +56,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
 
     // FILTER ===================================================================================
     let filters = use_state(|| Vec::<PupilFilter>::new());
+    debug!(format!("{:?}", *filters));
     pupils.set(
         (*pupils)
             .clone()

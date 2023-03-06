@@ -18,10 +18,12 @@ pub fn table_filter(props: &TableFilterProps) -> Html {
             state.set(filter_state);
         })
     };
-    let update_selected_filters = props.update_selected_filters.clone();
     let apply_filters = {
         clone!(state);
+        let update_selected_filters = props.update_selected_filters.clone();
+        let refresh = props.refresh_callback.clone();
         Callback::from(move |_ev| {
+            refresh.emit(());
             let mut filters = vec![];
             for (filter, should_apply) in &(*state).flags {
                 if *should_apply {
