@@ -9,7 +9,7 @@ use sea_orm_migration::{
 use crate::utils::generate_pupils;
 
 #[derive(Iden)]
-enum Pupil {
+pub enum Pupil {
     Table,
     Id,
     FirstNames,

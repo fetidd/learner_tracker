@@ -1,8 +1,10 @@
 mod pupil;
 mod user;
 mod utils;
+mod record;
+mod metric;
 
-pub use crate::{pupil::*, user::*, utils::seed_database};
+pub use crate::{pupil::*, user::*, record::*, metric::*, utils::seed_database};
 pub use sea_orm_migration::prelude::*;
 
 mod m20220101_000001_create_table;
