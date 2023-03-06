@@ -8,6 +8,24 @@ use sea_orm_migration::{
 
 use crate::utils::generate_pupils;
 
+#[derive(Iden)]
+enum Pupil {
+    Table,
+    Id,
+    FirstNames,
+    LastName,
+    Year,
+    StartDate,
+    EndDate,
+    Active,
+    MoreAbleAndTalented,
+    EnglishAsAdditionalLanguage,
+    FreeSchoolMeals,
+    AdditionalLearningNeeds,
+    LookedAfterChild,
+    Gender,
+}
+
 pub async fn build_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     manager
         .create_table(
@@ -37,6 +55,9 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     Ok(())
 }
 
+
+// =================================================================================================================
+
 pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
     for pupil in generate_pupils(60) {
@@ -50,22 +71,4 @@ pub async fn seed_pupils_many(db: &DatabaseConnection) -> Result<(), DbErr> {
     let pupils = generate_pupils(60);
     entity::pupil::Entity::insert_many(pupils).exec(db).await?;
     Ok(())
-}
-
-#[derive(Iden)]
-enum Pupil {
-    Table,
-    Id,
-    FirstNames,
-    LastName,
-    Year,
-    StartDate,
-    EndDate,
-    Active,
-    MoreAbleAndTalented,
-    EnglishAsAdditionalLanguage,
-    FreeSchoolMeals,
-    AdditionalLearningNeeds,
-    LookedAfterChild,
-    Gender,
 }

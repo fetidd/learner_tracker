@@ -7,6 +7,18 @@ use sea_orm_migration::{
     sea_orm::{ActiveModelTrait, Set},
 };
 
+#[derive(Iden)]
+enum User {
+    Table,
+    FirstNames,
+    LastName,
+    EmailAddress,
+    HashedPassword,
+    Years,
+    Secret,
+    LastRefresh,
+}
+
 pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     manager
         .create_table(
@@ -29,6 +41,8 @@ pub async fn drop_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     Ok(())
 }
 
+// =================================================================================================================
+
 pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
     ActiveModel {
         first_names: Set("test".into()),
@@ -42,16 +56,4 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
     .insert(db)
     .await?;
     Ok(())
-}
-
-#[derive(Iden)]
-enum User {
-    Table,
-    FirstNames,
-    LastName,
-    EmailAddress,
-    HashedPassword,
-    Years,
-    Secret,
-    LastRefresh,
 }
