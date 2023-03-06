@@ -39,10 +39,29 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             (),
         );
     }
-    let refresh_callback = {
+    let server_refresh_callback = {
+        clone!(ctx, pupils, pupils_cache);
+        Callback::from(move |_| {
+            clone!(ctx, pupils, pupils_cache);
+            spawn_local(async move {
+                clone!(pupils);
+                if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
+                    error!(
+                        "failed to refresh pupils in pupil table:",
+                        error.to_string()
+                    );
+                }
+            })
+        })
+    };
+    let cache_refresh_callback = {
         clone!(pupils, pupils_cache);
         Callback::from(move |_| {
-            
+            clone!(pupils, pupils_cache);
+            spawn_local(async move {
+                clone!(pupils);
+                pupils.set((*pupils_cache).clone());
+            })
         })
     };
 
@@ -66,27 +85,45 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let (invoke_modal, dismiss_modal) =
         use_context::<ModalCallbacks>().expect("failed to get modal callbacks");
     let open_create_box = {
-        clone!(invoke_modal, dismiss_modal, refresh_callback);
+        clone!(invoke_modal, dismiss_modal, server_refresh_callback);
         Callback::from(move |ev: MouseEvent| {
-            invoke_modal.emit((ev, html!(<PupilCreateBox refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
+            invoke_modal.emit((ev, html!(<PupilCreateBox refresh_callback={&server_refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
         })
     };
     let open_pupil_details = {
-        clone!(invoke_modal, dismiss_modal, refresh_callback);
+        clone!(invoke_modal, dismiss_modal, server_refresh_callback);
         Callback::from(move |(ev, pupil): (MouseEvent, Pupil)| {
-            invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
+            invoke_modal.emit((ev, html!(<PupilDetails pupil={pupil.clone()} refresh_callback={&server_refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
         })
     };
     let open_filter = {
-        clone!(invoke_modal, dismiss_modal, refresh_callback);
+        clone!(invoke_modal, dismiss_modal, cache_refresh_callback);
         Callback::from(move |ev: MouseEvent| {
-            invoke_modal.emit((ev, html!(<PupilTableFilter update_selected_filters={&select_filter_callback} refresh_callback={&refresh_callback} close_callback={&dismiss_modal} currently_applied={(*filters).clone()} />), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
+            invoke_modal.emit((ev, html!(<PupilTableFilter update_selected_filters={&select_filter_callback} refresh_callback={&cache_refresh_callback} close_callback={&dismiss_modal} currently_applied={(*filters).clone()} />), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
         })
     };
     // RENDER ===================================================================================
 
     html! {
         <div class="flex flex-col m-3">
+            <div class="flex p-3 gap-2">
+                <Button text="+ Add learner" color="green" onclick={&open_create_box} />
+                <Button text="Refresh" color="green" onclick={
+                    clone!(ctx, pupils, pupils_cache);
+                    Callback::from(move |_ev| {
+                        clone!(ctx, pupils, pupils_cache);
+                            spawn_local(async move {
+                                clone!(pupils);
+                                if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
+                                    error!(
+                                        "failed to refresh pupils in pupil table:",
+                                        error.to_string()
+                                    );
+                                }
+                            })
+                    })} />
+                <Button text="Filter" color="purple" onclick={&open_filter} />
+            </div>
             <div class="overflow-y-auto [max-height:calc(90vh-60px)] px-5 pt-5 scrollbar shadow-lg rounded-md bg-white">
                 <ul class="sm:columns-2 2xl:columns-3 snap-y">
                     {pupils.iter().map(|pupil| {
@@ -94,21 +131,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
                     }).collect::<Html>()}
                 </ul>
             </div>
-            <div class="flex p-3 gap-2">
-                <Button text="+ Add learner" color="green" onclick={&open_create_box} />
-                <Button text="Refresh" color="green" onclick={Callback::from(move |_ev| {
-                    clone!(ctx, pupils, pupils_cache);
-                        spawn_local(async move {
-                            if let Err(error) = fetch_pupils(&ctx.auth_token, pupils, pupils_cache).await {
-                                error!(
-                                    "failed to refresh pupils in pupil table:",
-                                    error.to_string()
-                                );
-                            }
-                        })
-                })} />
-                <Button text="Filter" color="purple" onclick={&open_filter} />
-            </div>
+            
         </div>
     }
 }
