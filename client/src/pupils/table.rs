@@ -1,4 +1,5 @@
 use super::types::PupilTableProps;
+use super::*;
 use crate::{
     app::AppContext,
     constant,
@@ -6,8 +7,6 @@ use crate::{
     error,
     error::*,
 };
-use super::*;
-
 use gloo_net::http::Request;
 use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
@@ -57,7 +56,13 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
 
     // FILTER ===================================================================================
     let filters = use_state(|| Vec::<PupilFilter>::new());
-    pupils.set((*pupils).clone().into_iter().filter(|p| filter::filter(p, (*filters).clone())).collect());
+    pupils.set(
+        (*pupils)
+            .clone()
+            .into_iter()
+            .filter(|p| filter::filter(p, (*filters).clone()))
+            .collect(),
+    );
     let select_filter_callback = {
         clone!(filters);
         Callback::from(move |selected_filters: Vec<PupilFilter>| {
@@ -83,7 +88,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let open_filter = {
         clone!(invoke_modal, dismiss_modal, refresh_callback);
         Callback::from(move |ev: MouseEvent| {
-            invoke_modal.emit((ev, html!(<PupilTableFilter refresh_callback={&refresh_callback} close_callback={&dismiss_modal}/>), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-120px)]")));
+            invoke_modal.emit((ev, html!(<PupilTableFilter update_selected_filters={&select_filter_callback} refresh_callback={&refresh_callback} close_callback={&dismiss_modal} currently_applied={(*filters).clone()} />), classes!("shadow-lg", "rounded-md", "mx-auto", "my-[calc(50vh-300px)]")));
         })
     };
     // RENDER ===================================================================================

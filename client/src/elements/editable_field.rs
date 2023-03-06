@@ -11,7 +11,7 @@ pub fn editable_field(props: &EditableFieldProps) -> Html {
         "".into()
     };
     if edit_mode {
-        html!(<input class={classes!("border-2", "border-slate-200", "rounded-md", Classes::from(class))} id={props.id.to_owned()} {value} type={props.input_type.to_owned()} {onchange}/>)
+        html!(<input class={classes!("border-2", "border-slate-200", "rounded-md", Classes::from(class))} min="0" id={props.id.to_owned()} {value} type={props.input_type.to_owned()} {onchange}/>)
     } else {
         html!(<span {class}>{format!("{}", value)}</span>)
     }

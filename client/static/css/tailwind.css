@@ -583,6 +583,10 @@ video {
   display: none;
 }
 
+.h-96 {
+  height: 24rem;
+}
+
 .h-\[240px\] {
   height: 240px;
 }
@@ -597,6 +601,14 @@ video {
 
 .h-full {
   height: 100%;
+}
+
+.h-\[200px\] {
+  height: 200px;
+}
+
+.h-\[600px\] {
+  height: 600px;
 }
 
 .w-36 {
