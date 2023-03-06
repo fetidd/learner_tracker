@@ -8,6 +8,7 @@ use crate::{
     error::*,
 };
 use gloo_net::http::Request;
+use web_sys::HtmlInputElement;
 use std::rc::Rc;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -15,6 +16,7 @@ use yew::prelude::*;
 #[function_component(PupilTable)]
 pub fn pupil_table(_props: &PupilTableProps) -> Html {
     let ctx = use_context::<Rc<AppContext>>().expect("NO CTX IN PUPIL TABLE");
+    let show_inactive =  use_state_eq(|| false);
 
     // PUPILS ===================================================================================
     let pupils: UseStateHandle<Vec<Pupil>> = use_state_eq(|| vec![]);
@@ -25,7 +27,7 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             move |_| {
                 clone!(ctx, pupils, pupils_cache);
                 spawn_local(async move {
-                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils, pupils_cache).await {
+                    if let Err(error) = fetch_pupils(&ctx.auth_token, pupils.clone(), pupils_cache).await {
                         error!(
                             "failed to get pupils in pupil table on load:",
                             error.to_string()
@@ -59,8 +61,8 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
         })
     };
 
-
     // FILTER ===================================================================================
+    
     let filters = use_state(|| Vec::<PupilFilter>::new());
     pupils.set(
         (*pupils)
@@ -103,7 +105,12 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
         <div class="flex flex-col m-3 gap-3">
             <div class="flex p-3 gap-2 justify-between shadow-lg rounded-md bg-white">
                 <Button icon={html!(<yew_feather::Plus />)} text="Add" color="green" onclick={&open_create_box} />
-                <div class="flex">
+                <div class="flex items-center gap-3">
+                    <label for="show_inactive"><em>{"Show inactive learners"}</em></label>
+                    <input id="show_inactive" type="checkbox" checked={(*show_inactive).clone()} onchange={clone!(show_inactive);Callback::from(move |ev: Event| {
+                        let t: HtmlInputElement = ev.target_unchecked_into();
+                        show_inactive.set(t.checked());
+                    })} />
                     <Button icon={html!(<yew_feather::Filter size="16" />)} text="Filter" color="purple" onclick={&open_filter} />
                     <Button icon={html!(<yew_feather::RefreshCcw size="16" />)} text="Refresh" color="green" onclick={
                         clone!(ctx, pupils, pupils_cache);
@@ -123,7 +130,13 @@ pub fn pupil_table(_props: &PupilTableProps) -> Html {
             </div>
             <div class="overflow-y-auto [max-height:calc(90vh-60px)] px-5 pt-5 scrollbar shadow-lg rounded-md bg-white">
                 <ul class="sm:columns-2 2xl:columns-3 snap-y">
-                    {pupils.iter().map(|pupil| {
+                    {pupils.iter().filter(|p| {
+                        if !(*show_inactive) {
+                            p.active
+                        } else {
+                            true
+                        }
+                    }).map(|pupil| {
                         html!{<PupilRow pupil={pupil.clone()} open_pupil_details_callback={&open_pupil_details}/>}
                     }).collect::<Html>()}
                 </ul>
