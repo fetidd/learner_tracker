@@ -5,3 +5,5 @@ pub mod auth;
 pub mod pupil;
 pub mod user;
 pub mod utils;
+pub mod metric;
+pub mod record;
