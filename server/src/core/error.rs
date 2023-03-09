@@ -26,6 +26,8 @@ pub enum ErrorKind {
     EncodeError,
     ParseError,
     Unauthorised,
+    MetricDoesNotExist,
+    RecordDoesNotExist,
 
     UnknownError,
 }
@@ -85,6 +87,8 @@ error_macro! { // creates an Error for each with optional message, logs it, then
     InvalidCredentials,
     UserDoesNotExist,
     PupilDoesNotExist,
+    MetricDoesNotExist,
+    RecordDoesNotExist,
     InvalidJwt, // jsonwebtoken::errors::Error
     Unauthorised,
     DatabaseError,
@@ -111,6 +115,8 @@ impl IntoResponse for Error {
             ErrorKind::InvalidApiRequest
             | ErrorKind::InvalidCredentials
             | ErrorKind::UserDoesNotExist
+            | ErrorKind::MetricDoesNotExist 
+            | ErrorKind::RecordDoesNotExist 
             | ErrorKind::PupilDoesNotExist => StatusCode::BAD_REQUEST,
             ErrorKind::MissingEnvVariable
             | ErrorKind::AddrParseError

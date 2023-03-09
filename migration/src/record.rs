@@ -26,7 +26,7 @@ pub async fn build_record_table(manager: &SchemaManager<'_>) -> Result<(), DbErr
                 .if_not_exists()
                 .col(ColumnDef::new(Record::Id).uuid().not_null().primary_key())
                 .col(ColumnDef::new(Record::Pupil).uuid().not_null())
-                .col(ColumnDef::new(Record::Metric).string().not_null())
+                .col(ColumnDef::new(Record::Metric).uuid().not_null())
                 .col(ColumnDef::new(Record::Score).integer().not_null())
                 .col(ColumnDef::new(Record::Note).string())
                 .col(ColumnDef::new(Record::Date).date().not_null())
@@ -42,7 +42,7 @@ pub async fn build_record_table(manager: &SchemaManager<'_>) -> Result<(), DbErr
                     ForeignKey::create()
                         .name("FK_record_metric")
                         .from(Record::Table, Record::Metric)
-                        .to(Metric::Table, Metric::Name)
+                        .to(Metric::Table, Metric::Id)
                         .on_delete(ForeignKeyAction::Cascade)
                         .on_update(ForeignKeyAction::Cascade),
                 )

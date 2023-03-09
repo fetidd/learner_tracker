@@ -9,6 +9,7 @@ use sea_orm_migration::{
 #[derive(Iden)]
 pub enum Metric {
     Table,
+    Id,
     Name,
     Description,
     Score1,
@@ -24,10 +25,12 @@ pub async fn build_metric_table(manager: &SchemaManager<'_>) -> Result<(), DbErr
                 .table(Metric::Table)
                 .if_not_exists()
                 .col(
+                    ColumnDef::new(Metric::Id).uuid().not_null().primary_key()
+                )
+                .col(
                     ColumnDef::new(Metric::Name)
                         .string()
                         .not_null()
-                        .primary_key(),
                 )
                 .col(ColumnDef::new(Metric::Description).string())
                 .col(ColumnDef::new(Metric::Score1).string().not_null())

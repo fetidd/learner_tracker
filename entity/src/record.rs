@@ -7,7 +7,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub pupil: Uuid,
-    pub metric: String,
+    pub metric: Uuid,
     pub score: u32,
     pub note: String, 
     pub date: Date,
