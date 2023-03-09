@@ -5,6 +5,8 @@ use lt_server::core::constant;
 use rstest::*;
 use sea_orm::EntityTrait;
 use serde_json::json;
+mod common;
+use common::*;
 
 #[rstest]
 async fn login_and_get_users(#[future] mock_ctx: MockCtx) {

@@ -6,6 +6,8 @@ use rstest::*;
 use sea_orm::EntityTrait;
 use serde_json::{json, Value};
 use uuid::Uuid;
+mod common;
+use common::*;
 
 #[rstest]
 async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
@@ -41,9 +43,18 @@ async fn login_and_create_pupil(#[future] mock_ctx: MockCtx) {
     assert_eq!(inserted.year, pupil["year"]);
     assert_eq!(inserted.start_date, "2022-01-01".parse().unwrap());
     assert_eq!(inserted.gender, pupil["gender"]);
-    assert_eq!(inserted.more_able_and_talented, pupil["more_able_and_talented"]);
-    assert_eq!(inserted.english_as_additional_language, pupil["english_as_additional_language"]);
-    assert_eq!(inserted.additional_learning_needs, pupil["additional_learning_needs"]);
+    assert_eq!(
+        inserted.more_able_and_talented,
+        pupil["more_able_and_talented"]
+    );
+    assert_eq!(
+        inserted.english_as_additional_language,
+        pupil["english_as_additional_language"]
+    );
+    assert_eq!(
+        inserted.additional_learning_needs,
+        pupil["additional_learning_needs"]
+    );
     assert_eq!(inserted.looked_after_child, pupil["looked_after_child"]);
     assert_eq!(inserted.active, pupil["active"]);
     assert_eq!(inserted.end_date, None);

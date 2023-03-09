@@ -17,7 +17,7 @@ pub async fn mock_ctx() -> MockCtx {
     let mock_db = Database::connect("sqlite::memory:")
         .await
         .expect("connect to test database");
-    Migrator::up(&mock_db, None)
+    Migrator::fresh(&mock_db)
         .await
         .expect("migrate test database");
     let mock_db = Arc::new(mock_db);
@@ -31,11 +31,13 @@ pub async fn mock_ctx() -> MockCtx {
     MockCtx { check_db, client }
 }
 
+
 pub struct MockCtx {
     check_db: Arc<DatabaseConnection>,
     client: TestClient,
 }
 
+#[allow(dead_code)] // theyre used by tests, but each source file is compiled separately
 impl MockCtx {
     pub fn check_db(&self) -> &DatabaseConnection {
         self.check_db.as_ref()

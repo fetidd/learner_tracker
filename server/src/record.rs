@@ -1,2 +1,2 @@
-mod handlers;
-mod model;
+pub mod handlers;
+pub mod model;

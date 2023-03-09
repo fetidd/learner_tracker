@@ -10,5 +10,10 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Record {
-
+    pub id: Uuid,
+    pub pupil: Uuid,
+    pub metric: String,
+    pub score: u32,
+    pub note: String, 
+    pub date: NaiveDate,
 }

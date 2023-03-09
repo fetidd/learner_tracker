@@ -1,14 +1,15 @@
-use crate::common::{self, mock_ctx, MockCtx};
 use http::StatusCode;
 use lt_server::core::constant;
 use regex::Regex;
 use rstest::*;
 use serde_json::{json, Value};
+mod common;
+use common::*;
 
 #[rstest]
 async fn successful_login(#[future] mock_ctx: MockCtx) {
     let ctx = mock_ctx.await;
-    common::add_user(&[127; 64], "2022-01-01T00:00:00", ctx.check_db()).await;
+    add_user(&[127; 64], "2022-01-01T00:00:00", ctx.check_db()).await;
     let res = ctx
         .client()
         .post(constant::LOGIN_ENDPOINT)
@@ -26,7 +27,7 @@ async fn successful_login(#[future] mock_ctx: MockCtx) {
 #[rstest]
 async fn unsuccessful_login_bad_password(#[future] mock_ctx: MockCtx) {
     let ctx = mock_ctx.await;
-    common::add_user(&[127; 64], "2022-01-01T00:00:00", ctx.check_db()).await;
+    crate::add_user(&[127; 64], "2022-01-01T00:00:00", ctx.check_db()).await;
     let res = ctx
         .client()
         .post(constant::LOGIN_ENDPOINT)
