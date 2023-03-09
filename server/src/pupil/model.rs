@@ -1,9 +1,9 @@
-use crate::{core::error::Result, user::model::*};
+use crate::{core::error::Result};
 use chrono::NaiveDate;
-use entity::pupil::{ActiveModel, Column, Entity, Model};
-use migration::Condition;
+use entity::pupil::{ActiveModel, Entity, Model};
+
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, Set, Unchanged,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -47,12 +47,12 @@ impl Pupil {
     pub async fn insert(&self, db: &DatabaseConnection) -> Result<Self> {
         tracing::debug!("inserting pupil {:?}", self);
         Ok(ActiveModel {
-            id: Set(self.id.clone()),
+            id: Set(self.id),
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
             year: Set(self.year),
-            start_date: Set(self.start_date.clone()),
-            end_date: Set(self.end_date.clone()),
+            start_date: Set(self.start_date),
+            end_date: Set(self.end_date),
             active: Set(self.active),
             more_able_and_talented: Set(self.more_able_and_talented),
             english_as_additional_language: Set(self.english_as_additional_language),
@@ -68,12 +68,12 @@ impl Pupil {
 
     pub async fn update(&self, db: &DatabaseConnection) -> Result<Self> {
         Ok(ActiveModel {
-            id: Unchanged(self.id.clone()),
+            id: Unchanged(self.id),
             first_names: Set(self.first_names.clone()),
             last_name: Set(self.last_name.clone()),
             year: Set(self.year),
-            start_date: Set(self.start_date.clone()),
-            end_date: Set(self.end_date.clone()),
+            start_date: Set(self.start_date),
+            end_date: Set(self.end_date),
             active: Set(self.active),
             more_able_and_talented: Set(self.more_able_and_talented),
             english_as_additional_language: Set(self.english_as_additional_language),
@@ -388,22 +388,22 @@ impl From<Model> for Pupil {
     }
 }
 
-impl Into<Model> for Pupil {
-    fn into(self) -> Model {
+impl From<Pupil> for Model {
+    fn from(val: Pupil) -> Self {
         Model {
-            id: self.id,
-            first_names: self.first_names,
-            last_name: self.last_name,
-            year: self.year,
-            start_date: self.start_date,
-            end_date: self.end_date,
-            active: self.active,
-            more_able_and_talented: self.more_able_and_talented,
-            english_as_additional_language: self.english_as_additional_language,
-            free_school_meals: self.free_school_meals,
-            additional_learning_needs: self.additional_learning_needs,
-            looked_after_child: self.looked_after_child,
-            gender: self.gender,
+            id: val.id,
+            first_names: val.first_names,
+            last_name: val.last_name,
+            year: val.year,
+            start_date: val.start_date,
+            end_date: val.end_date,
+            active: val.active,
+            more_able_and_talented: val.more_able_and_talented,
+            english_as_additional_language: val.english_as_additional_language,
+            free_school_meals: val.free_school_meals,
+            additional_learning_needs: val.additional_learning_needs,
+            looked_after_child: val.looked_after_child,
+            gender: val.gender,
         }
     }
 }

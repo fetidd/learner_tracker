@@ -6,34 +6,34 @@ use uuid::Uuid;
 use super::model::Record;
 
 pub async fn handle_create_record(
-    state: AppState,
-    metric: Record,
-    user: User,
+    _state: AppState,
+    _metric: Record,
+    _user: User,
 ) -> Result<StatusCode> {
     Ok(StatusCode::CREATED)
 }
 
-pub async fn handle_get_records(state: AppState, user: User) -> Result<Json<serde_json::Value>> {
+pub async fn handle_get_records(_state: AppState, _user: User) -> Result<Json<serde_json::Value>> {
     Ok(Json(json!(Vec::<Record>::new())))
 }
 
 pub async fn handle_get_record(
-    state: AppState,
-    id: Uuid,
-    user: User,
+    _state: AppState,
+    _id: Uuid,
+    _user: User,
 ) -> Result<Json<serde_json::Value>> {
     Ok(Json(json!(Option::<Record>::None)))
 }
 
 pub async fn handle_update_record(
-    state: AppState,
-    id: Uuid,
-    user: User,
-    metric: Record,
+    _state: AppState,
+    _id: Uuid,
+    _user: User,
+    _metric: Record,
 ) -> Result<Json<serde_json::Value>> {
     Ok(Json(json!(Option::<Record>::None)))
 }
 
-pub async fn handle_delete_record(state: AppState, id: Uuid, user: User) -> Result<()> {
+pub async fn handle_delete_record(_state: AppState, _id: Uuid, _user: User) -> Result<()> {
     Ok(())
 }

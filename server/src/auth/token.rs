@@ -39,7 +39,7 @@ pub fn generate_auth_token(user: &User) -> Result<String> {
 
 pub fn authorize_token(token: &str, secret: &[u8]) -> Result<AuthToken> {
     Ok(decode::<AuthToken>(
-        &token,
+        token,
         &DecodingKey::from_secret(secret),
         &Validation::new(Algorithm::HS512),
     )?
@@ -66,7 +66,7 @@ pub async fn auth_service<B>(
 ) -> Result<Response> {
     let decoded = decode_token(auth_header.token())?;
     let user = User::one_from_db(&decoded.email_address, state.database()).await?;
-    if let Ok(_) = authorize_token(auth_header.token(), &user.secret) {
+    if authorize_token(auth_header.token(), &user.secret).is_ok() {
         request.extensions_mut().insert(user);
         let response = next.run(request).await;
         // create fresh token to pass in response

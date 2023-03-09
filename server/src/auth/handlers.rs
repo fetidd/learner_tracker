@@ -35,7 +35,7 @@ pub async fn logout_handler(
     let user: User = User::one_from_db(&decoded.email_address, state.database()).await?;
     user.refresh_secret(state.database()).await?;
     debug!("refreshed secret for {}", decoded.email_address);
-    if let Ok(_) = authorize_token(auth_token.token(), &user.secret) {
+    if authorize_token(auth_token.token(), &user.secret).is_ok() {
         Ok(StatusCode::OK)
     } else {
         Err(InvalidJwt!())

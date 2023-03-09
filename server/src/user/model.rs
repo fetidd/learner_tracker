@@ -49,7 +49,7 @@ impl User {
                 .collect::<Vec<String>>()
                 .join(",")),
             secret: Set(self.secret.clone()),
-            last_refresh: Set(self.last_refresh.clone()),
+            last_refresh: Set(self.last_refresh),
         }
         .insert(db)
         .await?
@@ -224,13 +224,13 @@ impl From<Model> for User {
             hashed_password: value.hashed_password,
             years: value
                 .years
-                .split(",")
+                .split(',')
                 .map(|x| {
                     x.parse::<i32>()
                         .expect("should be comma-sep'd list of ints")
                 })
                 .collect(),
-            secret: value.secret.into(),
+            secret: value.secret,
             last_refresh: value.last_refresh,
         }
     }

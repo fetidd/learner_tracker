@@ -1,9 +1,9 @@
-use crate::{core::error::Result, pupil::model::*};
+use crate::{core::error::Result};
 use chrono::NaiveDate;
-use entity::record::{ActiveModel, Column, Entity, Model};
-use migration::Condition;
+use entity::record::{ActiveModel, Entity, Model};
+
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set, Unchanged,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, Set, Unchanged,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

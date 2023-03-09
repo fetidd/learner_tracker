@@ -61,7 +61,7 @@ macro_rules! error_macro {
     ($($kind:ident),+) => {
         $(macro_rules! $kind {
             () => {{
-                let e = crate::core::error::Error {
+                let e = $crate::core::error::Error {
                     kind: crate::core::error::ErrorKind::$kind,
                     message: None,
                 };
