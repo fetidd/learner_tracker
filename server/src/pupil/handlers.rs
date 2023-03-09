@@ -1,19 +1,14 @@
-use std::str::FromStr;
-
 use crate::{app::state::AppState, core::error::*, pupil::model::*, user::model::*};
 use axum::{
-    extract::{Json, Path, State},
+    extract::Json,
     http::StatusCode,
-    Extension,
 };
 use serde_json::json;
 use uuid::Uuid;
 
-pub async fn create_pupil(
-    State(state): State<AppState>,
-    Json(pupil): Json<Pupil>,
-) -> Result<StatusCode> {
-    match pupil.insert(state.database().as_ref()).await {
+pub async fn handle_create_pupil(state: AppState, pupil: Pupil) -> Result<StatusCode> {
+    tracing::debug!("creating pupil");
+    match pupil.insert(state.database()).await {
         Ok(_) => Ok(StatusCode::CREATED),
         Err(error) => match error.kind {
             ErrorKind::DatabaseError => Err(DatabaseError!()),
@@ -22,13 +17,10 @@ pub async fn create_pupil(
     }
 }
 
-pub async fn get_pupils(
-    State(state): State<AppState>,
-    Extension(user): Extension<User>,
-) -> Result<Json<serde_json::Value>> {
-    tracing::debug!("requested all pupils");
-    match Pupil::all_from_db(&user, state.database().as_ref()).await {
-        Ok(pupils) => Ok(Json(json!(pupils))),
+pub async fn handle_get_pupils(state: AppState, user: User) -> Result<Json<serde_json::Value>> {
+    tracing::debug!("requested all pupils for years {:?}", user.years);
+    match Pupil::all(state.database()).await {
+        Ok(pupils) => Ok(Json(json!(pupils.into_iter().filter(|p| user.years.contains(&p.year)).collect::<Vec<Pupil>>()))),
         Err(error) => match error.kind {
             ErrorKind::DatabaseError => Err(DatabaseError!()),
             _ => Err(UnknownError!()),
@@ -36,15 +28,15 @@ pub async fn get_pupils(
     }
 }
 
-pub async fn get_pupil_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-    Extension(user): Extension<User>,
+pub async fn handle_get_pupil(
+    state: AppState,
+    id: Uuid,
+    user: User,
 ) -> Result<Json<serde_json::Value>> {
     tracing::debug!("requested pupil {id}");
-    let id = Uuid::from_str(&id)?;
-    match Pupil::one_from_db(&user, id, state.database().as_ref()).await {
-        Ok(pupil) => Ok(Json(json!(pupil))),
+    match Pupil::by_id(id, state.database()).await {
+        Ok(pupil) if user.years.contains(&pupil.year) => Ok(Json(json!(pupil))),
+        Ok(pupil) => Err(Unauthorised!(format!("you don't have permission to view year {}", pupil.year))),
         Err(error) => match error.kind {
             ErrorKind::DatabaseError => Err(DatabaseError!(error.to_string())),
             ErrorKind::PupilDoesNotExist => Err(PupilDoesNotExist!()),
@@ -53,15 +45,17 @@ pub async fn get_pupil_by_id(
     }
 }
 
-pub async fn update_pupil(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-    Extension(user): Extension<User>,
-    Json(update): Json<PupilUpdate>,
+pub async fn handle_update_pupil(
+    state: AppState,
+    id: Uuid,
+    user: User,
+    update: PupilUpdate,
 ) -> Result<Json<serde_json::Value>> {
     tracing::debug!("updating pupil {id}");
-    let id = Uuid::from_str(&id)?;
-    let mut pupil = Pupil::one_from_db(&user, id, state.database()).await?;
+    let mut pupil = Pupil::by_id(id, state.database()).await?;
+    if !user.years.contains(&pupil.year) {
+        return Err(Unauthorised!(format!("you don't have permission to modify year {}", pupil.year)));
+    }
     pupil.set_from_update(update);
     match pupil.update(state.database().as_ref()).await {
         Ok(pupil) => Ok(Json(json!(pupil))),
@@ -73,15 +67,17 @@ pub async fn update_pupil(
     }
 }
 
-pub async fn delete_pupil(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-    Extension(user): Extension<User>,
+pub async fn handle_delete_pupil(
+    state: AppState,
+    id: Uuid,
+    user: User,
 ) -> Result<StatusCode> {
     tracing::debug!("deleting pupil {id}");
-    let id = Uuid::from_str(&id)?;
-    let pupil = Pupil::one_from_db(&user, id, state.database()).await?;
-    match pupil.delete(state.database().as_ref()).await {
+    let pupil = Pupil::by_id(id, state.database()).await?;
+    if !user.years.contains(&pupil.year) {
+        return Err(Unauthorised!(format!("you don't have permission to modify year {}", pupil.year)));
+    }
+    match pupil.delete(state.database()).await {
         Ok(_) => Ok(StatusCode::OK),
         Err(error) => match error.kind {
             ErrorKind::DatabaseError => Err(DatabaseError!(error.to_string())),

@@ -51,7 +51,7 @@ pub struct RequestUser {
     last_name: String,
     email_address: String,
     hashed_password: String,
-    years: Vec<u32>,
+    years: Vec<i32>,
 }
 
 impl RequestUser {
@@ -75,7 +75,7 @@ pub struct ResponseUser {
     first_names: String,
     last_name: String,
     email_address: String,
-    years: Vec<u32>,
+    years: Vec<i32>,
 }
 
 impl From<User> for ResponseUser {
@@ -114,7 +114,7 @@ mod tests {
         #[case] last_name: String,
         #[case] email_address: String,
         #[case] hashed_password: String,
-        #[case] years: Vec<u32>,
+        #[case] years: Vec<i32>,
         #[case] exp: Result<()>,
     ) {
         let req = RequestUser {

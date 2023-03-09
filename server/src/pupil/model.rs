@@ -11,50 +11,32 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Serialize, PartialEq, Deserialize)]
 pub struct Pupil {
     #[serde(default = "uuid::Uuid::new_v4")]
-    id: Uuid,
-    first_names: String,
-    last_name: String,
-    year: i32,
-    start_date: NaiveDate,
+    pub(crate) id: Uuid,
+    pub(crate) first_names: String,
+    pub(crate) last_name: String,
+    pub(crate) year: i32,
+    pub(crate) start_date: NaiveDate,
     #[serde(skip_serializing_if="Option::is_none")]
-    end_date: Option<NaiveDate>,
-    active: bool,
-    more_able_and_talented: bool,
-    english_as_additional_language: bool,
-    free_school_meals: bool,
-    additional_learning_needs: bool,
-    looked_after_child: bool,
-    gender: String,
+    pub(crate) end_date: Option<NaiveDate>,
+    pub(crate) active: bool,
+    pub(crate) more_able_and_talented: bool,
+    pub(crate) english_as_additional_language: bool,
+    pub(crate) free_school_meals: bool,
+    pub(crate) additional_learning_needs: bool,
+    pub(crate) looked_after_child: bool,
+    pub(crate) gender: String,
 }
 
 impl Pupil {
-    pub async fn one_from_db<Id>(user: &User, id: Id, db: &DatabaseConnection) -> Result<Self>
-    where
-        Id: Into<Uuid>,
-    {
-        let id: Uuid = id.into();
+    pub async fn by_id(id: Uuid, db: &DatabaseConnection) -> Result<Self> {
         match Entity::find_by_id(id).one(db).await? {
-            Some(pupil) => {
-                if user.years.contains(&(pupil.year as u32)) {
-                    Ok(pupil.into())
-                } else {
-                    Err(Unauthorised!(format!(
-                        "you don't have permission to view year {}",
-                        pupil.year
-                    )))
-                }
-            }
+            Some(pupil) => Ok(pupil.into()),
             None => Err(PupilDoesNotExist!()),
         }
     }
 
-    pub async fn all_from_db(user: &User, db: &DatabaseConnection) -> Result<Vec<Self>> {
-        let mut cond = Condition::any();
-        for year in &user.years {
-            cond = cond.add(Column::Year.eq(*year));
-        }
+    pub async fn all(db: &DatabaseConnection) -> Result<Vec<Self>> {
         Ok(Entity::find()
-            .filter(cond)
             .all(db)
             .await?
             .into_iter()
@@ -153,18 +135,18 @@ impl Pupil {
 
 #[derive(Clone, PartialEq, Debug, Deserialize, Default)]
 pub struct PupilUpdate {
-    first_names: Option<String>,
-    last_name: Option<String>,
-    year: Option<i32>,
-    start_date: Option<NaiveDate>,
-    end_date: Option<NaiveDate>,
-    active: Option<bool>,
-    more_able_and_talented: Option<bool>,
-    english_as_additional_language: Option<bool>,
-    free_school_meals: Option<bool>,
-    additional_learning_needs: Option<bool>,
-    looked_after_child: Option<bool>,
-    gender: Option<String>,
+    pub(crate) first_names: Option<String>,
+    pub(crate) last_name: Option<String>,
+    pub(crate) year: Option<i32>,
+    pub(crate) start_date: Option<NaiveDate>,
+    pub(crate) end_date: Option<NaiveDate>,
+    pub(crate) active: Option<bool>,
+    pub(crate) more_able_and_talented: Option<bool>,
+    pub(crate) english_as_additional_language: Option<bool>,
+    pub(crate) free_school_meals: Option<bool>,
+    pub(crate) additional_learning_needs: Option<bool>,
+    pub(crate) looked_after_child: Option<bool>,
+    pub(crate) gender: Option<String>,
 }
 
 #[cfg(test)]
@@ -193,7 +175,7 @@ mod tests {
     }
 
     #[rstest]
-    async fn test_one_from_db() {
+    async fn test_by_id() {
         let results = vec![Model {
             id: Uuid::new_v4(),
             first_names: "test".into(),
@@ -208,7 +190,7 @@ mod tests {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
-        let query_res = Pupil::one_from_db(&user, results[0].id, &db).await; // TEST user restrictions
+        let query_res = Pupil::by_id(results[0].id, &db).await; // TEST user restrictions
         assert!(query_res.is_ok());
         let pupil = query_res.unwrap();
         assert_eq!(pupil, results[0].clone().into());
@@ -222,7 +204,7 @@ mod tests {
     }
 
     #[rstest]
-    async fn test_all_from_db() {
+    async fn test_all() {
         let results = vec![
             Model {
                 id: Uuid::new_v4(),
@@ -249,7 +231,7 @@ mod tests {
         let db = MockDatabase::new(DatabaseBackend::Postgres)
             .append_query_results(vec![results.clone()])
             .into_connection();
-        let query_res = Pupil::all_from_db(&user, &db).await;
+        let query_res = Pupil::all(&db).await;
         assert!(query_res.is_ok());
         let pupils = query_res.unwrap();
         assert_eq!(
@@ -263,8 +245,8 @@ mod tests {
         let t_log = db.into_transaction_log();
         let exp_query = Transaction::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"SELECT "pupil"."id", "pupil"."first_names", "pupil"."last_name", "pupil"."year", "pupil"."start_date", "pupil"."end_date", "pupil"."active", "pupil"."more_able_and_talented", "pupil"."english_as_additional_language", "pupil"."free_school_meals", "pupil"."additional_learning_needs", "pupil"."looked_after_child", "pupil"."gender" FROM "pupil" WHERE "pupil"."year" = $1"#,
-            [1u32.into()],
+            r#"SELECT "pupil"."id", "pupil"."first_names", "pupil"."last_name", "pupil"."year", "pupil"."start_date", "pupil"."end_date", "pupil"."active", "pupil"."more_able_and_talented", "pupil"."english_as_additional_language", "pupil"."free_school_meals", "pupil"."additional_learning_needs", "pupil"."looked_after_child", "pupil"."gender" FROM "pupil""#,
+            [],
         );
         assert_eq!(t_log[0], exp_query);
     }

@@ -82,7 +82,7 @@ pub struct AuthToken {
     pub(crate) exp: usize,
     pub(crate) first_names: String,
     pub(crate) last_name: String,
-    pub(crate) years: Vec<u32>,
+    pub(crate) years: Vec<i32>,
 }
 
 #[cfg(test)]

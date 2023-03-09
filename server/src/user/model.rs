@@ -12,7 +12,7 @@ pub struct User {
     pub(crate) email_address: String,
     #[serde(skip_serializing)]
     pub(crate) hashed_password: String,
-    pub(crate) years: Vec<u32>,
+    pub(crate) years: Vec<i32>,
     pub(crate) secret: Vec<u8>,
     pub(crate) last_refresh: NaiveDateTime,
 }
@@ -23,7 +23,7 @@ impl User {
         last_name: &str,
         email_address: &str,
         hashed_password: &str,
-        years: Vec<u32>,
+        years: Vec<i32>,
     ) -> Self {
         Self {
             first_names: first_names.to_owned(),
@@ -226,7 +226,7 @@ impl From<Model> for User {
                 .years
                 .split(",")
                 .map(|x| {
-                    x.parse::<u32>()
+                    x.parse::<i32>()
                         .expect("should be comma-sep'd list of ints")
                 })
                 .collect(),
