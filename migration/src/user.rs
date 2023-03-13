@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 use chrono::Utc;
 use entity::user::ActiveModel;
+// use entity::user::ActiveModel;
 use sea_orm::DatabaseConnection;
 use sea_orm_migration::{
     prelude::*,
     sea_orm::{ActiveModelTrait, Set},
 };
+use std::sync::Arc;
 
 #[derive(Iden)]
 enum User {
@@ -28,7 +30,7 @@ pub async fn build_user_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
                 .col(ColumnDef::new(User::LastName).string().not_null())
                 .col(ColumnDef::new(User::EmailAddress).string().not_null().primary_key())
                 .col(ColumnDef::new(User::HashedPassword).string().not_null())
-                .col(ColumnDef::new(User::Years).string().not_null().default(""))
+                .col(ColumnDef::new(User::Years).array(ColumnType::Integer).not_null())
                 .col(ColumnDef::new(User::Secret).blob(BlobSize::Tiny).not_null())
                 .col(ColumnDef::new(User::LastRefresh).date_time().not_null())
                 .to_owned(),
@@ -49,7 +51,7 @@ pub async fn seed_users(db: &DatabaseConnection) -> Result<(), DbErr> {
         last_name: Set("user".into()),
         email_address: Set("test@test.com".into()),
         hashed_password: Set("password".into()),
-        years: Set("1,6".into()),
+        years: Set(vec![1,6]),
         secret: Set(vec![127; 64]),
         last_refresh: Set(Utc::now().naive_local()),
     }

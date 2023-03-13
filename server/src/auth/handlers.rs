@@ -1,13 +1,14 @@
-use crate::{app::state::AppState, auth::token::*, core::error::*, user::model::*};
+use crate::{app::state::AppState, auth::token::*, core::error::*};
 use axum::{
     extract::State,
     headers::{authorization::Bearer, Authorization},
     Json, TypedHeader,
 };
 use http::StatusCode;
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+use entity::user;
 
 pub async fn login_handler(
     State(state): State<AppState>,
@@ -32,13 +33,17 @@ pub async fn logout_handler(
 ) -> Result<StatusCode> {
     let decoded = decode_token(auth_token.token())?;
     debug!("logout request for {}", decoded.email_address);
-    let user: User = User::one_from_db(&decoded.email_address, state.database()).await?;
-    user.refresh_secret(state.database()).await?;
+    let user = user::Entity::find_by_id(&decoded.email_address).one(state.database().as_ref()).await?;
+    // user.refresh_secret(state.database()).await?; // TODO refreshing secret
     debug!("refreshed secret for {}", decoded.email_address);
-    if authorize_token(auth_token.token(), &user.secret).is_ok() {
-        Ok(StatusCode::OK)
+    if let Some(user) = user {
+        if authorize_token(auth_token.token(), &user.secret).is_ok() {
+            Ok(StatusCode::OK)
+        } else {
+            Err(InvalidJwt!())
+        }
     } else {
-        Err(InvalidJwt!())
+        Err(UserDoesNotExist!())
     }
 }
 
@@ -57,9 +62,9 @@ async fn get_and_validate_user(
     email: String,
     pass: String,
     db: &DatabaseConnection,
-) -> Result<User> {
-    let user: Result<User> = User::one_from_db(&email, db).await;
-    if let Ok(user) = user {
+) -> Result<user::Model> {
+    let user: Option<user::Model> = user::Entity::find_by_id(&email).one(db).await.map_err(|e| Error::from(e))?;
+    if let Some(user) = user {
         if pass == user.hashed_password {
             Ok(user)
         } else {

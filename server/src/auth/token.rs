@@ -1,7 +1,6 @@
 use crate::{
     app::state::AppState,
     core::{constant, error::Result},
-    user::model::User,
 };
 use axum::{
     extract::{State, TypedHeader},
@@ -13,12 +12,13 @@ use base64::{engine::general_purpose, Engine};
 use chrono::Utc;
 use hyper::Request;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
 // TODO add a way to reset the secret for every user that hasnt been refreshed in 24hours, check
 // every 15 mins. Will need a last_refreshes field in yser table uodated in refresh_secret
 
-pub fn generate_auth_token(user: &User) -> Result<String> {
+pub fn generate_auth_token(user: &entity::user::Model) -> Result<String> {
     let expiration = Utc::now()
         .checked_add_signed(chrono::Duration::minutes(
             constant::AUTH_TOKEN_EXPIRY_MINUTES,
@@ -65,14 +65,18 @@ pub async fn auth_service<B>(
     next: Next<B>,
 ) -> Result<Response> {
     let decoded = decode_token(auth_header.token())?;
-    let user = User::one_from_db(&decoded.email_address, state.database()).await?;
-    if authorize_token(auth_header.token(), &user.secret).is_ok() {
-        request.extensions_mut().insert(user);
-        let response = next.run(request).await;
-        // create fresh token to pass in response
-        Ok(response)
+    let user = entity::user::Entity::find_by_id(&decoded.email_address).one(state.database().as_ref()).await?;
+    if let Some(user) = user {
+        if authorize_token(auth_header.token(), &user.secret).is_ok() {
+            request.extensions_mut().insert(user);
+            let response = next.run(request).await;
+            // create fresh token to pass in response
+            Ok(response)
+        } else {
+            Err(InvalidJwt!())
+        }
     } else {
-        Err(InvalidJwt!())
+        Err(UserDoesNotExist!())
     }
 }
 
@@ -93,13 +97,15 @@ mod tests {
     #[rstest]
     fn test_generate_auth_token() {
         let secret: [u8; 64] = [127; 64];
-        let mut user = User::new(
-            "test",
-            "user",
-            "test@test.com",
-            "hashedpassword",
-            vec![3, 4],
-        );
+        let user = entity::user::Model {
+            first_names: "test".into(),
+            last_name: "user".into(),
+            email_address: "test@test.com".into(),
+            hashed_password: "pass".into(),
+            years: vec![1,2],
+            last_refresh: Utc::now().naive_local(),
+            secret: crate::utils::functions::generate_secret().to_vec(),
+        };
         user.secret = secret.into();
         let token = generate_auth_token(&user).expect("encoded token");
         let claims: AuthToken = serde_json::from_str(

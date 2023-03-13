@@ -1,9 +1,6 @@
 #![allow(dead_code)]
-use sea_orm::DatabaseConnection;
-use sea_orm::EntityTrait;
 use sea_orm_migration::{
     prelude::*,
-    sea_orm::{ActiveModelTrait, TransactionTrait},
 };
 
 #[derive(Iden)]

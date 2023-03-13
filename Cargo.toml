@@ -1,2 +1,2 @@
 [workspace]
-members = [".", "migration", "entity", "client", "server", "macros", "shared_utils"]
+members = [".", "migration", "client", "server", "macros", "shared_utils"]

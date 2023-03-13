@@ -8,6 +8,8 @@ use sea_orm_migration::{
 
 use crate::utils::generate_pupils;
 
+// use crate::utils::generate_pupils;
+
 #[derive(Iden)]
 pub enum Pupil {
     Table,
@@ -61,7 +63,7 @@ pub async fn drop_pupil_table(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
 pub async fn seed_pupils(db: &DatabaseConnection) -> Result<(), DbErr> {
     let trx = db.begin().await?;
     for pupil in generate_pupils(60) {
-        pupil.insert(&trx).await?;
+        // pupil.insert(&trx).await?;
     }
     trx.commit().await?;
     Ok(())

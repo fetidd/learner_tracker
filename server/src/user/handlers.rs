@@ -1,28 +1,32 @@
 use crate::{
     app::state::AppState,
-    core::error::{ErrorKind, Result},
-    user::model::*,
+    core::error::{ErrorKind, Result, Error},
     utils,
 };
 use axum::{
     extract::{Json, State},
     http::StatusCode,
 };
+use chrono::Utc;
+use sea_orm::{IntoActiveModel, ActiveModelTrait, EntityTrait};
 use serde::{Deserialize, Serialize};
+use entity::*;
 
 pub async fn create_user(
     State(state): State<AppState>,
     Json(req): Json<RequestUser>,
 ) -> Result<StatusCode> {
     req.validate()?;
-    let user = User::new(
-        &req.first_names,
-        &req.last_name,
-        &req.email_address,
-        &req.hashed_password,
-        req.years,
-    );
-    match user.save(state.database().as_ref()).await {
+    let user = user::Model {
+        first_names: req.first_names,
+        last_name: req.last_name,
+        email_address: req.email_address,
+        hashed_password: req.hashed_password,
+        years: req.years,
+        last_refresh: Utc::now().naive_local(),
+        secret: crate::utils::functions::generate_secret().to_vec(),
+    };
+    match user.into_active_model().save(state.database().as_ref()).await.map_err(|e| Error::from(e)) {
         Ok(_) => Ok(StatusCode::CREATED),
         Err(error) => match error.kind {
             ErrorKind::DatabaseError => Err(DatabaseError!()),
@@ -32,7 +36,7 @@ pub async fn create_user(
 }
 
 pub async fn get_users(State(state): State<AppState>) -> Result<Json<UsersResponse>> {
-    match User::all_from_db(state.database().as_ref()).await {
+    match user::Entity::find().all(state.database().as_ref()).await.map_err(|e| Error::from(e)) {
         Ok(users) => Ok(Json(UsersResponse {
             users: users.into_iter().map(ResponseUser::from).collect(),
         })),
@@ -78,8 +82,8 @@ pub struct ResponseUser {
     years: Vec<i32>,
 }
 
-impl From<User> for ResponseUser {
-    fn from(value: User) -> Self {
+impl From<user::Model> for ResponseUser {
+    fn from(value: user::Model) -> Self {
         Self {
             first_names: value.first_names,
             last_name: value.last_name,
